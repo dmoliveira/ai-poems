@@ -236,6 +236,107 @@ test('reader switches languages and shows provenance and RTL text', async () => 
   await context.close();
 });
 
+test('typeface choice persists, scales and remains available in focus mode across scripts', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}poems/shakespeare-sonnet-18/`);
+  const typeface = page.getByLabel('Poem typeface');
+  const verse = page.locator('#original-panel .verse');
+  await page.locator('.typeface-control summary').focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('.typeface-control').getAttribute('open'), '');
+  assert.equal(await typeface.inputValue(), 'literary');
+  assert.match(await verse.evaluate(element => getComputedStyle(element).fontFamily), /Cormorant/);
+  await typeface.selectOption('clear');
+  assert.match(await verse.evaluate(element => getComputedStyle(element).fontFamily), /DM Sans/);
+  const size = await verse.evaluate(element => parseFloat(getComputedStyle(element).fontSize));
+  await page.getByRole('button', { name: 'A+ Increase poem text size' }).click();
+  assert.ok(await verse.evaluate(element => parseFloat(getComputedStyle(element).fontSize)) > size);
+  await page.getByRole('button', { name: 'Focus mode' }).click();
+  assert.equal(await typeface.isVisible(), true);
+  await page.reload();
+  await page.getByRole('button', { name: 'Exit focus mode' }).waitFor();
+  assert.equal(await typeface.inputValue(), 'clear');
+  await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
+  await page.getByRole('button', { name: 'Exit focus mode' }).waitFor();
+  assert.equal(await typeface.inputValue(), 'clear');
+  assert.match(await verse.evaluate(element => getComputedStyle(element).fontFamily), /PingFang TC/);
+  await page.getByLabel('Translation language').selectOption({ label: 'Arabic' });
+  const translated = page.locator('#translation-panel .verse');
+  assert.equal(await translated.getAttribute('dir'), 'rtl');
+  assert.match(await translated.evaluate(element => getComputedStyle(element).fontFamily), /Geeza Pro/);
+  const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
+  for (const width of [320, 390, 701, 768, 900, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => {
+      const toolbar = document.querySelector('.reading-toolbar').getBoundingClientRect();
+      const options = document.querySelector('.reading-options').getBoundingClientRect();
+      return document.documentElement.scrollWidth <= innerWidth + 1 && options.right <= toolbar.right + 1;
+    }), `typeface controls fit at ${width}px`);
+  }
+  await context.close();
+});
+
+test('mobile navigation has clear, keyboard-accessible targets', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  const links = page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link');
+  assert.deepEqual(await links.allTextContents(), ['Explore', 'Collections', 'Countries', 'Poets', 'My shelf ']);
+  const boxes = await links.evaluateAll(elements => elements.map(element => {
+    const box = element.getBoundingClientRect();
+    return { left: box.left, right: box.right, width: box.width, height: box.height };
+  }));
+  assert.ok(boxes.every(box => box.width >= 44 && box.height >= 44));
+  assert.ok(boxes.every((box, index) => !index || box.left >= boxes[index - 1].right));
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const collections = page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Collections' });
+  await collections.focus();
+  await page.keyboard.press('Enter');
+  assert.equal(new URL(page.url()).hash, '#collections');
+  assert.equal(await page.locator('#collections').isVisible(), true);
+  await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['test-one'] })));
+  await page.goto(base);
+  await page.getByText('1', { exact: true }).waitFor();
+  const oneSavedTops = await links.evaluateAll(elements => elements.map(element => element.getBoundingClientRect().top));
+  assert.equal(new Set(oneSavedTops).size, 1, 'one saved poem keeps navigation on one row');
+  await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: Array.from({ length: 1000 }, (_, index) => `test-${index}`) })));
+  await page.goto(base);
+  await page.getByText('1000', { exact: true }).waitFor();
+  const savedBoxes = await links.evaluateAll(elements => elements.map(element => {
+    const box = element.getBoundingClientRect();
+    return { left: box.left, right: box.right, top: box.top, bottom: box.bottom, width: box.width, height: box.height };
+  }));
+  assert.ok(savedBoxes.every(box => box.width >= 44 && box.height >= 44 && box.right <= 320));
+  assert.ok(savedBoxes.every((box, index) => savedBoxes.slice(0, index).every(other => box.left >= other.right || box.top >= other.bottom)));
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+});
+
+test('interaction motion is subtle and stops for reduced-motion preferences', async () => {
+  for (const reducedMotion of ['reduce', 'no-preference']) {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 844 }, reducedMotion });
+    const page = await context.newPage();
+    await page.goto(base);
+    const link = page.locator('.hero-text-link');
+    await link.hover();
+    const arrow = link.locator('span');
+    const duration = await arrow.evaluate(element => getComputedStyle(element).transitionDuration);
+    if (reducedMotion === 'reduce') {
+      assert.equal(duration, '0s');
+      assert.equal(await arrow.evaluate(element => getComputedStyle(element).transform), 'none');
+      const card = page.locator('.collection-card').first();
+      await card.hover();
+      assert.equal(await card.evaluate(element => getComputedStyle(element).transform), 'none');
+    } else {
+      assert.notEqual(duration, '0s');
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.hero-text-link span')).transform !== 'none');
+    }
+    await context.close();
+  }
+});
+
 test('mobile focus mode keeps reading controls and provenance, persists, and is easy to exit', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -371,6 +472,7 @@ test('existing saved translation settings do not silently enable a preferred lan
   await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
   await page.getByRole('button', { name: 'Focus mode' }).waitFor();
   assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), '');
+  assert.equal(await page.getByLabel('Poem typeface').inputValue(), 'literary');
   assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
   assert.equal(await page.locator('#translation-panel').isVisible(), false);
   assert.equal(await page.locator('#translation-select').inputValue(), '6');
@@ -403,6 +505,8 @@ test('mobile layout fits and static poems remain readable without JavaScript', a
   assert.equal(response.status(), 200);
   assert.equal(await page.getByText('古池や蛙とびこむ水の音').count(), 1);
   assert.equal(await page.getByText('Lafcadio Hearn, 1898').count(), 1);
+  assert.equal(await page.getByLabel('Poem typeface').isDisabled(), true);
+  assert.equal(await page.locator('.typeface-control').isVisible(), false);
   assert.equal(await page.locator('#reading-journey').isVisible(), false);
   assert.equal(await page.locator('#focus-toggle').isVisible(), false);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
@@ -486,6 +590,9 @@ test('blocked browser storage does not falsely claim a durable save', async () =
   await page.getByRole('status').getByText(/lasts only for this visit/).waitFor();
   await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Portuguese');
   await page.getByRole('status').getByText(/Language preference is available for this visit only/).waitFor();
+  await page.locator('.typeface-control summary').click();
+  await page.getByLabel('Poem typeface').selectOption('clear');
+  await page.getByRole('status').getByText(/Typeface is available for this visit only/).waitFor();
   await page.getByRole('button', { name: 'Focus mode' }).click();
   assert.equal(await page.getByRole('button', { name: 'Exit focus mode' }).isVisible(), true);
   await page.getByRole('status').getByText(/Focus preference is available for this visit only/).waitFor();
