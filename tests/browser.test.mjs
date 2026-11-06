@@ -1,6 +1,7 @@
 import { before, after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
@@ -10,6 +11,7 @@ const port = 43817;
 const base = `http://127.0.0.1:${port}/ai-poems/`;
 let server, browser;
 const poems = await loadCatalog();
+const feedUpdates = JSON.parse(await readFile(new URL('../content/updates.json', import.meta.url), 'utf8'));
 const totalText = `${poems.length} poems found`;
 before(async () => {
   server = spawn(process.execPath, ['scripts/serve.mjs'], { env: { ...process.env, PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -407,7 +409,54 @@ test('mobile layout fits and static poems remain readable without JavaScript', a
   await page.goto(base);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).isDisabled(), true);
+  assert.equal(await page.getByRole('link', { name: 'RSS updates ↗' }).getAttribute('href'), '/ai-poems/feed.xml');
   assert.equal(await page.getByText(`Browse the complete poetry index (${poems.length})`).count(), 1);
+  await context.close();
+});
+
+test('RSS is discoverable and parses as a feed of real, dated poem updates', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  const alternate = page.locator('head link[rel="alternate"][type="application/rss+xml"]');
+  assert.equal(await alternate.getAttribute('href'), '/ai-poems/feed.xml');
+  assert.equal(await page.getByRole('link', { name: 'RSS updates ↗' }).getAttribute('href'), '/ai-poems/feed.xml');
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const response = await page.request.get(`${base}feed.xml`);
+  assert.equal(response.status(), 200);
+  const parsed = await page.evaluate(text => {
+    const doc = new DOMParser().parseFromString(text, 'application/xml');
+    const items = [...doc.querySelectorAll('channel > item')].map(item => ({
+      title: item.querySelector('title')?.textContent,
+      link: item.querySelector('link')?.textContent,
+      guid: item.querySelector('guid')?.textContent,
+      isPermaLink: item.querySelector('guid')?.getAttribute('isPermaLink'),
+      date: item.querySelector('pubDate')?.textContent,
+      description: item.querySelector('description')?.textContent,
+    }));
+    const self = doc.getElementsByTagNameNS('http://www.w3.org/2005/Atom', 'link')[0];
+    return { errors: doc.getElementsByTagName('parsererror').length, version: doc.documentElement.getAttribute('version'), self: self?.getAttribute('href'), items };
+  }, await response.text());
+  assert.equal(parsed.errors, 0);
+  assert.equal(parsed.version, '2.0');
+  assert.equal(parsed.self, 'https://dmoliveira.github.io/ai-poems/feed.xml');
+  assert.equal(parsed.items.length, feedUpdates.length);
+  assert.equal(new Set(parsed.items.map(item => item.guid)).size, parsed.items.length);
+  assert.deepEqual(parsed.items.map(item => Date.parse(item.date)), parsed.items.map(item => Date.parse(item.date)).toSorted((a, b) => b - a));
+  for (const item of parsed.items) {
+    const update = feedUpdates.find(entry => item.guid === `verso:${entry.id}`);
+    assert.ok(update);
+    assert.equal(item.title, update.title);
+    assert.equal(item.description, update.description);
+    assert.equal(item.isPermaLink, 'false');
+    assert.equal(item.date, new Date(update.publishedAt).toUTCString());
+    const path = new URL(item.link).pathname;
+    assert.match(path, /^\/ai-poems\/poems\/[a-z0-9-]+\/$/);
+    assert.equal(path, `/ai-poems/poems/${update.poemId}/`);
+    assert.equal((await page.request.get(`${base}${path.slice('/ai-poems/'.length)}`)).status(), 200);
+  }
+  await page.goto(`${base}poems/leopardi-ricordanza/`);
+  assert.equal(await alternate.getAttribute('href'), '/ai-poems/feed.xml');
   await context.close();
 });
 

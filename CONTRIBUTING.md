@@ -20,6 +20,10 @@ Optional `connections` are directional records with `type` (`followed_by`, `prec
 
 Run `npm test`, `npm run build`, and `npm run test:browser` after installing the browser. Check the generated poem page, original language, source and rights, metadata, and mobile presentation. Do not commit `_site/` or `node_modules/`.
 
+## RSS updates
+
+The feed is an editorial record, not an automatic list of poem dates. After an addition or substantial update is actually published, add an entry to `content/updates.json` with a unique permanent `id`, existing `poemId`, descriptive title and summary, and the verified publication time in UTC (`YYYY-MM-DDTHH:mm:ssZ`). Record an HTTPS evidence link, such as the successful Pages deployment. Do not use the historical poem date, a planned release time, or the current build time as the publication date. Keep existing IDs and dates stable; create a new ID for a later update. The feed is selective, so do not imply it reconstructs every past addition.
+
 ## Scope and design
 
 The build generates static HTML and a searchable JSON catalogue for GitHub Pages. Keep content independent of components, preserve accessible controls and the no-JavaScript reading path, and prefer locally hosted assets. See [the roadmap](docs/roadmap.md) and [rights and sources](docs/rights-and-sources.md).

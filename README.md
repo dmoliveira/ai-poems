@@ -21,6 +21,7 @@ Verso is a free, cozy, multilingual poetry library for discovering classic poetr
 - **Make it yours:** save poems, revisit reading history, choose a light, sepia or dark theme, adjust poem text size, or switch to a distraction-free focus mode. These preferences stay in your browser's local storage; clearing a shelf or history asks for confirmation.
 - **Read across languages:** original and translation views, side-by-side reading, preserved line breaks, language tags and right-to-left Arabic support. If your preferred language has a translation, it appears alongside the original; otherwise the original remains available with a clear note. Reader pages load only the data they need rather than downloading the full catalogue. Poem cards and reading rooms take on a subtle palette suited to each work's mood.
 - **Discoverable:** every poem has a static, readable URL, a descriptive title and metadata, canonical and social tags, structured data, and an entry in the sitemap.
+- **Follow updates:** subscribe to the [RSS feed](https://dmoliveira.github.io/ai-poems/feed.xml) for selected, dated additions and updates. The feed is editorially maintained and does not claim to list every past addition.
 
 ### An honest note about coverage
 
