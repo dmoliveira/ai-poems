@@ -81,47 +81,48 @@ export function renderHome(poems, base) {
       <div class="hero-content"><p class="eyebrow hero-eyebrow"><span aria-hidden="true">✳</span> A LITTLE SPACE FOR POETRY</p>
         <h1>Words to<br><em>come home to.</em></h1><p class="hero-copy">Discover <strong>${total}</strong> across languages, places, and time.</p>
         <div class="hero-actions"><a class="button primary" href="#explore">Find a poem <span aria-hidden="true">↗</span></a><a class="hero-text-link" href="#collections">Explore collections <span aria-hidden="true">→</span></a></div>
-        <p class="hero-note"><span aria-hidden="true">✿</span> A little pause for wherever you are.</p>
-      </div><span class="hero-side-note">A POETRY LIBRARY FOR EVERYONE</span>
+      </div>
     </section>
-    <div class="trust-strip"><span><b>✳</b> A WORLD OF WORDS</span><span><b>♡</b> ALWAYS FREE TO READ</span><span><b>⌁</b> MADE FOR SLOW MOMENTS</span><span><b>✧</b> NO ACCOUNT NEEDED</span></div>
+    <div class="trust-strip"><span><b aria-hidden="true">♡</b> ALWAYS FREE TO READ</span><span><b aria-hidden="true">✧</b> NO ACCOUNT NEEDED</span></div>
     <div class="page-wrap">
       <section class="intro-section" id="collections"><div class="section-heading"><div><p class="eyebrow"><span>01 /</span> FIND YOUR WAY IN</p><h2>Where will you <em>begin?</em></h2><p>Explore a language, a collection, or a form.</p></div><a class="text-link" href="#explore">Explore all poems <span aria-hidden="true">↗</span></a></div>
         <div class="collection-grid">${collections.map(c => `<a class="collection-card collection-${c.className}" href="${e(searchLink(base, c.filters))}"><span class="collection-icon" aria-hidden="true">${c.icon}</span><span><small>${e(c.eyebrow)}</small><strong>${e(c.label)}</strong><em>${c.count} poems</em></span><b aria-hidden="true">↗</b></a>`).join('')}</div>
       </section>
-      <section id="countries" class="countries-section"><div class="section-heading"><div><p class="eyebrow"><span>02 /</span> ACROSS THE MAP</p><h2>Poems by <em>country.</em></h2><p>Explore the places associated with our poets and traditions.</p></div><a class="text-link" href="#explore">Browse the library <span aria-hidden="true">↗</span></a></div>
-        <div class="country-grid">${orderedPlaces.slice(0, 8).map(countryCard).join('')}</div>
-        ${orderedPlaces.length > 8 ? `<details class="more-countries"><summary>More countries &amp; regions (${orderedPlaces.length - 8})</summary><div class="country-grid">${orderedPlaces.slice(8).map(countryCard).join('')}</div></details>` : ''}
-        <p class="country-note">Places are associations, not necessarily where a poem was written. Some works appear under more than one place; regions and unknown places have no national flag.</p>
-      </section>
-      <section id="explore" class="explore-section"><div class="section-heading"><div><p class="eyebrow"><span>03 /</span> WANDER A LITTLE</p><h2>Explore the <em>library.</em></h2><p>Search by poet, poem, language, place, or a line you remember.</p></div><span class="catalogue-count">${total} to discover <span aria-hidden="true">✳</span></span></div>
+      <section id="explore" class="explore-section"><div class="section-heading"><div><p class="eyebrow"><span>02 /</span> WANDER A LITTLE</p><h2>Explore the <em>library.</em></h2><p>Search by poet, poem, language, place, or a line you remember.</p></div><span class="catalogue-count">${total} to discover <span aria-hidden="true">✳</span></span></div>
         <form class="search-bar" id="search-form" role="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label class="sr-only" for="search">Search the poetry library</label><input id="search" type="search" placeholder="Search poems, poets, a line..." autocomplete="off"><button class="button primary" type="submit">Search <span aria-hidden="true">↗</span></button></form>
         <div class="explore-layout"><details id="filter-drawer" class="filter-drawer" open><summary id="filter-summary">Filters</summary><aside class="filters" aria-label="Filter poems">
           <div class="filter-head"><h3>Narrow by</h3><button type="button" id="clear-filters">Clear all</button></div>
           <input id="filter-readable" type="hidden">
           <label>Poet<select id="filter-author"><option value="">All poets</option></select></label>
           <label>Original language<select id="filter-language"><option value="">All languages</option></select></label>
-          <label>Collection<select id="filter-collection"><option value="">All collections</option></select></label>
-          <label>Form &amp; style<select id="filter-form"><option value="">All forms</option></select></label>
-          <label>Poem length<select id="filter-length"><option value="">Any length</option><option value="1-4">1–4 lines</option><option value="5-14">5–14 lines</option><option value="15-plus">15 or more lines</option></select></label>
-          <label>Theme<select id="filter-theme"><option value="">All themes</option></select></label>
-          <label>Translation language<select id="filter-translation"><option value="">Any translation</option></select></label>
           <label>Country or region<select id="filter-country"><option value="">All places</option></select></label>
-          <div class="year-inputs"><label>From year<input id="filter-from" type="number" placeholder="e.g. 1600"></label><label>To year<input id="filter-to" type="number" placeholder="e.g. 1900"></label></div>
-          <p class="filter-note">Line counts follow the original's transcribed line breaks. Year filters use the shown publication or composition date and exclude undated works. Theme tags cover a small part of the catalogue.</p>
+          <details id="advanced-filters" class="advanced-filters"><summary>More filters</summary><div class="advanced-filter-fields">
+            <label>Collection<select id="filter-collection"><option value="">All collections</option></select></label>
+            <label>Form &amp; style<select id="filter-form"><option value="">All forms</option></select></label>
+            <label>Poem length<select id="filter-length"><option value="">Any length</option><option value="1-4">1–4 lines</option><option value="5-14">5–14 lines</option><option value="15-plus">15 or more lines</option></select></label>
+            <label>Theme<select id="filter-theme"><option value="">All themes</option></select></label>
+            <label>Translation language<select id="filter-translation"><option value="">Any translation</option></select></label>
+            <div class="year-inputs"><label>From year<input id="filter-from" type="number" placeholder="e.g. 1600"></label><label>To year<input id="filter-to" type="number" placeholder="e.g. 1900"></label></div>
+            <p class="filter-note">Line counts follow the original's transcribed line breaks. Year filters use the shown publication or composition date and exclude undated works. Theme tags cover a small part of the catalogue.</p>
+          </div></details>
         </aside></details>
         <div class="results-area"><div class="results-heading"><p id="result-count" aria-live="polite">Loading the library…</p><div class="results-actions"><button type="button" class="surprise-button preferred-filter" id="preferred-filter" hidden></button><button type="button" class="surprise-button" id="surprise-poem" disabled>✳ Surprise me</button><button type="button" class="copy-search-button" id="copy-search-link" disabled>Copy search link</button><label>Sort <select id="sort"><option value="featured">A varied selection</option><option value="title">Title A–Z</option><option value="author">Poet A–Z</option><option value="year">Year</option></select></label></div></div>
           <p id="readable-note" class="filter-note" hidden>Includes originals and translations; some translations are labelled unreviewed reading aids.</p><div id="active-filters" class="active-filters" aria-label="Active filters" hidden></div><div id="results" class="poem-grid results-grid"></div><div class="pagination"><button type="button" id="show-more" class="button secondary" hidden>Show more poems <span aria-hidden="true">↓</span></button></div>
-          <noscript><p>Search needs JavaScript, but every poem can be read in the complete index below.</p></noscript>
+          <noscript><p>Search needs JavaScript, but every poem can be read in the <a href="#complete-index">complete index</a> below.</p></noscript>
         </div></div>
       </section>
-      <section id="poets" class="poets-section"><div><p class="eyebrow"><span>04 /</span> MEET THE VOICES</p><h2>Every poem begins <em>somewhere.</em></h2><p>Explore poets and traditional voices across time. Scroll the list, or use the poet filter above.</p></div>
-        <div class="poet-list">${[...authors.values()].map(p => `<a href="${e(searchLink(base, { author: p.author }))}" data-author="${e(p.author)}"><span class="poet-avatar" aria-hidden="true">${e(p.author.slice(0, 1))}</span><span><strong>${e(p.author)}</strong><small>${e(p.authorYears)} · ${e(p.country)}</small></span><span aria-hidden="true">↗</span></a>`).join('')}</div>
+      <section id="countries" class="countries-section"><div class="section-heading"><div><p class="eyebrow"><span>03 /</span> ACROSS THE MAP</p><h2>Poems by <em>country.</em></h2><p>Explore the places associated with our poets and traditions.</p></div><a class="text-link" href="#explore">Browse the library <span aria-hidden="true">↗</span></a></div>
+        <div class="country-grid">${orderedPlaces.slice(0, 8).map(countryCard).join('')}</div>
+        ${orderedPlaces.length > 8 ? `<details class="more-countries"><summary>More countries &amp; regions (${orderedPlaces.length - 8})</summary><div class="country-grid">${orderedPlaces.slice(8).map(countryCard).join('')}</div></details>` : ''}
+        <p class="country-note">Places are associations, not necessarily where a poem was written. Some works appear under more than one place; regions and unknown places have no national flag.</p>
+      </section>
+      <section id="poets" class="poets-section"><div><p class="eyebrow"><span>04 /</span> MEET THE VOICES</p><h2>Every poem begins <em>somewhere.</em></h2><p>Explore poets and traditional voices across time, or use the poet filter above.</p></div>
+        <details class="poet-directory"><summary>Browse ${authors.size} poets and traditional voices</summary><noscript><p>Poet filters need JavaScript; browse the <a href="#complete-index">complete index</a> instead.</p></noscript><div class="poet-list">${[...authors.values()].map(p => `<a href="${e(searchLink(base, { author: p.author }))}" data-author="${e(p.author)}"><span class="poet-avatar" aria-hidden="true">${e(p.author.slice(0, 1))}</span><span><strong>${e(p.author)}</strong><small>${e(p.authorYears)} · ${e(p.country)}</small></span><span aria-hidden="true">↗</span></a>`).join('')}</div></details>
       </section>
       <section id="shelf" class="shelf-section"><div><p class="eyebrow"><span>05 /</span> JUST FOR YOU</p><h2>A shelf of <em>your own.</em></h2><p>Keep the poems you love close by. Your saved poems and reading preferences are stored only on this device—no account needed.</p><details class="clear-control"><summary>Clear saved poems</summary><p>Remove all saved poems from this device?</p><button type="button" id="clear-shelf" class="text-button">Yes, clear saved poems</button></details></div>
         <div><h3 class="shelf-heading">Saved poems</h3><div id="shelf-items" class="shelf-items"><p>Your saved poems will appear here. Tap ♡ on a poem to keep it close.</p></div><div class="recent-heading"><h3 class="shelf-heading">Recently read</h3><details class="clear-control"><summary>Clear history</summary><p>Remove your recently read list?</p><button type="button" id="clear-history" class="text-button">Yes, clear history</button></details></div><div id="recent-items" class="shelf-items"><p>Your recently read poems will appear here.</p></div></div>
       </section>
-      <details class="complete-index"><summary>Browse the complete poetry index (${poems.length})</summary><ul>${index.map(p => `<li><a href="${e(base)}poems/${e(p.id)}/">${e(p.displayTitle || p.title)}${p.disambiguation ? ` (${disambiguation(p)})` : ''} — ${e(p.author)}</a></li>`).join('')}</ul></details>
+      <details id="complete-index" class="complete-index"><summary>Browse the complete poetry index (${poems.length})</summary><ul>${index.map(p => `<li><a href="${e(base)}poems/${e(p.id)}/">${e(p.displayTitle || p.title)}${p.disambiguation ? ` (${disambiguation(p)})` : ''} — ${e(p.author)}</a></li>`).join('')}</ul></details>
     </div>
   </main>${footer(base)}</body></html>`;
 }
