@@ -3,7 +3,7 @@ import { associatedPlaces, discoveryOrder, escapeHtml as e, filterPoems, poemCar
 const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
 const journeyKey = 'verso-reading-journey-v1';
-const defaults = { saved: [], recent: [], theme: 'light', font: 0, language: 'English', preferredLanguage: '', focus: false };
+const defaults = { saved: [], recent: [], theme: 'light', font: 0, typeface: 'literary', language: 'English', preferredLanguage: '', focus: false };
 let state;
 try {
   const stored = JSON.parse(localStorage.getItem(key) || '{}');
@@ -11,6 +11,7 @@ try {
 } catch { state = { ...defaults }; }
 if (!['light', 'sepia', 'dark'].includes(state.theme)) state.theme = 'light';
 state.font = Math.max(-2, Math.min(4, Number(state.font) || 0));
+if (!['literary', 'clear'].includes(state.typeface)) state.typeface = 'literary';
 state.focus = state.focus === true;
 if (!readingLanguages.includes(state.preferredLanguage)) state.preferredLanguage = '';
 const notice = document.createElement('div');
@@ -30,8 +31,10 @@ function persist() {
 }
 function applyPreferences() {
   document.documentElement.dataset.theme = state.theme;
+  document.documentElement.dataset.verseTypeface = state.typeface;
   document.documentElement.style.setProperty('--verse-scale', String(1 + state.font * 0.1));
   document.querySelectorAll('[data-theme-select]').forEach(select => { select.value = state.theme; });
+  document.querySelectorAll('[data-typeface-select]').forEach(select => { select.value = state.typeface; select.disabled = false; select.closest('.typeface-control').hidden = false; });
   document.querySelectorAll('[data-preferred-language]').forEach(select => { select.value = state.preferredLanguage; select.disabled = false; });
   const focus = document.querySelector('#focus-toggle');
   if (focus) {
@@ -49,6 +52,11 @@ document.querySelector('#focus-toggle')?.addEventListener('click', () => {
 document.querySelectorAll('[data-theme-select]').forEach(select => select.addEventListener('change', () => {
   state.theme = select.value; applyPreferences();
   if (!persist()) announce('Your preference is available for this visit only; browser storage is unavailable.');
+}));
+document.querySelectorAll('[data-typeface-select]').forEach(select => select.addEventListener('change', () => {
+  state.typeface = ['literary', 'clear'].includes(select.value) ? select.value : 'literary';
+  applyPreferences();
+  if (!persist()) announce('Typeface is available for this visit only; browser storage is unavailable.');
 }));
 document.querySelectorAll('[data-preferred-language]').forEach(select => select.addEventListener('change', () => {
   const previousLanguage = state.preferredLanguage;

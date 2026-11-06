@@ -212,6 +212,15 @@ h2 em {
   font-size: 12px;
   font-weight: 600;
 }
+.main-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+}
+.shelf-count:empty {
+  display: none;
+}
 .main-nav a:hover,
 .text-link:hover,
 .hero-text-link:hover {
@@ -358,6 +367,19 @@ h2 em {
   font-weight: 700;
   border-bottom: 1px solid #b8b19f;
   padding-bottom: 3px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-text-link > span,
+  .text-link > span {
+    display: inline-block;
+    transition: transform 0.18s ease;
+  }
+  .hero-text-link:hover > span,
+  .hero-text-link:focus-visible > span,
+  .text-link:hover > span,
+  .text-link:focus-visible > span {
+    transform: translateX(3px);
+  }
 }
 .hero-note {
   margin: 56px 0 0;
@@ -1134,6 +1156,7 @@ h2 em {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
 }
 .view-switch {
   display: flex;
@@ -1162,6 +1185,7 @@ h2 em {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 .font-controls {
   display: flex;
@@ -1182,13 +1206,19 @@ h2 em {
 .reader-page.is-focus .reading-options .focus-preferred {
   display: flex;
 }
-.reader-page.is-focus .reading-toolbar,
-.reader-page.is-focus .reading-options {
-  flex-wrap: wrap;
-}
 .reading-options select {
   width: auto;
   margin: 0;
+}
+.typeface-control summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 8px 0;
+}
+.typeface-control[open] summary {
+  padding-bottom: 4px;
 }
 .reading-options button {
   color: var(--ink);
@@ -1285,6 +1315,20 @@ h2 em {
 .verse[lang="ar"] {
   font-family: Georgia, "Hiragino Mincho ProN", "Noto Serif CJK SC", serif;
   line-height: 2;
+}
+:root[data-verse-typeface="clear"] .verse {
+  font-family: DM Sans, Arial, sans-serif;
+  font-size: calc(20px * var(--verse-scale));
+  line-height: 1.9;
+}
+:root[data-verse-typeface="clear"] .verse:lang(ja) {
+  font-family: "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", sans-serif;
+}
+:root[data-verse-typeface="clear"] .verse:lang(zh) {
+  font-family: "PingFang TC", "Noto Sans CJK TC", sans-serif;
+}
+:root[data-verse-typeface="clear"] .verse:lang(ar) {
+  font-family: "Geeza Pro", "Noto Sans Arabic", Arial, sans-serif;
 }
 .translation-credit,
 .translation-rights {
@@ -1473,9 +1517,16 @@ h2 em {
     order: 3;
     width: 100%;
     flex: none;
+    flex-wrap: wrap;
     justify-content: space-between;
-    padding: 0 0 12px;
-    gap: 8px;
+    padding: 0 0 4px;
+    gap: 0 4px;
+  }
+  .main-nav a {
+    flex-shrink: 0;
+    min-width: 44px;
+    justify-content: center;
+    white-space: nowrap;
   }
   .nav-actions {
     margin-left: auto;
@@ -1659,9 +1710,6 @@ h2 em {
     align-items: start;
     flex-direction: column;
   }
-  .reading-options {
-    flex-wrap: wrap;
-  }
   .reader-layout {
     grid-template-columns: 1fr;
   }
@@ -1698,6 +1746,9 @@ h2 em {
   }
   .nav-actions {
     gap: 7px;
+  }
+  .shelf-count:not(:empty) {
+    padding: 2px 4px;
   }
   .nav-actions .icon-link {
     display: none;
@@ -1755,6 +1806,10 @@ h2 em {
   *:after {
     transition: none !important;
     animation: none !important;
+  }
+  .collection-card:hover,
+  .poem-card:hover {
+    transform: none;
   }
 }
 .shelf-heading {
