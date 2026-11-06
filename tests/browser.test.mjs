@@ -1109,6 +1109,72 @@ test('unavailable browser locks and malformed external updates preserve existing
   await noLocks.close();
 });
 
+test('an unavailable catalogue keeps saved and recent IDs usable and recovers after refresh', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const home = await context.newPage();
+  await home.goto(base);
+  await home.getByText(totalText).waitFor();
+  const seed = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: ['old-pond-basho'], theme: 'sepia', extra: { keep: true } });
+  await home.evaluate(value => localStorage.setItem('verso-library-v1', value), seed);
+  await home.route('**/data/catalog.json', route => route.abort());
+  await home.goto(`${base}#shelf`);
+  await home.reload();
+  await home.getByText(/The library could not load/).waitFor();
+  assert.equal(await home.evaluate(() => localStorage.getItem('verso-library-v1')), seed);
+  const shelf = home.locator('#shelf-items');
+  assert.equal(await shelf.getByText(/Saved poems could not be loaded/).isVisible(), true);
+  assert.equal(await shelf.getByText(/Your saved poems will appear here/).count(), 0);
+  assert.equal(await shelf.getByRole('link', { name: /shakespeare-sonnet-18/ }).getAttribute('href'), '/ai-poems/poems/shakespeare-sonnet-18/');
+  assert.equal(await home.locator('#recent-items').getByRole('link', { name: /old-pond-basho/ }).getAttribute('href'), '/ai-poems/poems/old-pond-basho/');
+  assert.ok(await home.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const accessibility = await new AxeBuilder({ page: home }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
+  await shelf.getByRole('link', { name: /Browse the complete index/ }).focus();
+  await home.keyboard.press('Enter');
+  assert.equal(await home.locator('#complete-index').getAttribute('open'), '');
+  assert.equal(await home.locator('#complete-index summary').evaluate(element => element === document.activeElement), true);
+
+  const other = await context.newPage();
+  await other.goto(`${base}poems/old-pond-basho/`);
+  await other.getByRole('button', { name: /Save poem/ }).click();
+  await other.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  await shelf.getByRole('link', { name: /old-pond-basho/ }).waitFor();
+  assert.equal(await shelf.getByText(/Saved poems could not be loaded/).isVisible(), true);
+  const stored = await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')));
+  assert.deepEqual(stored.saved, ['shakespeare-sonnet-18', 'old-pond-basho']);
+  assert.deepEqual(stored.extra, { keep: true });
+  await home.unroute('**/data/catalog.json');
+  await home.reload();
+  await home.getByText(totalText).waitFor();
+  assert.equal(await shelf.getByText('Sonnet 18').count(), 1);
+  assert.equal(await shelf.getByText('The Old Pond').count(), 1);
+  assert.equal(await shelf.getByText(/Saved poems could not be loaded/).count(), 0);
+  await context.close();
+});
+
+test('catalogue errors never turn invalid or empty stored IDs into unsafe links or a false empty shelf', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 } });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.route('**/data/catalog.json', route => route.fulfill({ status: 503, body: 'Unavailable' }));
+  for (const saved of [['shakespeare-sonnet-18', '../other', '<script>'], []]) {
+    const seed = JSON.stringify({ saved, recent: [] });
+    await page.evaluate(value => localStorage.setItem('verso-library-v1', value), seed);
+    await page.goto(`${base}#shelf`);
+    await page.reload();
+    await page.getByText(/The library could not load/).waitFor();
+    const shelf = page.locator('#shelf-items');
+    assert.equal(await shelf.getByText(/Saved poems could not be loaded/).isVisible(), true);
+    assert.equal(await shelf.getByText(/Your saved poems will appear here/).count(), 0);
+    assert.equal(await shelf.locator('script').count(), 0);
+    assert.equal(await shelf.locator('a[href*="../"]').count(), 0);
+    assert.equal(await shelf.getByText(/Some stored IDs cannot be displayed as links/).count(), saved.length ? 1 : 0);
+    assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), seed);
+  }
+  await context.close();
+});
+
 test('repeated pending toggles and simultaneous saves of the same poem do not duplicate it', async () => {
   const context = await browser.newContext({ reducedMotion: 'reduce' });
   const first = await context.newPage();

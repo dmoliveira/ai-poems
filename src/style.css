@@ -1072,6 +1072,10 @@ h2 em {
   gap: 7px;
   align-content: start;
 }
+.shelf-unavailable-note,
+.shelf-items a strong {
+  overflow-wrap: anywhere;
+}
 .shelf-items a {
   background: var(--bg);
 }
