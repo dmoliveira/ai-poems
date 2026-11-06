@@ -212,6 +212,22 @@ test('homepage totals follow catalogue growth and use singular for one poem', ()
   assert.ok(home.includes(`class="catalogue-count">${total} to discover`));
   assert.match(home, /Some works appear under more than one place/);
 });
+test('editorial paths match the catalogue and require the sourced edition sequence', () => {
+  const short = filterPoems(poems, { length: '1-4' }).length;
+  const home = renderHome(poems, '/ai-poems/');
+  assert.ok(home.includes(`${short.toLocaleString('en-US')} poems · lines in the original`));
+  assert.match(home, /href="\/ai-poems\/\?length=1-4#explore"/);
+  assert.match(home, /href="\/ai-poems\/poems\/linfinito-leopardi\/"/);
+  assert.match(home, /Read in their 1826 edition order/);
+  const extra = [...poems, { ...poems.find(p => p.id === 'quiet-night-thought-li-bai'), id: 'extra-short-test' }];
+  assert.ok(renderHome(extra, '/ai-poems/').includes(`${(short + 1).toLocaleString('en-US')} poems · lines in the original`));
+  const missing = poems.filter(p => p.id !== 'leopardi-sera-giorno-festivo');
+  assert.doesNotMatch(renderHome(missing, '/ai-poems/'), /Three Leopardi idylls/);
+  const unsourced = poems.map(p => p.id === 'linfinito-leopardi' ? { ...p, connections: [] } : p);
+  assert.doesNotMatch(renderHome(unsourced, '/ai-poems/'), /Three Leopardi idylls/);
+  const long = poems.find(p => lineCount(p) > 4);
+  assert.doesNotMatch(renderHome([long], '/ai-poems/'), /A path into poetry/);
+});
 test('build creates crawlable pages, valid schema and a complete sitemap', async () => {
   execFileSync('node', ['scripts/build.mjs'], { stdio: 'pipe' });
   const home = await readFile('_site/index.html', 'utf8');
