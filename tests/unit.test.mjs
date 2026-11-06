@@ -71,6 +71,9 @@ test('build creates crawlable pages, valid schema and a complete sitemap', async
   assert.match(chinese, /dir="rtl"/);
   const basho = await readFile('_site/poems/old-pond-basho/index.html', 'utf8');
   assert.doesNotMatch(basho, /"datePublished":/);
+  const leopardi = await readFile('_site/poems/linfinito-leopardi/index.html', 'utf8');
+  assert.match(leopardi, /"datePublished":"1825"/);
+  assert.match(leopardi, /Research on the first publication of the Idilli/);
   const sonnet18 = await readFile('_site/poems/shakespeare-sonnet-18/index.html', 'utf8');
   assert.match(sonnet18, /Connections we can trace/);
   assert.match(sonnet18, /not a claim of influence/);
