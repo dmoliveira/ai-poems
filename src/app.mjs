@@ -4,6 +4,9 @@ const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
 const journeyKey = 'verso-reading-journey-v1';
 const defaults = { saved: [], recent: [], theme: 'light', font: 0, typeface: 'literary', language: 'English', preferredLanguage: '', focus: false };
+function validJourney(journey) {
+  return journey && typeof journey.search === 'string' && (!journey.search || journey.search.startsWith('?')) && !journey.search.includes('#') && journey.search.length <= 4096 && Array.isArray(journey.items) && journey.items.length <= 10000 && journey.items.every(item => item && typeof item.id === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.id) && typeof item.title === 'string' && item.title.length <= 500);
+}
 let state;
 let storageFailure = '';
 function readState() {
@@ -366,17 +369,49 @@ function setupExplore() {
     more.hidden = filtered.length <= limit;
     updateSaveButtons();
   }
-  function rememberJourney() {
+  function rememberJourney(id, source = 'results') {
     try {
-      sessionStorage.setItem(journeyKey, JSON.stringify({ search: location.search, items: filtered.map(p => ({ id: p.id, title: p.displayTitle || p.title })) }));
+      const token = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2) || '0'}`;
+      sessionStorage.setItem(journeyKey, JSON.stringify({ search: location.search, items: filtered.map(p => ({ id: p.id, title: p.displayTitle || p.title })), limit, entryId: id, entryPending: true, source, token }));
+      if (history.state === null || (typeof history.state === 'object' && !Array.isArray(history.state))) history.replaceState({ ...history.state, versoJourney: token }, '', location.href);
     } catch { /* Reading still works when browser storage is unavailable. */ }
+  }
+  function restoreJourney(fromHistory = false) {
+    try {
+      const journey = JSON.parse(sessionStorage.getItem(journeyKey) || 'null');
+      if (!validJourney(journey) || journey.search !== location.search || !Number.isSafeInteger(journey.limit) || journey.limit < pageSize || journey.limit > 10000 || typeof journey.token !== 'string' || journey.token.length > 80 || !/^[a-z0-9]+-[a-z0-9]+$/.test(journey.token) || typeof journey.resumeId !== 'string') return;
+      const home = new URL(base, location.href);
+      const readerPath = `${home.pathname}poems/${journey.resumeId}/`;
+      const previous = document.referrer ? new URL(document.referrer) : null;
+      const fromReader = location.hash === '#explore' && previous?.origin === home.origin && previous.pathname === readerPath;
+      const historyMatch = fromHistory && history.state?.versoJourney === journey.token;
+      if (!fromReader && !historyMatch) return;
+      const position = filtered.findIndex(poem => poem.id === journey.resumeId);
+      if (position < 0 || !journey.items.some(item => item.id === journey.resumeId)) return;
+      if (journey.source === 'surprise' && position >= journey.limit) {
+        limit = Math.min(filtered.length, journey.limit);
+        render();
+        surprise.focus({ preventScroll: true });
+        surprise.scrollIntoView({ behavior: 'instant', block: 'center' });
+        announce('Your results are restored; the surprise poem is beyond the loaded results.');
+        return;
+      }
+      limit = Math.min(filtered.length, Math.max(journey.limit, Math.ceil((position + 1) / pageSize) * pageSize));
+      render();
+      const link = [...results.querySelectorAll('a.poem-card-link')].find(item => new URL(item.href).pathname === readerPath);
+      if (link) { link.focus({ preventScroll: true }); link.scrollIntoView({ behavior: 'instant', block: 'center' }); }
+    } catch { /* A missing or invalid journey leaves the normal results intact. */ }
   }
   [...Object.values(fields), search, sort].forEach(input => input.addEventListener('input', () => { limit = pageSize; updateURL(); render(); }));
   document.querySelector('#search-form').addEventListener('submit', event => { event.preventDefault(); limit = pageSize; updateURL(); render(); });
   document.querySelector('#clear-filters').addEventListener('click', () => { Object.values(fields).forEach(input => { input.value = ''; }); search.value = ''; sort.value = 'featured'; limit = pageSize; updateURL(); render(); });
   more.addEventListener('click', () => { limit += pageSize; render(); });
   results.addEventListener('click', event => {
-    if (event.target.closest('a.poem-card-link')) rememberJourney();
+    const link = event.target.closest('a.poem-card-link');
+    const path = link && new URL(link.href).pathname;
+    const prefix = `${new URL(base, location.href).pathname}poems/`;
+    const poem = link && filtered.find(item => path === `${prefix}${item.id}/`);
+    if (poem) rememberJourney(poem.id);
   });
   preferredFilter.addEventListener('click', () => {
     fields.readable.value = fields.readable.value === state.preferredLanguage ? '' : state.preferredLanguage;
@@ -396,7 +431,7 @@ function setupExplore() {
   });
   surprise.addEventListener('click', () => {
     const poem = surprisePoem(filtered);
-    if (poem) { rememberJourney(); location.assign(`${base}poems/${encodeURIComponent(poem.id)}/`); }
+    if (poem) { rememberJourney(poem.id, 'surprise'); location.assign(`${base}poems/${encodeURIComponent(poem.id)}/`); }
   });
   copySearchLink.disabled = false;
   copySearchLink.addEventListener('click', async () => {
@@ -415,24 +450,29 @@ function setupExplore() {
   restoreURL();
   updateURL();
   render();
+  restoreJourney(performance.getEntriesByType('navigation')[0]?.type === 'back_forward');
+  window.addEventListener('pageshow', event => { if (event.persisted) restoreJourney(true); });
 }
 
 function setupReader() {
   const poem = poems.find(p => p.id === document.body.dataset.poemId);
   if (!poem) return;
   try {
-    const previous = new URL(document.referrer);
+    const previous = document.referrer ? new URL(document.referrer) : null;
     const home = new URL(base, location.href);
-    if (previous.origin === home.origin && previous.pathname === home.pathname) {
+    if (previous?.origin === home.origin && previous.pathname === home.pathname) {
       document.querySelector('[data-back-to-library]').href = `${base}${previous.search}#explore`;
     }
     const journey = JSON.parse(sessionStorage.getItem(journeyKey) || 'null');
-    const valid = journey && typeof journey.search === 'string' && (!journey.search || journey.search.startsWith('?')) && !journey.search.includes('#') && journey.search.length <= 4096 && Array.isArray(journey.items) && journey.items.length <= 10000 && journey.items.every(item => item && typeof item.id === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.id) && typeof item.title === 'string' && item.title.length <= 500);
-    if (valid && previous.origin === home.origin) {
-      const fromHome = previous.pathname === home.pathname && previous.search === journey.search;
-      const fromJourney = journey.items.some(item => previous.pathname === `${home.pathname}poems/${item.id}/`);
+    let matched = false;
+    if (validJourney(journey) && previous?.origin === home.origin) {
+      const tracked = typeof journey.token === 'string' && journey.token;
+      const resumedReader = tracked && history.state?.versoReaderToken === journey.token && history.state?.versoReaderId === poem.id;
+      const fromHome = previous.pathname === home.pathname && previous.search === journey.search && (!tracked || (journey.entryPending === true && journey.entryId === poem.id) || resumedReader);
+      const fromJourney = tracked ? typeof journey.resumeId === 'string' && journey.items.some(item => item.id === journey.resumeId) && previous.pathname === `${home.pathname}poems/${journey.resumeId}/` : journey.items.some(item => previous.pathname === `${home.pathname}poems/${item.id}/`);
       const index = journey.items.findIndex(item => item.id === poem.id);
       if (index >= 0 && (fromHome || fromJourney)) {
+        matched = true;
         const back = `${base}${journey.search}#explore`;
         document.querySelector('[data-back-to-library]').href = back;
         document.querySelector('[data-journey-back]').href = back;
@@ -446,6 +486,25 @@ function setupReader() {
         }
         document.querySelector('#reading-journey').hidden = false;
       }
+    }
+    if (validJourney(journey)) {
+      if (matched) {
+        journey.resumeId = poem.id;
+        journey.entryPending = false;
+        if (journey.token && (history.state === null || (typeof history.state === 'object' && !Array.isArray(history.state)))) history.replaceState({ ...history.state, versoReaderToken: journey.token, versoReaderId: poem.id }, '', location.href);
+      }
+      else delete journey.resumeId;
+      sessionStorage.setItem(journeyKey, JSON.stringify(journey));
+      if (matched) window.addEventListener('pageshow', event => {
+        if (!event.persisted) return;
+        try {
+          const current = JSON.parse(sessionStorage.getItem(journeyKey) || 'null');
+          if (validJourney(current) && current.token === journey.token && current.items.some(item => item.id === poem.id)) {
+            current.resumeId = poem.id;
+            sessionStorage.setItem(journeyKey, JSON.stringify(current));
+          }
+        } catch { /* A restored reader remains usable without a journey. */ }
+      });
     }
   } catch { /* Direct visits fall back to the unfiltered library. */ }
   persist(current => { current.recent = [poem.id, ...current.recent.filter(id => id !== poem.id)].slice(0, 20); }, { silent: true }).then(durable => { if (!durable) announce(temporaryNotice()); });
