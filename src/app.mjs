@@ -202,6 +202,13 @@ function updateSaveButtons() {
   }
 }
 if (storageFailure === 'read') updateSaveButtons();
+function clearConflict(control, message) {
+  const warning = document.createElement('p');
+  warning.className = 'clear-conflict';
+  warning.textContent = message;
+  control.querySelector('button').before(warning);
+  control.open = true;
+}
 document.addEventListener('click', async event => {
   const button = event.target.closest('[data-save]');
   if (!button) return;
@@ -213,22 +220,30 @@ document.addEventListener('click', async event => {
   announceResult(durable, durable ? (saved ? 'Removed from your shelf.' : 'Saved to your shelf.') : `${saved ? 'Removed from' : 'Added to'} the shelf on this page only. ${temporaryNotice()}`);
 });
 document.querySelector('#clear-shelf')?.addEventListener('click', async () => {
+  const control = document.querySelector('#clear-shelf').closest('details');
+  control.querySelector('.clear-conflict')?.remove();
   const confirmed = new Set(state.saved);
   const expectedRevision = state._versoRevision ?? 0;
   const result = persist(current => { current.saved = current.saved.filter(id => !confirmed.has(id)); }, { expectedRevision });
   updateSaveButtons();
-  const control = document.querySelector('#clear-shelf').closest('details'); control.open = false; control.querySelector('summary').focus();
+  control.open = false; control.querySelector('summary').focus();
   const durable = await result;
-  announceResult(durable, durable === 'conflict' ? 'Saved data changed while you were confirming. Review your shelf and confirm again.' : durable ? 'Saved poems present at confirmation were cleared.' : `Shelf cleared on this page only. ${temporaryNotice()}`);
+  const message = durable === 'conflict' ? 'Saved data changed while you were confirming. Review your shelf and confirm again.' : durable ? 'Saved poems present at confirmation were cleared.' : `Shelf cleared on this page only. ${temporaryNotice()}`;
+  if (durable === 'conflict') clearConflict(control, message);
+  announceResult(durable, message);
 });
 document.querySelector('#clear-history')?.addEventListener('click', async () => {
+  const control = document.querySelector('#clear-history').closest('details');
+  control.querySelector('.clear-conflict')?.remove();
   const confirmed = new Set(state.recent);
   const expectedRevision = state._versoRevision ?? 0;
   const result = persist(current => { current.recent = current.recent.filter(id => !confirmed.has(id)); }, { expectedRevision });
   updateSaveButtons();
-  const control = document.querySelector('#clear-history').closest('details'); control.open = false; control.querySelector('summary').focus();
+  control.open = false; control.querySelector('summary').focus();
   const durable = await result;
-  announceResult(durable, durable === 'conflict' ? 'Saved data changed while you were confirming. Review your history and confirm again.' : durable ? 'Reading history present at confirmation was cleared.' : `Reading history cleared on this page only. ${temporaryNotice()}`);
+  const message = durable === 'conflict' ? 'Saved data changed while you were confirming. Review your history and confirm again.' : durable ? 'Reading history present at confirmation was cleared.' : `Reading history cleared on this page only. ${temporaryNotice()}`;
+  if (durable === 'conflict') clearConflict(control, message);
+  announceResult(durable, message);
 });
 
 window.addEventListener('storage', event => {

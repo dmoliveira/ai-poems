@@ -869,6 +869,7 @@ test('legacy saved state without newer fields remains usable and preserves unkno
 });
 
 async function holdReadingStateLock(page) {
+  await page.clock.install();
   await page.evaluate(() => {
     window.testLockHeld = false;
     window.testLockRequest = navigator.locks.request('verso-library-v1', async () => {
@@ -942,7 +943,7 @@ test('queued writes cancel a stale shelf clear rather than discard a concurrent 
     await home.getByRole('button', { name: 'Yes, clear saved poems' }).click();
     await home.getByRole('status').getByText('Saving changes…').waitFor();
     await holder.evaluate(() => window.releaseTestLock());
-    await home.getByRole('status').getByText(/Review your shelf and confirm again/).waitFor();
+    await home.locator('.clear-conflict').getByText(/Review your shelf and confirm again/).waitFor();
     await home.waitForFunction(() => {
       const saved = JSON.parse(localStorage.getItem('verso-library-v1')).saved;
       return saved.length === 2 && saved.includes('old-pond-basho') && saved.includes('shakespeare-sonnet-18');
@@ -953,6 +954,9 @@ test('queued writes cancel a stale shelf clear rather than discard a concurrent 
       window.dispatchEvent(event);
       return event.defaultPrevented;
     }), false);
+    await home.getByRole('button', { name: 'Yes, clear saved poems' }).click();
+    await home.getByRole('status').getByText('Saved poems present at confirmation were cleared.').waitFor();
+    assert.deepEqual(await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), []);
   } finally {
     await holder.evaluate(() => window.releaseTestLock?.());
     await context.close();
@@ -1003,7 +1007,7 @@ test('clear confirmation cannot erase a concurrent remove and re-add of the same
     await home.getByText('Clear saved poems', { exact: true }).click();
     await home.getByRole('button', { name: 'Yes, clear saved poems' }).click();
     await holder.evaluate(() => window.releaseTestLock());
-    await home.getByRole('status').getByText(/Review your shelf and confirm again/).waitFor();
+    await home.locator('.clear-conflict').getByText(/Review your shelf and confirm again/).waitFor();
     assert.deepEqual(await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), ['shakespeare-sonnet-18']);
     assert.equal(await home.locator('#shelf-items').getByText('Sonnet 18').count(), 1);
   } finally {
@@ -1054,7 +1058,7 @@ test('clear history asks for reconfirmation when a poem is read concurrently', a
     await home.getByText('Clear history', { exact: true }).click();
     await home.getByRole('button', { name: 'Yes, clear history' }).click();
     await holder.evaluate(() => window.releaseTestLock());
-    await home.getByRole('status').getByText(/Review your history and confirm again/).waitFor();
+    await home.locator('.clear-conflict').getByText(/Review your history and confirm again/).waitFor();
     const recent = await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).recent);
     assert.ok(recent.includes('shakespeare-sonnet-18') && recent.includes('old-pond-basho'));
   } finally {
@@ -1127,7 +1131,6 @@ test('a timed-out browser lock cannot later write stale pending changes', async 
   await holder.goto(base);
   await holdReadingStateLock(holder);
   const before = await page.evaluate(() => localStorage.getItem('verso-library-v1'));
-  await page.clock.install();
   try {
     await page.getByRole('button', { name: /Save poem/ }).click();
     await page.getByRole('status').getByText('Saving changes…').waitFor();
