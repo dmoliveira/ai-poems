@@ -5,15 +5,22 @@ const key = 'verso-library-v1';
 const journeyKey = 'verso-reading-journey-v1';
 const defaults = { saved: [], recent: [], theme: 'light', font: 0, typeface: 'literary', language: 'English', preferredLanguage: '', focus: false };
 let state;
+let storageFailure = '';
 try {
-  const stored = JSON.parse(localStorage.getItem(key) || '{}');
-  state = { ...defaults, ...stored, saved: Array.isArray(stored.saved) ? stored.saved.filter(x => typeof x === 'string') : [], recent: Array.isArray(stored.recent) ? stored.recent.filter(x => typeof x === 'string') : [] };
-} catch { state = { ...defaults }; }
-if (!['light', 'sepia', 'dark'].includes(state.theme)) state.theme = 'light';
-state.font = Math.max(-2, Math.min(4, Number(state.font) || 0));
-if (!['literary', 'clear'].includes(state.typeface)) state.typeface = 'literary';
-state.focus = state.focus === true;
-if (!readingLanguages.includes(state.preferredLanguage)) state.preferredLanguage = '';
+  const raw = localStorage.getItem(key);
+  const stored = raw === null ? {} : JSON.parse(raw);
+  if (!stored || typeof stored !== 'object' || Array.isArray(stored)) throw new Error('Invalid saved state');
+  const valid = (name, check) => !Object.hasOwn(stored, name) || check(stored[name]);
+  const validList = value => Array.isArray(value) && value.every(item => typeof item === 'string');
+  if (!valid('saved', validList) || !valid('recent', validList)
+    || !valid('theme', value => ['light', 'sepia', 'dark'].includes(value))
+    || !valid('font', value => typeof value === 'number' && Number.isFinite(value) && value >= -2 && value <= 4)
+    || !valid('typeface', value => ['literary', 'clear'].includes(value))
+    || !valid('language', value => typeof value === 'string')
+    || !valid('preferredLanguage', value => value === '' || readingLanguages.includes(value))
+    || !valid('focus', value => typeof value === 'boolean')) throw new Error('Invalid saved state');
+  state = { ...defaults, ...stored, saved: stored.saved ? [...stored.saved] : [], recent: stored.recent ? [...stored.recent] : [] };
+} catch { storageFailure = 'read'; state = { ...defaults }; }
 const notice = document.createElement('div');
 notice.className = 'toast';
 notice.setAttribute('role', 'status');
@@ -25,9 +32,30 @@ function announce(message) {
   clearTimeout(noticeTimer);
   noticeTimer = setTimeout(() => notice.classList.remove('visible'), 4000);
 }
+function temporaryNotice() {
+  return storageFailure === 'read'
+    ? 'Saved data could not be read. This page will not overwrite it. The shelf shown here is temporary; changes are lost when you leave or reload.'
+    : 'Browser storage could not be updated. The shelf shown here may differ from stored data; unsaved changes are lost when you leave or reload.';
+}
+const storageWarning = document.createElement('p');
+storageWarning.className = 'storage-warning';
+storageWarning.hidden = true;
+document.querySelector('main').prepend(storageWarning);
+const shelfWarning = document.createElement('p');
+shelfWarning.className = 'storage-warning shelf-storage-warning';
+shelfWarning.hidden = true;
+document.querySelector('#shelf-items')?.before(shelfWarning);
+function showStorageWarning() {
+  for (const warning of [storageWarning, shelfWarning]) {
+    warning.textContent = temporaryNotice();
+    warning.hidden = false;
+  }
+}
 function persist() {
+  // Never replace unreadable data or retry a failed write from stale page state.
+  if (storageFailure) return false;
   try { localStorage.setItem(key, JSON.stringify(state)); return true; }
-  catch { return false; }
+  catch { storageFailure = 'write'; showStorageWarning(); return false; }
 }
 function applyPreferences() {
   document.documentElement.dataset.theme = state.theme;
@@ -44,32 +72,34 @@ function applyPreferences() {
   }
 }
 applyPreferences();
+if (storageFailure) { showStorageWarning(); announce(temporaryNotice()); }
 document.querySelector('#focus-toggle')?.addEventListener('click', () => {
   state.focus = !state.focus; applyPreferences();
   const durable = persist();
-  announce(durable ? (state.focus ? 'Focus mode on.' : 'Focus mode off.') : 'Focus preference is available for this visit only; browser storage is unavailable.');
+  const message = state.focus ? 'Focus mode on.' : 'Focus mode off.';
+  announce(durable ? message : `${message} ${temporaryNotice()}`);
 });
 document.querySelectorAll('[data-theme-select]').forEach(select => select.addEventListener('change', () => {
   state.theme = select.value; applyPreferences();
-  if (!persist()) announce('Your preference is available for this visit only; browser storage is unavailable.');
+  if (!persist()) announce(`Theme changed on this page. ${temporaryNotice()}`);
 }));
 document.querySelectorAll('[data-typeface-select]').forEach(select => select.addEventListener('change', () => {
   state.typeface = ['literary', 'clear'].includes(select.value) ? select.value : 'literary';
   applyPreferences();
-  if (!persist()) announce('Typeface is available for this visit only; browser storage is unavailable.');
+  if (!persist()) announce(`Typeface changed on this page. ${temporaryNotice()}`);
 }));
 document.querySelectorAll('[data-preferred-language]').forEach(select => select.addEventListener('change', () => {
   const previousLanguage = state.preferredLanguage;
   state.preferredLanguage = readingLanguages.includes(select.value) ? select.value : '';
   if (state.preferredLanguage) state.language = state.preferredLanguage;
   applyPreferences();
-  if (!persist()) announce('Language preference is available for this visit only; browser storage is unavailable.');
+  if (!persist()) announce(`Language preference changed on this page. ${temporaryNotice()}`);
   document.dispatchEvent(new CustomEvent('verso:preferred-language', { detail: { previousLanguage } }));
 }));
 document.querySelectorAll('[data-font]').forEach(button => button.addEventListener('click', () => {
   state.font = Math.max(-2, Math.min(4, state.font + (button.dataset.font === 'up' ? 1 : -1)));
   applyPreferences();
-  if (!persist()) announce('Text size is available for this visit only; browser storage is unavailable.');
+  if (!persist()) announce(`Text size changed on this page. ${temporaryNotice()}`);
 }));
 
 let poems = [];
@@ -85,14 +115,16 @@ function updateSaveButtons() {
   const shelf = document.querySelector('#shelf-items');
   if (shelf) {
     const saved = state.saved.map(id => poems.find(p => p.id === id)).filter(Boolean);
-    shelf.innerHTML = saved.length ? saved.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>♡</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : '<p>Your saved poems will appear here. Tap ♡ on a poem to keep it close.</p>';
+    const items = saved.length ? saved.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>♡</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '' : '<p>Your saved poems will appear here. Tap ♡ on a poem to keep it close.</p>';
+    shelf.innerHTML = items;
   }
   const recent = document.querySelector('#recent-items');
   if (recent) {
     const read = state.recent.map(id => poems.find(p => p.id === id)).filter(Boolean);
-    recent.innerHTML = read.length ? read.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>◷</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : '<p>Your recently read poems will appear here.</p>';
+    recent.innerHTML = read.length ? read.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>◷</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '<p>Reading history could not be read from browser storage.</p>' : '<p>Your recently read poems will appear here.</p>';
   }
 }
+if (storageFailure === 'read') updateSaveButtons();
 document.addEventListener('click', event => {
   const button = event.target.closest('[data-save]');
   if (!button) return;
@@ -100,17 +132,17 @@ document.addEventListener('click', event => {
   const saved = state.saved.includes(id);
   state.saved = saved ? state.saved.filter(item => item !== id) : [...state.saved, id];
   const durable = persist(); updateSaveButtons();
-  announce(durable ? (saved ? 'Removed from your shelf.' : 'Saved to your shelf.') : 'Browser storage is unavailable; this change lasts only for this visit.');
+  announce(durable ? (saved ? 'Removed from your shelf.' : 'Saved to your shelf.') : `${saved ? 'Removed from' : 'Added to'} the shelf on this page only. ${temporaryNotice()}`);
 });
 document.querySelector('#clear-shelf')?.addEventListener('click', () => {
   state.saved = []; const durable = persist(); updateSaveButtons();
   const control = document.querySelector('#clear-shelf').closest('details'); control.open = false; control.querySelector('summary').focus();
-  announce(durable ? 'Your saved poems were cleared on this device.' : 'Shelf cleared for this visit; browser storage is unavailable.');
+  announce(durable ? 'Your saved poems were cleared on this device.' : `Shelf cleared on this page only. ${temporaryNotice()}`);
 });
 document.querySelector('#clear-history')?.addEventListener('click', () => {
   state.recent = []; const durable = persist(); updateSaveButtons();
   const control = document.querySelector('#clear-history').closest('details'); control.open = false; control.querySelector('summary').focus();
-  announce(durable ? 'Your reading history was cleared on this device.' : 'History cleared for this visit; browser storage is unavailable.');
+  announce(durable ? 'Your reading history was cleared on this device.' : `Reading history cleared on this page only. ${temporaryNotice()}`);
 });
 
 try {
@@ -278,7 +310,8 @@ function setupReader() {
       }
     }
   } catch { /* Direct visits fall back to the unfiltered library. */ }
-  state.recent = [poem.id, ...state.recent.filter(id => id !== poem.id)].slice(0, 20); persist();
+  state.recent = [poem.id, ...state.recent.filter(id => id !== poem.id)].slice(0, 20);
+  if (!persist()) announce(temporaryNotice());
   const selector = document.querySelector('#translation-select');
   const original = document.querySelector('#original-panel');
   const translation = document.querySelector('#translation-panel');
@@ -320,7 +353,7 @@ function setupReader() {
   }
   selector?.addEventListener('change', () => {
     state.language = poem.translations[Number(selector.value)]?.language || 'English';
-    if (!persist()) announce('Translation choice is available for this visit only; browser storage is unavailable.');
+    if (!persist()) announce(`Translation choice changed on this page. ${temporaryNotice()}`);
     if (view === 'original') view = 'translation';
     renderView();
   });

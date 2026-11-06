@@ -1134,6 +1134,17 @@ h2 em {
   margin-top: 38px;
   font-size: 10px;
 }
+.storage-warning {
+  max-width: 1195px;
+  margin: 16px auto;
+  padding: 12px 16px;
+  border: 1px solid var(--olive);
+  background: var(--olive-pale);
+  color: var(--ink);
+}
+.shelf-storage-warning {
+  margin: 0 0 12px;
+}
 .toast {
   position: fixed;
   z-index: 20;

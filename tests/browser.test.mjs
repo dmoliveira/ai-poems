@@ -676,20 +676,191 @@ test('RSS is discoverable and parses as a feed of real, dated poem updates', asy
 });
 
 test('blocked browser storage does not falsely claim a durable save', async () => {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   await context.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new Error('Storage blocked'); } }));
   const page = await context.newPage();
-  await page.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await page.clock.install();
+  await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
+  const warning = page.locator('main > .storage-warning');
+  await warning.getByText(/This page will not overwrite it/).waitFor();
   await page.getByRole('button', { name: /Save poem/ }).click();
-  await page.getByRole('status').getByText(/lasts only for this visit/).waitFor();
+  await page.getByRole('status').getByText(/Added to the shelf on this page only/).waitFor();
   await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Portuguese');
-  await page.getByRole('status').getByText(/Language preference is available for this visit only/).waitFor();
+  await page.getByRole('status').getByText(/Language preference changed on this page/).waitFor();
   await page.locator('.typeface-control summary').click();
   await page.getByLabel('Poem typeface').selectOption('clear');
-  await page.getByRole('status').getByText(/Typeface is available for this visit only/).waitFor();
+  await page.getByRole('status').getByText(/Typeface changed on this page/).waitFor();
+  await page.getByLabel('Translation language').selectOption({ label: 'Arabic' });
+  await page.getByRole('status').getByText(/Translation choice changed on this page/).waitFor();
+  await page.getByRole('button', { name: 'A+ Increase poem text size' }).click();
+  await page.getByRole('status').getByText(/Text size changed on this page/).waitFor();
   await page.getByRole('button', { name: 'Focus mode' }).click();
   assert.equal(await page.getByRole('button', { name: 'Exit focus mode' }).isVisible(), true);
-  await page.getByRole('status').getByText(/Focus preference is available for this visit only/).waitFor();
+  await page.clock.fastForward(5000);
+  assert.equal(await warning.isVisible(), true);
+  for (const theme of ['light', 'sepia', 'dark']) {
+    await page.getByLabel('Focus theme').selectOption(theme);
+    const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], `blocked storage / ${theme}`);
+  }
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await page.goto(`${base}#shelf`);
+  await page.getByText(totalText).waitFor();
+  assert.equal(await page.locator('#shelf .shelf-storage-warning').isVisible(), true);
+  assert.equal(await page.locator('#shelf-items').getByText(/saved poems will appear here/).count(), 0);
+  assert.equal(await page.locator('#recent-items').getByText(/could not be read/).count(), 1);
+  await page.locator('#results [data-save]').first().click();
+  assert.equal(await page.locator('#shelf-items a').count(), 1);
+  await page.getByText('Clear saved poems', { exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: 'Yes, clear saved poems' }).click();
+  assert.equal(await page.locator('#shelf-items a').count(), 0);
+  assert.equal(await page.getByText('Clear saved poems', { exact: true }).evaluate(element => element === document.activeElement), true);
+  await page.getByText('Clear history', { exact: true }).click();
+  await page.getByRole('button', { name: 'Yes, clear history' }).click();
+  await page.getByRole('status').getByText(/Reading history cleared on this page only/).waitFor();
+  await page.reload();
+  await page.getByText(totalText).waitFor();
+  assert.equal(await page.locator('#shelf-items a').count(), 0);
+  assert.equal(await page.locator('#shelf .shelf-storage-warning').isVisible(), true);
+  await page.route('**/data/catalog.json', route => route.abort());
+  await page.reload();
+  await page.getByText(/The library could not load/).waitFor();
+  assert.equal(await page.locator('#shelf .shelf-storage-warning').isVisible(), true);
+  assert.equal(await page.locator('#shelf-items').getByText(/saved poems will appear here/).count(), 0);
+  await context.close();
+});
+
+test('a transient initial storage read failure cannot overwrite data after storage recovers', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const stored = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: ['shakespeare-sonnet-18'], theme: 'sepia', extra: { keep: true } });
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', value), stored);
+  await context.addInitScript(() => {
+    const getItem = Storage.prototype.getItem;
+    const setItem = Storage.prototype.setItem;
+    window.versoWriteAttempts = 0;
+    Storage.prototype.getItem = function (key) {
+      if (this === localStorage && key === 'verso-library-v1' && !getItem.call(sessionStorage, 'verso-test-read-failed')) {
+        setItem.call(sessionStorage, 'verso-test-read-failed', 'yes');
+        throw new Error('Transient read failure');
+      }
+      return getItem.call(this, key);
+    };
+    Storage.prototype.setItem = function (key, value) {
+      if (this === localStorage && key === 'verso-library-v1') window.versoWriteAttempts++;
+      return setItem.call(this, key, value);
+    };
+  });
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.getByRole('status').getByText(/Saved data could not be read/).waitFor();
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), stored);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByLabel('Reading theme').selectOption('dark');
+  assert.equal(await page.evaluate(() => window.versoWriteAttempts), 0);
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), stored);
+  await page.goto(`${base}#shelf`);
+  await page.getByText(totalText).waitFor();
+  assert.equal(await page.locator('#shelf-items').getByText('Sonnet 18').count(), 1);
+  assert.equal(await page.locator('#shelf-items a').count(), 1);
+  assert.equal(await page.locator('html').getAttribute('data-theme'), 'sepia');
+  assert.equal(await page.locator('main > .storage-warning').isVisible(), false);
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), stored);
+  await context.close();
+});
+
+test('malformed saved state is preserved byte for byte, including when clearing temporary lists', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await context.addInitScript(() => {
+    const setItem = Storage.prototype.setItem;
+    window.versoWriteAttempts = 0;
+    Storage.prototype.setItem = function (key, value) {
+      if (this === localStorage && key === 'verso-library-v1') window.versoWriteAttempts++;
+      return setItem.call(this, key, value);
+    };
+  });
+  const invalid = ['', '{', 'null', '[]', '1', '"text"', '{"saved":null}', '{"saved":{}}', '{"saved":["shakespeare-sonnet-18",4]}', '{"recent":null}', '{"recent":["old-pond-basho",false]}', '{"font":{"valueOf":1,"toString":2}}', '{"theme":"unknown"}', '{"focus":"true"}', '{"preferredLanguage":null}', '{"typeface":[]}'];
+  for (const raw of invalid) {
+    await page.evaluate(value => localStorage.setItem('verso-library-v1', value), raw);
+    await page.goto(`${base}poems/old-pond-basho/`);
+    await page.getByRole('status').getByText(/Saved data could not be read/).waitFor();
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), raw, `preserve ${raw}`);
+    assert.equal(await page.evaluate(() => window.versoWriteAttempts), 0, `no writes for ${raw}`);
+  }
+  const raw = invalid.at(-1);
+  await page.goto(`${base}#shelf`);
+  await page.getByText(totalText).waitFor();
+  await page.getByText('Clear saved poems', { exact: true }).click();
+  await page.getByRole('button', { name: 'Yes, clear saved poems' }).click();
+  await page.getByText('Clear history', { exact: true }).click();
+  await page.getByRole('button', { name: 'Yes, clear history' }).click();
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), raw);
+  assert.equal(await page.evaluate(() => window.versoWriteAttempts), 0);
+  await context.close();
+});
+
+test('a failed storage write is not retried from stale state even when storage recovers', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const stored = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], theme: 'sepia', extra: { keep: true } });
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', value), stored);
+  await context.addInitScript(() => {
+    const getItem = Storage.prototype.getItem;
+    const setItem = Storage.prototype.setItem;
+    window.versoWriteAttempts = 0;
+    Storage.prototype.setItem = function (key, value) {
+      if (this === localStorage && key === 'verso-library-v1') {
+        window.versoWriteAttempts++;
+        if (!getItem.call(sessionStorage, 'verso-test-write-failed')) {
+          setItem.call(sessionStorage, 'verso-test-write-failed', 'yes');
+          throw new Error('Transient write failure');
+        }
+      }
+      return setItem.call(this, key, value);
+    };
+  });
+  await page.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await page.getByRole('status').getByText(/Browser storage could not be updated/).waitFor();
+  assert.equal(await page.getByRole('button', { name: /Saved to your shelf/ }).getAttribute('aria-pressed'), 'true');
+  await page.getByRole('button', { name: /Saved to your shelf/ }).click();
+  await page.getByLabel('Reading theme').selectOption('dark');
+  assert.equal(await page.locator('main > .storage-warning').isVisible(), true);
+  assert.equal(await page.evaluate(() => window.versoWriteAttempts), 1);
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), stored);
+  await page.reload();
+  await page.getByRole('button', { name: /Saved to your shelf/ }).waitFor();
+  assert.equal(await page.locator('main > .storage-warning').isVisible(), false);
+  assert.equal(await page.locator('html').getAttribute('data-theme'), 'sepia');
+  const recovered = await page.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')));
+  assert.deepEqual(recovered.saved, ['shakespeare-sonnet-18']);
+  assert.deepEqual(recovered.recent, ['shakespeare-sonnet-18']);
+  assert.deepEqual(recovered.extra, { keep: true });
+  await context.close();
+});
+
+test('legacy saved state without newer fields remains usable and preserves unknown fields', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], language: 'Arabic', extra: { keep: true } })));
+  await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
+  await page.getByRole('button', { name: 'Focus mode' }).waitFor();
+  assert.equal(await page.locator('main > .storage-warning').isVisible(), false);
+  assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), '');
+  assert.equal(await page.getByLabel('Translation language').inputValue(), '6');
+  const state = await page.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')));
+  assert.deepEqual(state.saved, ['shakespeare-sonnet-18']);
+  assert.deepEqual(state.recent, ['quiet-night-thought-li-bai']);
+  assert.deepEqual(state.extra, { keep: true });
   await context.close();
 });
 
