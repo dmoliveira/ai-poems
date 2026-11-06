@@ -23,6 +23,11 @@ export function placeCounts(poems) {
   return [...counts].map(([place, count]) => ({ place, count })).toSorted((a, b) => b.count - a.count || a.place.localeCompare(b.place));
 }
 
+// Count nonblank lines as transcribed, not visual wrapping or reading time.
+export function lineCount(poem) {
+  return poem.text.split(/\r?\n/).filter(line => line.trim()).length;
+}
+
 export function filterPoems(poems, filters = {}) {
   const query = normalize(filters.query).trim();
   return poems.filter(poem => {
@@ -30,6 +35,12 @@ export function filterPoems(poems, filters = {}) {
     if (filters.country && poem.country !== filters.country && !associatedPlaces(poem).includes(filters.country)) return false;
     if (filters.theme && !poem.themes.includes(filters.theme)) return false;
     if (filters.translation && !poem.translations.some(item => item.language === filters.translation)) return false;
+    if (filters.length) {
+      const lines = lineCount(poem);
+      if (filters.length === '1-4' && lines > 4) return false;
+      if (filters.length === '5-14' && (lines < 5 || lines > 14)) return false;
+      if (filters.length === '15-plus' && lines < 15) return false;
+    }
     if (filters.from && (poem.year == null || poem.year < Number(filters.from))) return false;
     if (filters.to && (poem.year == null || poem.year > Number(filters.to))) return false;
     if (query && !searchableText(poem).includes(query)) return false;
@@ -76,5 +87,6 @@ export function surprisePoem(poems, random = Math.random) {
 export function poemCard(poem, base) {
   const e = escapeHtml;
   const excerpt = poem.text.split('\n').filter(Boolean).slice(0, 2).join(' / ');
-  return `<article class="poem-card tone-${e(poem.mood)}"><div class="poem-card-top"><span class="eyebrow">${e(poem.language)} · ${e(poem.form)}</span><button class="save-button" type="button" data-save="${e(poem.id)}" aria-label="Save ${e(poem.displayTitle || poem.title)}" aria-pressed="false">♡</button></div><a class="poem-card-link" href="${e(base)}poems/${e(poem.id)}/"><h3${poem.displayTitle ? '' : ` lang="${e(poem.lang)}" dir="${e(poem.direction)}"`}>${e(poem.displayTitle || poem.title)}</h3>${poem.displayTitle ? `<p class="original-title" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}<p class="card-author">${e(poem.author)} <span>·</span> ${e(poem.yearLabel)}</p><p class="card-excerpt" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(excerpt)}</p><span class="card-read">Read poem <span aria-hidden="true">↗</span></span></a></article>`;
+  const lines = lineCount(poem);
+  return `<article class="poem-card tone-${e(poem.mood)}"><div class="poem-card-top"><span class="eyebrow">${e(poem.language)} · ${e(poem.form)} · ${lines} ${lines === 1 ? 'line' : 'lines'}</span><button class="save-button" type="button" data-save="${e(poem.id)}" aria-label="Save ${e(poem.displayTitle || poem.title)}" aria-pressed="false">♡</button></div><a class="poem-card-link" href="${e(base)}poems/${e(poem.id)}/"><h3${poem.displayTitle ? '' : ` lang="${e(poem.lang)}" dir="${e(poem.direction)}"`}>${e(poem.displayTitle || poem.title)}</h3>${poem.displayTitle ? `<p class="original-title" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}<p class="card-author">${e(poem.author)} <span>·</span> ${e(poem.yearLabel)}</p><p class="card-excerpt" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(excerpt)}</p><span class="card-read">Read poem <span aria-hidden="true">↗</span></span></a></article>`;
 }

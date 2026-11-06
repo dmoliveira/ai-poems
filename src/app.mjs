@@ -2,6 +2,7 @@ import { associatedPlaces, discoveryOrder, escapeHtml as e, filterPoems, poemCar
 
 const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
+const journeyKey = 'verso-reading-journey-v1';
 const defaults = { saved: [], recent: [], theme: 'light', font: 0, language: 'English' };
 let state;
 try {
@@ -73,10 +74,12 @@ document.addEventListener('click', event => {
 });
 document.querySelector('#clear-shelf')?.addEventListener('click', () => {
   state.saved = []; const durable = persist(); updateSaveButtons();
+  const control = document.querySelector('#clear-shelf').closest('details'); control.open = false; control.querySelector('summary').focus();
   announce(durable ? 'Your saved poems were cleared on this device.' : 'Shelf cleared for this visit; browser storage is unavailable.');
 });
 document.querySelector('#clear-history')?.addEventListener('click', () => {
   state.recent = []; const durable = persist(); updateSaveButtons();
+  const control = document.querySelector('#clear-history').closest('details'); control.open = false; control.querySelector('summary').focus();
   announce(durable ? 'Your reading history was cleared on this device.' : 'History cleared for this visit; browser storage is unavailable.');
 });
 
@@ -106,12 +109,12 @@ function setupExplore() {
   const drawer = document.querySelector('#filter-drawer');
   const summary = document.querySelector('#filter-summary');
   const chips = document.querySelector('#active-filters');
-  const fields = Object.fromEntries(['author', 'theme', 'form', 'language', 'translation', 'country', 'collection', 'from', 'to'].map(name => [name, document.querySelector(`#filter-${name}`)]));
+  const fields = Object.fromEntries(['author', 'theme', 'form', 'length', 'language', 'translation', 'country', 'collection', 'from', 'to'].map(name => [name, document.querySelector(`#filter-${name}`)]));
   const search = document.querySelector('#search');
   const sort = document.querySelector('#sort');
   let limit = 12;
   let filtered = [];
-  const filterLabels = { author: 'Poet', theme: 'Theme', form: 'Form', language: 'Language', translation: 'Translation', country: 'Country or region', collection: 'Collection', from: 'From', to: 'To' };
+  const filterLabels = { author: 'Poet', theme: 'Theme', form: 'Form', length: 'Length', language: 'Language', translation: 'Translation', country: 'Country or region', collection: 'Collection', from: 'From', to: 'To' };
   for (const name of ['author', 'theme', 'form', 'language', 'translation', 'country', 'collection']) {
     const values = [...new Set(poems.flatMap(p => name === 'theme' ? p.themes : name === 'translation' ? p.translations.map(t => t.language) : name === 'country' ? associatedPlaces(p) : [p[name]]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
     fields[name].insertAdjacentHTML('beforeend', values.map(value => `<option value="${e(value)}">${e(value)}</option>`).join(''));
@@ -145,16 +148,27 @@ function setupExplore() {
     const active = Object.values(fields).filter(input => input.value).length;
     summary.textContent = active ? `Filters (${active} active)` : 'Filters';
     chips.hidden = active === 0;
-    chips.innerHTML = Object.entries(fields).filter(([, input]) => input.value).map(([name, input]) => `<button type="button" data-clear-filter="${e(name)}" aria-label="Remove ${e(filterLabels[name])}: ${e(input.value)} filter">${e(filterLabels[name])}: ${e(input.value)} <span aria-hidden="true">×</span></button>`).join('');
+    chips.innerHTML = Object.entries(fields).filter(([, input]) => input.value).map(([name, input]) => {
+      const label = input.tagName === 'SELECT' ? input.selectedOptions[0].textContent : input.value;
+      return `<button type="button" data-clear-filter="${e(name)}" aria-label="Remove ${e(filterLabels[name])}: ${e(label)} filter">${e(filterLabels[name])}: ${e(label)} <span aria-hidden="true">×</span></button>`;
+    }).join('');
     surprise.disabled = !filtered.length;
     results.innerHTML = filtered.length ? filtered.slice(0, limit).map(p => poemCard(p, base)).join('') : '<div class="empty-state"><span>❧</span><h3>No poems found just yet.</h3><p>Try a different word or clear a filter. There’s plenty more to discover.</p></div>';
     more.hidden = filtered.length <= limit;
     updateSaveButtons();
   }
+  function rememberJourney() {
+    try {
+      sessionStorage.setItem(journeyKey, JSON.stringify({ search: location.search, items: filtered.map(p => ({ id: p.id, title: p.displayTitle || p.title })) }));
+    } catch { /* Reading still works when browser storage is unavailable. */ }
+  }
   [...Object.values(fields), search, sort].forEach(input => input.addEventListener('input', () => { limit = 12; updateURL(); render(); }));
   document.querySelector('#search-form').addEventListener('submit', event => { event.preventDefault(); limit = 12; updateURL(); render(); });
   document.querySelector('#clear-filters').addEventListener('click', () => { Object.values(fields).forEach(input => { input.value = ''; }); search.value = ''; sort.value = 'featured'; limit = 12; updateURL(); render(); });
   more.addEventListener('click', () => { limit += 12; render(); });
+  results.addEventListener('click', event => {
+    if (event.target.closest('a.poem-card-link')) rememberJourney();
+  });
   chips.addEventListener('click', event => {
     const button = event.target.closest('[data-clear-filter]');
     if (!button || !fields[button.dataset.clearFilter]) return;
@@ -163,7 +177,7 @@ function setupExplore() {
   });
   surprise.addEventListener('click', () => {
     const poem = surprisePoem(filtered);
-    if (poem) location.assign(`${base}poems/${encodeURIComponent(poem.id)}/`);
+    if (poem) { rememberJourney(); location.assign(`${base}poems/${encodeURIComponent(poem.id)}/`); }
   });
   copySearchLink.disabled = false;
   copySearchLink.addEventListener('click', async () => {
@@ -192,6 +206,27 @@ function setupReader() {
     const home = new URL(base, location.href);
     if (previous.origin === home.origin && previous.pathname === home.pathname) {
       document.querySelector('[data-back-to-library]').href = `${base}${previous.search}#explore`;
+    }
+    const journey = JSON.parse(sessionStorage.getItem(journeyKey) || 'null');
+    const valid = journey && typeof journey.search === 'string' && (!journey.search || journey.search.startsWith('?')) && !journey.search.includes('#') && journey.search.length <= 4096 && Array.isArray(journey.items) && journey.items.length <= 10000 && journey.items.every(item => item && typeof item.id === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.id) && typeof item.title === 'string' && item.title.length <= 500);
+    if (valid && previous.origin === home.origin) {
+      const fromHome = previous.pathname === home.pathname && previous.search === journey.search;
+      const fromJourney = journey.items.some(item => previous.pathname === `${home.pathname}poems/${item.id}/`);
+      const index = journey.items.findIndex(item => item.id === poem.id);
+      if (index >= 0 && (fromHome || fromJourney)) {
+        const back = `${base}${journey.search}#explore`;
+        document.querySelector('[data-back-to-library]').href = back;
+        document.querySelector('[data-journey-back]').href = back;
+        document.querySelector('#journey-position').textContent = `Poem ${index + 1} of ${journey.items.length} in your search`;
+        for (const [selector, item] of [['[data-journey-previous]', journey.items[index - 1]], ['[data-journey-next]', journey.items[index + 1]]]) {
+          if (!item) continue;
+          const link = document.querySelector(selector);
+          link.href = `${base}poems/${encodeURIComponent(item.id)}/`;
+          link.querySelector('strong').textContent = item.title;
+          link.hidden = false;
+        }
+        document.querySelector('#reading-journey').hidden = false;
+      }
     }
   } catch { /* Direct visits fall back to the unfiltered library. */ }
   state.recent = [poem.id, ...state.recent.filter(id => id !== poem.id)].slice(0, 20); persist();

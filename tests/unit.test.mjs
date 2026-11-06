@@ -7,7 +7,7 @@ import { join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
 import { renderHome, renderPoem } from '../scripts/templates.mjs';
-import { associatedPlaces, discoveryOrder, escapeHtml, filterPoems, placeCounts, surprisePoem } from '../src/catalog.mjs';
+import { associatedPlaces, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, surprisePoem } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
 test('catalogue has distinct, sourced records in all eight original languages', () => {
@@ -101,6 +101,35 @@ test('country counts match results and explicit multi-place associations overlap
   const home = renderHome([{ ...mckay, country: 'United States / New place' }], '/test-base/');
   assert.match(home, /src="\/test-base\/assets\/flags\/us\.svg" alt=""/);
   assert.match(home, /class="country-flag" aria-hidden="true">⌁<\/span><span class="country-label"><strong>New place/);
+});
+test('length filters count transcribed nonblank lines and cover the whole catalogue', () => {
+  assert.equal(lineCount({ text: 'First\n \nSecond\r\nThird' }), 3);
+  assert.equal(lineCount(poems.find(p => p.id === 'old-pond-basho')), 1);
+  const groups = ['1-4', '5-14', '15-plus'].map(length => filterPoems(poems, { length }));
+  assert.ok(groups.every(group => group.length));
+  assert.ok(groups[0].every(p => lineCount(p) <= 4));
+  assert.ok(groups[1].every(p => lineCount(p) >= 5 && lineCount(p) <= 14));
+  assert.ok(groups[2].every(p => lineCount(p) >= 15));
+  assert.equal(groups.reduce((sum, group) => sum + group.length, 0), poems.length);
+  assert.ok(filterPoems(poems, { country: 'Italy', length: '5-14' }).some(p => p.id === 'leopardi-ricordanza'));
+});
+test('Italian additions retain early-edition texts and separately sourced translations', () => {
+  const byId = id => poems.find(p => p.id === id);
+  const moon = byId('leopardi-ricordanza');
+  const evening = byId('leopardi-sera-giorno-festivo');
+  const infinite = byId('linfinito-leopardi');
+  assert.equal(lineCount(moon), 14);
+  assert.equal(lineCount(evening), 46);
+  assert.match(moon.text, /^O graziosa Luna/);
+  assert.match(evening.text, /Al modo istesso mi stringeva il core\.$/);
+  for (const poem of [moon, infinite]) {
+    const translation = poem.translations.find(t => t.language === 'English');
+    assert.match(translation.translator, /Frederick Townsend.*1887.*later textual version/);
+    assert.match(translation.rights, /later/i);
+    assert.match(translation.source, /gutenberg\.org\/files\/19315/);
+  }
+  assert.match(moon.source, /oldid=3768364/);
+  assert.match(evening.source, /oldid=3768365/);
 });
 test('distinct same-titled works retain their texts and show their opening lines', () => {
   const first = poems.find(p => p.id === 'tang-013');

@@ -165,6 +165,51 @@ test('country flags and counts link to the matching country results', async () =
   await context.close();
 });
 
+test('length filters and search journeys work on mobile', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?country=Italy&length=5-14#explore`);
+  const shortCount = filterPoems(poems, { country: 'Italy', length: '5-14' }).length;
+  await page.getByText(`${shortCount} ${shortCount === 1 ? 'poem' : 'poems'} found`).waitFor();
+  assert.equal(await page.locator('#results').getByText('La ricordanza').count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Remove Length: 5–14 lines filter' }).count(), 1);
+  await page.getByRole('button', { name: 'Remove Length: 5–14 lines filter' }).click();
+  const count = filterPoems(poems, { country: 'Italy' }).length;
+  await page.getByText(`${count} poems found`).waitFor();
+  await page.locator('#results .poem-card-link').first().click();
+  await page.getByText(`Poem 1 of ${count} in your search`).waitFor();
+  assert.equal(await page.locator('[data-journey-previous]').isVisible(), false);
+  await page.getByRole('link', { name: /Next poem/ }).click();
+  await page.getByText(`Poem 2 of ${count} in your search`).waitFor();
+  assert.equal(await page.locator('[data-journey-previous]').isVisible(), true);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
+  await page.getByRole('link', { name: 'Back to results ↗' }).click();
+  await page.getByText(`${count} poems found`).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('country'), 'Italy');
+  await context.close();
+});
+
+test('clearing the shelf requires an explicit confirmation', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.goto(`${base}#shelf`);
+  await page.getByText(totalText).waitFor();
+  const shelf = page.locator('#shelf-items');
+  assert.equal(await shelf.getByText('Sonnet 18').count(), 1);
+  const confirm = page.getByRole('button', { name: 'Yes, clear saved poems' });
+  assert.equal(await confirm.isVisible(), false);
+  await page.getByText('Clear saved poems', { exact: true }).click();
+  assert.equal(await shelf.getByText('Sonnet 18').count(), 1);
+  await confirm.click();
+  assert.equal(await shelf.getByText('Sonnet 18').count(), 0);
+  assert.equal(await page.getByText('Clear saved poems', { exact: true }).evaluate(element => element === document.activeElement), true);
+  await context.close();
+});
+
 test('reader switches languages and shows provenance and RTL text', async () => {
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -214,6 +259,7 @@ test('mobile layout fits and static poems remain readable without JavaScript', a
   assert.equal(response.status(), 200);
   assert.equal(await page.getByText('古池や蛙とびこむ水の音').count(), 1);
   assert.equal(await page.getByText('Lafcadio Hearn, 1898').count(), 1);
+  assert.equal(await page.locator('#reading-journey').isVisible(), false);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await page.goto(base);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
@@ -228,6 +274,22 @@ test('blocked browser storage does not falsely claim a durable save', async () =
   await page.goto(`${base}poems/shakespeare-sonnet-18/`);
   await page.getByRole('button', { name: /Save poem/ }).click();
   await page.getByRole('status').getByText(/lasts only for this visit/).waitFor();
+  await context.close();
+});
+
+test('blocked session storage keeps the reader and filtered return link usable', async () => {
+  const context = await browser.newContext();
+  await context.addInitScript(() => Object.defineProperty(window, 'sessionStorage', { get() { throw new Error('Storage blocked'); } }));
+  const page = await context.newPage();
+  await page.goto(`${base}?country=Italy#explore`);
+  const count = filterPoems(poems, { country: 'Italy' }).length;
+  await page.getByText(`${count} poems found`).waitFor();
+  await page.locator('#results .poem-card-link').first().click();
+  await page.waitForFunction(() => new URL(document.querySelector('[data-back-to-library]').href).searchParams.get('country') === 'Italy');
+  assert.equal(await page.locator('#reading-journey').isVisible(), false);
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  await page.getByRole('link', { name: 'Back to the library' }).click();
+  await page.getByText(`${count} poems found`).waitFor();
   await context.close();
 });
 
