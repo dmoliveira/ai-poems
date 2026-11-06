@@ -6,7 +6,7 @@ const journeyKey = 'verso-reading-journey-v1';
 const defaults = { saved: [], recent: [], theme: 'light', font: 0, typeface: 'literary', language: 'English', preferredLanguage: '', focus: false };
 let state;
 let storageFailure = '';
-try {
+function readState() {
   const raw = localStorage.getItem(key);
   const stored = raw === null ? {} : JSON.parse(raw);
   if (!stored || typeof stored !== 'object' || Array.isArray(stored)) throw new Error('Invalid saved state');
@@ -18,9 +18,12 @@ try {
     || !valid('typeface', value => ['literary', 'clear'].includes(value))
     || !valid('language', value => typeof value === 'string')
     || !valid('preferredLanguage', value => value === '' || readingLanguages.includes(value))
-    || !valid('focus', value => typeof value === 'boolean')) throw new Error('Invalid saved state');
-  state = { ...defaults, ...stored, saved: stored.saved ? [...stored.saved] : [], recent: stored.recent ? [...stored.recent] : [] };
-} catch { storageFailure = 'read'; state = { ...defaults }; }
+    || !valid('focus', value => typeof value === 'boolean')
+    || !valid('_versoRevision', value => Number.isSafeInteger(value) && value >= 0)) throw new Error('Invalid saved state');
+  return { ...defaults, ...stored, saved: stored.saved ? [...stored.saved] : [], recent: stored.recent ? [...stored.recent] : [] };
+}
+try { state = readState(); }
+catch { storageFailure = 'read'; state = { ...defaults }; }
 const notice = document.createElement('div');
 notice.className = 'toast';
 notice.setAttribute('role', 'status');
@@ -33,6 +36,7 @@ function announce(message) {
   noticeTimer = setTimeout(() => notice.classList.remove('visible'), 4000);
 }
 function temporaryNotice() {
+  if (storageFailure === 'lock') return 'This browser cannot safely coordinate saved data across tabs. Unsaved changes on this page are temporary and are lost when you leave or reload.';
   return storageFailure === 'read'
     ? 'Saved data could not be read. This page will not overwrite it. The shelf shown here is temporary; changes are lost when you leave or reload.'
     : 'Browser storage could not be updated. The shelf shown here may differ from stored data; unsaved changes are lost when you leave or reload.';
@@ -51,12 +55,74 @@ function showStorageWarning() {
     warning.hidden = false;
   }
 }
-function persist() {
-  // Never replace unreadable data or retry a failed write from stale page state.
-  if (storageFailure) return false;
-  try { localStorage.setItem(key, JSON.stringify(state)); return true; }
-  catch { storageFailure = 'write'; showStorageWarning(); return false; }
+let pendingChanges = [];
+// Replay local intents over the newest committed state until each write finishes.
+function replayChanges(current) {
+  for (const entry of pendingChanges) entry.change(current);
+  return current;
 }
+function adoptState(current) {
+  const previous = state;
+  state = current;
+  applyPreferences();
+  if (JSON.stringify(previous.saved) !== JSON.stringify(state.saved) || JSON.stringify(previous.recent) !== JSON.stringify(state.recent)) updateSaveButtons();
+  if (previous.preferredLanguage !== state.preferredLanguage) document.dispatchEvent(new CustomEvent('verso:preferred-language', { detail: { previousLanguage: previous.preferredLanguage } }));
+}
+function announceResult(result, message) {
+  if (result === true && pendingChanges.some(entry => !entry.silent)) return;
+  announce(message);
+}
+async function persist(change, { silent = false, expectedRevision } = {}) {
+  change(state);
+  if (storageFailure) return false;
+  const entry = { change, silent };
+  pendingChanges.push(entry);
+  if (!silent) announce('Saving changes…');
+  let working;
+  let timeout;
+  try {
+    if (!navigator.locks?.request) throw new Error('Browser locks unavailable');
+    const controller = new AbortController();
+    timeout = setTimeout(() => controller.abort(), 4000);
+    return await navigator.locks.request(key, { signal: controller.signal }, () => {
+      if (storageFailure) return false;
+      try { working = readState(); }
+      catch { storageFailure = 'read'; pendingChanges = []; showStorageWarning(); return false; }
+      // A clear must be reconfirmed if anything changed after the reader saw it.
+      if (expectedRevision !== undefined && (working._versoRevision ?? 0) !== expectedRevision) {
+        pendingChanges = pendingChanges.filter(item => item !== entry);
+        adoptState(replayChanges(working));
+        return 'conflict';
+      }
+      change(working);
+      if ((working._versoRevision ?? 0) === Number.MAX_SAFE_INTEGER) {
+        storageFailure = 'lock'; pendingChanges = []; showStorageWarning(); return false;
+      }
+      working._versoRevision = (working._versoRevision ?? 0) + 1;
+      try { localStorage.setItem(key, JSON.stringify(working)); }
+      catch {
+        storageFailure = 'write';
+        pendingChanges = pendingChanges.filter(item => item !== entry);
+        adoptState(replayChanges(working));
+        pendingChanges = [];
+        showStorageWarning();
+        return false;
+      }
+      pendingChanges = pendingChanges.filter(item => item !== entry);
+      adoptState(replayChanges(working));
+      return true;
+    });
+  } catch {
+    storageFailure = 'lock'; showStorageWarning();
+    pendingChanges = [];
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+window.addEventListener('beforeunload', event => {
+  if (pendingChanges.some(entry => !entry.silent)) { event.preventDefault(); event.returnValue = ''; }
+});
 function applyPreferences() {
   document.documentElement.dataset.theme = state.theme;
   document.documentElement.dataset.verseTypeface = state.typeface;
@@ -73,33 +139,43 @@ function applyPreferences() {
 }
 applyPreferences();
 if (storageFailure) { showStorageWarning(); announce(temporaryNotice()); }
-document.querySelector('#focus-toggle')?.addEventListener('click', () => {
-  state.focus = !state.focus; applyPreferences();
-  const durable = persist();
+document.querySelector('#focus-toggle')?.addEventListener('click', async () => {
+  const focus = !state.focus;
+  const result = persist(current => { current.focus = focus; });
+  applyPreferences();
+  const durable = await result;
   const message = state.focus ? 'Focus mode on.' : 'Focus mode off.';
-  announce(durable ? message : `${message} ${temporaryNotice()}`);
+  announceResult(durable, durable ? message : `${message} ${temporaryNotice()}`);
 });
-document.querySelectorAll('[data-theme-select]').forEach(select => select.addEventListener('change', () => {
-  state.theme = select.value; applyPreferences();
-  if (!persist()) announce(`Theme changed on this page. ${temporaryNotice()}`);
-}));
-document.querySelectorAll('[data-typeface-select]').forEach(select => select.addEventListener('change', () => {
-  state.typeface = ['literary', 'clear'].includes(select.value) ? select.value : 'literary';
+document.querySelectorAll('[data-theme-select]').forEach(select => select.addEventListener('change', async () => {
+  const theme = select.value;
+  const result = persist(current => { current.theme = theme; });
   applyPreferences();
-  if (!persist()) announce(`Typeface changed on this page. ${temporaryNotice()}`);
+  const durable = await result;
+  announceResult(durable, durable ? 'Theme saved.' : `Theme changed on this page. ${temporaryNotice()}`);
 }));
-document.querySelectorAll('[data-preferred-language]').forEach(select => select.addEventListener('change', () => {
+document.querySelectorAll('[data-typeface-select]').forEach(select => select.addEventListener('change', async () => {
+  const typeface = ['literary', 'clear'].includes(select.value) ? select.value : 'literary';
+  const result = persist(current => { current.typeface = typeface; });
+  applyPreferences();
+  const durable = await result;
+  announceResult(durable, durable ? 'Typeface saved.' : `Typeface changed on this page. ${temporaryNotice()}`);
+}));
+document.querySelectorAll('[data-preferred-language]').forEach(select => select.addEventListener('change', async () => {
   const previousLanguage = state.preferredLanguage;
-  state.preferredLanguage = readingLanguages.includes(select.value) ? select.value : '';
-  if (state.preferredLanguage) state.language = state.preferredLanguage;
+  const language = readingLanguages.includes(select.value) ? select.value : '';
+  const result = persist(current => { current.preferredLanguage = language; if (language) current.language = language; });
   applyPreferences();
-  if (!persist()) announce(`Language preference changed on this page. ${temporaryNotice()}`);
   document.dispatchEvent(new CustomEvent('verso:preferred-language', { detail: { previousLanguage } }));
+  const durable = await result;
+  announceResult(durable, durable ? 'Language preference saved.' : `Language preference changed on this page. ${temporaryNotice()}`);
 }));
-document.querySelectorAll('[data-font]').forEach(button => button.addEventListener('click', () => {
-  state.font = Math.max(-2, Math.min(4, state.font + (button.dataset.font === 'up' ? 1 : -1)));
+document.querySelectorAll('[data-font]').forEach(button => button.addEventListener('click', async () => {
+  const amount = button.dataset.font === 'up' ? 1 : -1;
+  const result = persist(current => { current.font = Math.max(-2, Math.min(4, current.font + amount)); });
   applyPreferences();
-  if (!persist()) announce(`Text size changed on this page. ${temporaryNotice()}`);
+  const durable = await result;
+  announceResult(durable, durable ? 'Text size saved.' : `Text size changed on this page. ${temporaryNotice()}`);
 }));
 
 let poems = [];
@@ -116,33 +192,55 @@ function updateSaveButtons() {
   if (shelf) {
     const saved = state.saved.map(id => poems.find(p => p.id === id)).filter(Boolean);
     const items = saved.length ? saved.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>♡</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '' : '<p>Your saved poems will appear here. Tap ♡ on a poem to keep it close.</p>';
-    shelf.innerHTML = items;
+    if (shelf.innerHTML !== items) shelf.innerHTML = items;
   }
   const recent = document.querySelector('#recent-items');
   if (recent) {
     const read = state.recent.map(id => poems.find(p => p.id === id)).filter(Boolean);
-    recent.innerHTML = read.length ? read.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>◷</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '<p>Reading history could not be read from browser storage.</p>' : '<p>Your recently read poems will appear here.</p>';
+    const items = read.length ? read.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>◷</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '<p>Reading history could not be read from browser storage.</p>' : '<p>Your recently read poems will appear here.</p>';
+    if (recent.innerHTML !== items) recent.innerHTML = items;
   }
 }
 if (storageFailure === 'read') updateSaveButtons();
-document.addEventListener('click', event => {
+document.addEventListener('click', async event => {
   const button = event.target.closest('[data-save]');
   if (!button) return;
   const id = button.dataset.save;
   const saved = state.saved.includes(id);
-  state.saved = saved ? state.saved.filter(item => item !== id) : [...state.saved, id];
-  const durable = persist(); updateSaveButtons();
-  announce(durable ? (saved ? 'Removed from your shelf.' : 'Saved to your shelf.') : `${saved ? 'Removed from' : 'Added to'} the shelf on this page only. ${temporaryNotice()}`);
+  const result = persist(current => { current.saved = saved ? current.saved.filter(item => item !== id) : current.saved.includes(id) ? current.saved : [...current.saved, id]; });
+  updateSaveButtons();
+  const durable = await result;
+  announceResult(durable, durable ? (saved ? 'Removed from your shelf.' : 'Saved to your shelf.') : `${saved ? 'Removed from' : 'Added to'} the shelf on this page only. ${temporaryNotice()}`);
 });
-document.querySelector('#clear-shelf')?.addEventListener('click', () => {
-  state.saved = []; const durable = persist(); updateSaveButtons();
+document.querySelector('#clear-shelf')?.addEventListener('click', async () => {
+  const confirmed = new Set(state.saved);
+  const expectedRevision = state._versoRevision ?? 0;
+  const result = persist(current => { current.saved = current.saved.filter(id => !confirmed.has(id)); }, { expectedRevision });
+  updateSaveButtons();
   const control = document.querySelector('#clear-shelf').closest('details'); control.open = false; control.querySelector('summary').focus();
-  announce(durable ? 'Your saved poems were cleared on this device.' : `Shelf cleared on this page only. ${temporaryNotice()}`);
+  const durable = await result;
+  announceResult(durable, durable === 'conflict' ? 'Saved data changed while you were confirming. Review your shelf and confirm again.' : durable ? 'Saved poems present at confirmation were cleared.' : `Shelf cleared on this page only. ${temporaryNotice()}`);
 });
-document.querySelector('#clear-history')?.addEventListener('click', () => {
-  state.recent = []; const durable = persist(); updateSaveButtons();
+document.querySelector('#clear-history')?.addEventListener('click', async () => {
+  const confirmed = new Set(state.recent);
+  const expectedRevision = state._versoRevision ?? 0;
+  const result = persist(current => { current.recent = current.recent.filter(id => !confirmed.has(id)); }, { expectedRevision });
+  updateSaveButtons();
   const control = document.querySelector('#clear-history').closest('details'); control.open = false; control.querySelector('summary').focus();
-  announce(durable ? 'Your reading history was cleared on this device.' : `Reading history cleared on this page only. ${temporaryNotice()}`);
+  const durable = await result;
+  announceResult(durable, durable === 'conflict' ? 'Saved data changed while you were confirming. Review your history and confirm again.' : durable ? 'Reading history present at confirmation was cleared.' : `Reading history cleared on this page only. ${temporaryNotice()}`);
+});
+
+window.addEventListener('storage', event => {
+  if (storageFailure || (event.key !== key && event.key !== null)) return;
+  try {
+    if (event.storageArea !== localStorage) return;
+    const previous = state;
+    adoptState(replayChanges(readState()));
+    if (JSON.stringify(previous.saved) !== JSON.stringify(state.saved) && !pendingChanges.some(entry => !entry.silent)) announce('Your shelf was updated in another tab.');
+  } catch {
+    storageFailure = 'read'; pendingChanges = []; showStorageWarning(); announce(temporaryNotice());
+  }
 });
 
 try {
@@ -310,8 +408,7 @@ function setupReader() {
       }
     }
   } catch { /* Direct visits fall back to the unfiltered library. */ }
-  state.recent = [poem.id, ...state.recent.filter(id => id !== poem.id)].slice(0, 20);
-  if (!persist()) announce(temporaryNotice());
+  persist(current => { current.recent = [poem.id, ...current.recent.filter(id => id !== poem.id)].slice(0, 20); }, { silent: true }).then(durable => { if (!durable) announce(temporaryNotice()); });
   const selector = document.querySelector('#translation-select');
   const original = document.querySelector('#original-panel');
   const translation = document.querySelector('#translation-panel');
@@ -351,11 +448,13 @@ function setupReader() {
     }
     renderView();
   }
-  selector?.addEventListener('change', () => {
-    state.language = poem.translations[Number(selector.value)]?.language || 'English';
-    if (!persist()) announce(`Translation choice changed on this page. ${temporaryNotice()}`);
+  selector?.addEventListener('change', async () => {
+    const language = poem.translations[Number(selector.value)]?.language || 'English';
+    const result = persist(current => { current.language = language; });
     if (view === 'original') view = 'translation';
     renderView();
+    const durable = await result;
+    announceResult(durable, durable ? 'Translation choice saved.' : `Translation choice changed on this page. ${temporaryNotice()}`);
   });
   buttons.forEach(button => button.addEventListener('click', () => { view = button.dataset.view; renderView(); }));
   document.addEventListener('verso:preferred-language', applyPreferredLanguage);
