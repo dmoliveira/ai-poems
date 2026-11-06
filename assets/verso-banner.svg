@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc">
+  <title id="title">Verso — poetry across languages, places, and time</title>
+  <desc id="desc">A warm botanical banner inviting readers to explore the Verso poetry library.</desc>
+  <defs><linearGradient id="paper"><stop stop-color="#f6f0e2"/><stop offset="1" stop-color="#e5e9d8"/></linearGradient><pattern id="grain" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="3" cy="5" r=".6" fill="#6c7359" opacity=".12"/><circle cx="18" cy="17" r=".6" fill="#6c7359" opacity=".09"/></pattern></defs>
+  <rect width="1200" height="300" rx="12" fill="url(#paper)"/><rect width="1200" height="300" rx="12" fill="url(#grain)"/>
+  <g fill="none" stroke="#a5b394" stroke-width="2" opacity=".75"><path d="M920 300C950 222 1011 155 1098 107M990 300c27-82 84-146 170-175M1065 300c17-54 54-97 135-137"/><path d="M970 213c-38-3-50-26-44-48 30 1 46 21 44 48zm26-35c-7-31 7-50 29-56 11 26-2 48-29 56zm29 15c-29-7-37-29-28-49 27 4 37 23 28 49zm20-51c0-29 17-45 39-45 6 27-10 43-39 45zm18 91c-34-4-44-26-38-46 27 2 40 18 38 46zm45-46c-4-29 12-49 34-51 8 27-6 44-34 51zm-15 76c-27-4-38-21-34-41 25 1 37 16 34 41z"/></g>
+  <circle cx="1048" cy="96" r="55" fill="#f9f7ed" opacity=".55"/><text x="1048" y="120" text-anchor="middle" fill="#7a8968" font-family="Georgia,serif" font-size="69">❦</text>
+  <text x="74" y="72" fill="#77846a" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="4">A LITTLE SPACE FOR POETRY</text>
+  <text x="70" y="161" fill="#302d26" font-family="Georgia,serif" font-size="83" font-weight="600">verso<tspan fill="#788667">.</tspan></text>
+  <text x="74" y="212" fill="#595b4c" font-family="Georgia,serif" font-size="25" font-style="italic">Poetry across languages, places, and time.</text>
+  <rect x="75" y="238" width="184" height="35" rx="3" fill="#68784f"/><text x="167" y="261" fill="#fffdf7" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="700">EXPLORE THE LIBRARY ↗</text>
+</svg>
