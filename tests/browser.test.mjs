@@ -414,6 +414,23 @@ test('mobile layout fits and static poems remain readable without JavaScript', a
   await context.close();
 });
 
+test('the real catalogue total is visible near the entry point without JavaScript', async () => {
+  const context = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const total = `${poems.length.toLocaleString('en-US')} poems`;
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto(base);
+    const count = page.locator('.hero-copy strong');
+    assert.equal(await count.textContent(), total);
+    const box = await count.boundingBox();
+    assert.ok(box && box.y >= 0 && box.y + box.height <= 844, `hero total in viewport at ${width}px`);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    assert.match(await page.locator('#countries .country-note').textContent(), /Some works appear under more than one place/);
+  }
+  await context.close();
+});
+
 test('RSS is discoverable and parses as a feed of real, dated poem updates', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();

@@ -61,6 +61,7 @@ function flag(place, base) {
 
 export function renderHome(poems, base) {
   const schema = { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Verso Poetry Library', url: SITE, description, inLanguage: 'en' };
+  const total = `${poems.length.toLocaleString('en-US')} ${poems.length === 1 ? 'poem' : 'poems'}`;
   const collections = [
     { label: 'Chinese poetry', eyebrow: 'ORIGINAL LANGUAGE', icon: '月', className: 'quiet', filters: { language: 'Chinese' }, count: poems.filter(p => p.language === 'Chinese').length },
     { label: 'Spanish poetry', eyebrow: 'ORIGINAL LANGUAGE', icon: '✿', className: 'love', filters: { language: 'Spanish' }, count: poems.filter(p => p.language === 'Spanish').length },
@@ -78,7 +79,7 @@ export function renderHome(poems, base) {
   <main id="main">
     <section class="hero"><div class="hero-image" role="img" aria-label="An open book and tea in a sunlit garden reading nook"></div>
       <div class="hero-content"><p class="eyebrow hero-eyebrow"><span aria-hidden="true">✳</span> A LITTLE SPACE FOR POETRY</p>
-        <h1>Words to<br><em>come home to.</em></h1><p class="hero-copy">A quiet corner to discover poetry across languages, places, and time.</p>
+        <h1>Words to<br><em>come home to.</em></h1><p class="hero-copy">Discover <strong>${total}</strong> across languages, places, and time.</p>
         <div class="hero-actions"><a class="button primary" href="#explore">Find a poem <span aria-hidden="true">↗</span></a><a class="hero-text-link" href="#collections">Explore collections <span aria-hidden="true">→</span></a></div>
         <p class="hero-note"><span aria-hidden="true">✿</span> A little pause for wherever you are.</p>
       </div><span class="hero-side-note">A POETRY LIBRARY FOR EVERYONE</span>
@@ -93,7 +94,7 @@ export function renderHome(poems, base) {
         ${orderedPlaces.length > 8 ? `<details class="more-countries"><summary>More countries &amp; regions (${orderedPlaces.length - 8})</summary><div class="country-grid">${orderedPlaces.slice(8).map(countryCard).join('')}</div></details>` : ''}
         <p class="country-note">Places are associations, not necessarily where a poem was written. Some works appear under more than one place; regions and unknown places have no national flag.</p>
       </section>
-      <section id="explore" class="explore-section"><div class="section-heading"><div><p class="eyebrow"><span>03 /</span> WANDER A LITTLE</p><h2>Explore the <em>library.</em></h2><p>Search by poet, poem, language, place, or a line you remember.</p></div><span class="catalogue-count">${poems.length} poems to discover <span aria-hidden="true">✳</span></span></div>
+      <section id="explore" class="explore-section"><div class="section-heading"><div><p class="eyebrow"><span>03 /</span> WANDER A LITTLE</p><h2>Explore the <em>library.</em></h2><p>Search by poet, poem, language, place, or a line you remember.</p></div><span class="catalogue-count">${total} to discover <span aria-hidden="true">✳</span></span></div>
         <form class="search-bar" id="search-form" role="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label class="sr-only" for="search">Search the poetry library</label><input id="search" type="search" placeholder="Search poems, poets, a line..." autocomplete="off"><button class="button primary" type="submit">Search <span aria-hidden="true">↗</span></button></form>
         <div class="explore-layout"><details id="filter-drawer" class="filter-drawer" open><summary id="filter-summary">Filters</summary><aside class="filters" aria-label="Filter poems">
           <div class="filter-head"><h3>Narrow by</h3><button type="button" id="clear-filters">Clear all</button></div>

@@ -201,6 +201,17 @@ test('RSS updates are valid, stable, safely escaped and point to real poems', as
   assert.throws(() => renderFeed([{ ...entry, title: 'Invalid\u0001text' }], poems), /Invalid feed title/);
   assert.throws(() => renderFeed([{ ...entry, evidence: 'http://example.com/' }], poems), /Invalid feed publication evidence/);
 });
+test('homepage totals follow catalogue growth and use singular for one poem', () => {
+  const one = renderHome([poems[0]], '/ai-poems/');
+  assert.match(one, /Discover <strong>1 poem<\/strong> across languages/);
+  assert.match(one, /class="catalogue-count">1 poem to discover/);
+  const extended = [...poems, { ...poems[0], id: 'test-growth' }];
+  const total = `${extended.length.toLocaleString('en-US')} poems`;
+  const home = renderHome(extended, '/ai-poems/');
+  assert.ok(home.includes(`Discover <strong>${total}</strong> across languages`));
+  assert.ok(home.includes(`class="catalogue-count">${total} to discover`));
+  assert.match(home, /Some works appear under more than one place/);
+});
 test('build creates crawlable pages, valid schema and a complete sitemap', async () => {
   execFileSync('node', ['scripts/build.mjs'], { stdio: 'pipe' });
   const home = await readFile('_site/index.html', 'utf8');
