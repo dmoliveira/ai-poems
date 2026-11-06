@@ -1060,6 +1060,10 @@ h2 em {
   color: var(--muted);
   font-size: 12px;
 }
+.clear-control .clear-conflict {
+  color: var(--ink);
+  font-weight: 700;
+}
 .clear-control .text-button {
   margin-top: 8px;
 }

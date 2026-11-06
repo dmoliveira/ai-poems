@@ -48,6 +48,7 @@ test('search, filters, shelf and history work across page loads', async () => {
   await page.getByRole('button', { name: /Save poem/ }).click();
   assert.equal(await page.getByRole('button', { name: /Saved to your shelf/ }).getAttribute('aria-pressed'), 'true');
   await page.getByLabel('Reading theme').selectOption('sepia');
+  await page.getByRole('status').getByText('Theme saved.').waitFor();
   await page.goto(base);
   await page.getByText(totalText).waitFor();
   assert.equal(await page.locator('html').getAttribute('data-theme'), 'sepia');
@@ -199,6 +200,7 @@ test('clearing the shelf requires an explicit confirmation', async () => {
   const page = await context.newPage();
   await page.goto(`${base}poems/shakespeare-sonnet-18/`);
   await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
   await page.goto(`${base}#shelf`);
   await page.getByText(totalText).waitFor();
   const shelf = page.locator('#shelf-items');
@@ -406,6 +408,7 @@ test('preferred language finds originals and translations and explains missing o
   assert.equal(new URL(page.url()).searchParams.get('readable'), 'Portuguese');
   await preferred.selectOption('English');
   await page.getByText(`${count} poems found`).waitFor();
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
   await page.goto(`${base}poems/leopardi-ricordanza/`);
   await page.locator('#translation-panel').getByText(/Frederick Townsend/).waitFor();
   assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
@@ -417,6 +420,7 @@ test('preferred language finds originals and translations and explains missing o
   await page.getByRole('button', { name: 'Focus mode' }).click();
   await page.getByLabel('Preferred reading language in focus mode').selectOption('English');
   await page.locator('#translation-panel').getByText(/Frederick Townsend/).waitFor();
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
   assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await page.reload();
@@ -784,7 +788,7 @@ test('malformed saved state is preserved byte for byte, including when clearing 
       return setItem.call(this, key, value);
     };
   });
-  const invalid = ['', '{', 'null', '[]', '1', '"text"', '{"saved":null}', '{"saved":{}}', '{"saved":["shakespeare-sonnet-18",4]}', '{"recent":null}', '{"recent":["old-pond-basho",false]}', '{"font":{"valueOf":1,"toString":2}}', '{"theme":"unknown"}', '{"focus":"true"}', '{"preferredLanguage":null}', '{"typeface":[]}'];
+  const invalid = ['', '{', 'null', '[]', '1', '"text"', '{"saved":null}', '{"saved":{}}', '{"saved":["shakespeare-sonnet-18",4]}', '{"recent":null}', '{"recent":["old-pond-basho",false]}', '{"font":{"valueOf":1,"toString":2}}', '{"theme":"unknown"}', '{"focus":"true"}', '{"preferredLanguage":null}', '{"typeface":[]}', '{"_versoRevision":"1"}'];
   for (const raw of invalid) {
     await page.evaluate(value => localStorage.setItem('verso-library-v1', value), raw);
     await page.goto(`${base}poems/old-pond-basho/`);
@@ -862,6 +866,332 @@ test('legacy saved state without newer fields remains usable and preserves unkno
   assert.deepEqual(state.recent, ['quiet-night-thought-li-bai']);
   assert.deepEqual(state.extra, { keep: true });
   await context.close();
+});
+
+async function pausePageTime(page) {
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-01-01T01:00:00Z'));
+}
+
+async function holdReadingStateLock(page) {
+  await page.evaluate(() => {
+    window.testLockHeld = false;
+    window.testLockRequest = navigator.locks.request('verso-library-v1', async () => {
+      await new Promise(resolve => { window.releaseTestLock = resolve; window.testLockHeld = true; });
+    });
+  });
+  await page.waitForFunction(() => window.testLockHeld);
+}
+
+test('simultaneous saves in open tabs preserve both poems and synchronize their controls', async () => {
+  const context = await browser.newContext();
+  const first = await context.newPage();
+  const second = await context.newPage();
+  await first.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await second.goto(`${base}poems/old-pond-basho/`);
+  await second.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('old-pond-basho'));
+  await Promise.all([
+    first.getByRole('button', { name: /Save poem/ }).click(),
+    second.getByRole('button', { name: /Save poem/ }).click(),
+  ]);
+  await first.waitForFunction(() => {
+    const saved = JSON.parse(localStorage.getItem('verso-library-v1') || '{}').saved || [];
+    return saved.includes('shakespeare-sonnet-18') && saved.includes('old-pond-basho');
+  });
+  await first.goto(`${base}#shelf`);
+  await first.getByText(totalText).waitFor();
+  assert.equal(await first.locator('#shelf-items a').count(), 2);
+  await second.getByRole('button', { name: /Saved to your shelf/ }).click();
+  await second.getByRole('status').getByText('Removed from your shelf.').waitFor();
+  await first.locator('#shelf-items').getByText('Sonnet 18').waitFor();
+  await first.waitForFunction(() => document.querySelectorAll('#shelf-items a').length === 1);
+  assert.deepEqual(await first.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), ['shakespeare-sonnet-18']);
+  const shelfLink = first.locator('#shelf-items a').first();
+  await shelfLink.focus();
+  await second.goto(`${base}poems/quiet-night-thought-li-bai/`);
+  await first.locator('#recent-items').getByText('Quiet Night Thought').waitFor();
+  assert.equal(await shelfLink.evaluate(element => element === document.activeElement), true);
+  await context.close();
+});
+
+test('queued writes cancel a stale shelf clear rather than discard a concurrent addition', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const home = await context.newPage();
+  await home.goto(base);
+  await home.getByText(totalText).waitFor();
+  await home.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
+  await home.reload();
+  await home.locator('#shelf-items').getByText('Sonnet 18').waitFor();
+  const reader = await context.newPage();
+  await reader.goto(`${base}poems/old-pond-basho/`);
+  await reader.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho'));
+  const holder = await context.newPage();
+  await holder.goto(base);
+  await pausePageTime(reader);
+  await pausePageTime(home);
+  await holdReadingStateLock(holder);
+  try {
+    await reader.getByRole('button', { name: /Save poem/ }).click();
+    await reader.getByRole('status').getByText('Saving changes…').waitFor();
+    assert.equal(await reader.evaluate(() => {
+      const event = new Event('beforeunload', { cancelable: true });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    }), true);
+    const dialogPromise = reader.waitForEvent('dialog');
+    const navigation = reader.getByRole('link', { name: 'Back to the library' }).click({ noWaitAfter: true });
+    const dialog = await dialogPromise;
+    assert.equal(dialog.type(), 'beforeunload');
+    await dialog.dismiss();
+    await navigation;
+    assert.match(reader.url(), /old-pond-basho/);
+    await home.getByText('Clear saved poems', { exact: true }).click();
+    await home.getByRole('button', { name: 'Yes, clear saved poems' }).click();
+    await home.getByRole('status').getByText('Saving changes…').waitFor();
+    await holder.evaluate(() => window.releaseTestLock());
+    await home.locator('.clear-conflict').getByText(/Review your shelf and confirm again/).waitFor();
+    await home.waitForFunction(() => {
+      const saved = JSON.parse(localStorage.getItem('verso-library-v1')).saved;
+      return saved.length === 2 && saved.includes('old-pond-basho') && saved.includes('shakespeare-sonnet-18');
+    });
+    assert.deepEqual(await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).extra), { keep: true });
+    assert.equal(await reader.evaluate(() => {
+      const event = new Event('beforeunload', { cancelable: true });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    }), false);
+    await home.getByRole('button', { name: 'Yes, clear saved poems' }).click();
+    await home.getByRole('status').getByText('Saved poems present at confirmation were cleared.').waitFor();
+    assert.deepEqual(await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), []);
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
+});
+
+test('tabs merge preference changes with queued saves without overwriting unrelated state', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const first = await context.newPage();
+  const second = await context.newPage();
+  const holder = await context.newPage();
+  await first.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await second.goto(`${base}poems/old-pond-basho/`);
+  await second.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('old-pond-basho'));
+  await holder.goto(base);
+  await pausePageTime(first);
+  await pausePageTime(second);
+  await holdReadingStateLock(holder);
+  try {
+    await first.getByLabel('Reading theme').selectOption('sepia');
+    await second.getByRole('button', { name: /Save poem/ }).click();
+    await holder.evaluate(() => window.releaseTestLock());
+    await second.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    await second.waitForFunction(() => document.documentElement.dataset.theme === 'sepia');
+    const stored = await first.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')));
+    assert.equal(stored.theme, 'sepia');
+    assert.deepEqual(stored.saved, ['old-pond-basho']);
+    assert.ok(stored.recent.includes('shakespeare-sonnet-18') && stored.recent.includes('old-pond-basho'));
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
+});
+
+test('clear confirmation cannot erase a concurrent remove and re-add of the same poem', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const reader = await context.newPage();
+  await reader.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await reader.getByRole('button', { name: /Save poem/ }).click();
+  await reader.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const home = await context.newPage();
+  await home.goto(`${base}#shelf`);
+  await home.locator('#shelf-items').getByText('Sonnet 18').waitFor();
+  const holder = await context.newPage();
+  await holder.goto(base);
+  await pausePageTime(reader);
+  await pausePageTime(home);
+  await holdReadingStateLock(holder);
+  try {
+    await reader.getByRole('button', { name: /Saved to your shelf/ }).click();
+    await reader.getByRole('button', { name: /Save poem/ }).click();
+    await home.getByText('Clear saved poems', { exact: true }).click();
+    await home.getByRole('button', { name: 'Yes, clear saved poems' }).click();
+    await holder.evaluate(() => window.releaseTestLock());
+    await home.locator('.clear-conflict').getByText(/Review your shelf and confirm again/).waitFor();
+    assert.deepEqual(await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), ['shakespeare-sonnet-18']);
+    assert.equal(await home.locator('#shelf-items').getByText('Sonnet 18').count(), 1);
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
+});
+
+test('success feedback waits for newer queued preference changes', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const holder = await context.newPage();
+  await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('quiet-night-thought-li-bai'));
+  await holder.goto(base);
+  await pausePageTime(page);
+  await holdReadingStateLock(holder);
+  try {
+    const preferred = page.getByLabel('Preferred reading language', { exact: true });
+    await preferred.selectOption('Japanese');
+    await preferred.selectOption('English');
+    await page.getByRole('status').getByText('Saving changes…').waitFor();
+    await holder.evaluate(() => window.releaseTestLock());
+    await page.getByRole('status').getByText('Language preference saved.').waitFor();
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).preferredLanguage), 'English');
+    await page.reload();
+    assert.equal(await preferred.inputValue(), 'English');
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
+});
+
+test('clear history asks for reconfirmation when a poem is read concurrently', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const first = await context.newPage();
+  await first.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await first.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('shakespeare-sonnet-18'));
+  const home = await context.newPage();
+  await home.goto(`${base}#shelf`);
+  await home.locator('#recent-items').getByText('Sonnet 18').waitFor();
+  const holder = await context.newPage();
+  await holder.goto(base);
+  const reader = await context.newPage();
+  await pausePageTime(reader);
+  await pausePageTime(home);
+  await holdReadingStateLock(holder);
+  try {
+    await reader.goto(`${base}poems/old-pond-basho/`);
+    await reader.getByRole('button', { name: 'Focus mode' }).waitFor();
+    await home.getByText('Clear history', { exact: true }).click();
+    await home.getByRole('button', { name: 'Yes, clear history' }).click();
+    await holder.evaluate(() => window.releaseTestLock());
+    await home.locator('.clear-conflict').getByText(/Review your history and confirm again/).waitFor();
+    const recent = await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).recent);
+    assert.ok(recent.includes('shakespeare-sonnet-18') && recent.includes('old-pond-basho'));
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
+});
+
+test('unavailable browser locks and malformed external updates preserve existing stored data', async () => {
+  const context = await browser.newContext();
+  const first = await context.newPage();
+  const second = await context.newPage();
+  await first.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await second.goto(base);
+  await second.getByText(totalText).waitFor();
+  const raw = '{"saved":["shakespeare-sonnet-18",null]}';
+  await first.evaluate(value => localStorage.setItem('verso-library-v1', value), raw);
+  await second.locator('main > .storage-warning').getByText(/Saved data could not be read/).waitFor();
+  await second.locator('#results [data-save]').first().click();
+  assert.equal(await second.evaluate(() => localStorage.getItem('verso-library-v1')), raw);
+  await context.close();
+
+  const noLocks = await browser.newContext();
+  const page = await noLocks.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const seed = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], theme: 'sepia' });
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', value), seed);
+  await noLocks.addInitScript(() => Object.defineProperty(navigator, 'locks', { configurable: true, value: undefined }));
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.locator('main > .storage-warning').getByText(/cannot safely coordinate/).waitFor();
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText(/on this page only/).waitFor();
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), seed);
+  await noLocks.close();
+});
+
+test('repeated pending toggles and simultaneous saves of the same poem do not duplicate it', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const first = await context.newPage();
+  const second = await context.newPage();
+  const holder = await context.newPage();
+  await first.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await second.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await second.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('shakespeare-sonnet-18'));
+  await holder.goto(base);
+  await pausePageTime(first);
+  await pausePageTime(second);
+  await holdReadingStateLock(holder);
+  try {
+    await first.getByRole('button', { name: /Save poem/ }).click();
+    await first.getByRole('button', { name: /Saved to your shelf/ }).click();
+    await first.getByRole('button', { name: /Save poem/ }).click();
+    await second.getByRole('button', { name: /Save poem/ }).click();
+    await holder.evaluate(() => window.releaseTestLock());
+    await second.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.deepEqual(await second.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), ['shakespeare-sonnet-18']);
+    await first.reload();
+    await first.getByRole('button', { name: /Saved to your shelf/ }).waitFor();
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
+});
+
+test('a timed-out browser lock cannot later write stale pending changes', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const holder = await context.newPage();
+  await page.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('shakespeare-sonnet-18'));
+  await holder.goto(base);
+  await pausePageTime(page);
+  await holdReadingStateLock(holder);
+  const before = await page.evaluate(() => localStorage.getItem('verso-library-v1'));
+  try {
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saving changes…').waitFor();
+    await page.clock.fastForward(5000);
+    await page.locator('main > .storage-warning').getByText(/cannot safely coordinate/).waitFor();
+    await holder.evaluate(() => window.releaseTestLock());
+    await holder.evaluate(() => window.testLockRequest);
+    assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), before);
+    assert.equal(await page.evaluate(() => {
+      const event = new Event('beforeunload', { cancelable: true });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    }), false);
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
+});
+
+test('external corruption while a write is queued cancels the pending durable update', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const holder = await context.newPage();
+  await page.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('shakespeare-sonnet-18'));
+  await holder.goto(base);
+  await pausePageTime(page);
+  await holdReadingStateLock(holder);
+  try {
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saving changes…').waitFor();
+    await holder.evaluate(() => localStorage.setItem('verso-library-v1', '{bad'));
+    await page.locator('main > .storage-warning').getByText(/Saved data could not be read/).waitFor();
+    await holder.evaluate(() => window.releaseTestLock());
+    await page.getByRole('status').getByText(/on this page only/).waitFor();
+    assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), '{bad');
+    assert.equal(await page.evaluate(() => {
+      const event = new Event('beforeunload', { cancelable: true });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    }), false);
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
 });
 
 test('blocked session storage keeps the reader and filtered return link usable', async () => {
