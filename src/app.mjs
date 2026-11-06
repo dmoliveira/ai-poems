@@ -1,4 +1,4 @@
-import { escapeHtml as e, filterPoems, poemCard } from './catalog.mjs';
+import { associatedPlaces, discoveryOrder, escapeHtml as e, filterPoems, poemCard, surprisePoem } from './catalog.mjs';
 
 const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
@@ -81,9 +81,13 @@ document.querySelector('#clear-history')?.addEventListener('click', () => {
 });
 
 try {
-  const response = await fetch(`${base}data/catalog.json`);
-  if (!response.ok) throw new Error(`Catalogue request returned ${response.status}`);
-  poems = await response.json();
+  if (document.body.dataset.poemId) {
+    poems = JSON.parse(document.querySelector('#reader-data').textContent);
+  } else {
+    const response = await fetch(`${base}data/catalog.json`);
+    if (!response.ok) throw new Error(`Catalogue request returned ${response.status}`);
+    poems = await response.json();
+  }
   updateSaveButtons();
   if (document.querySelector('#results')) setupExplore();
   if (document.body.dataset.poemId) setupReader();
@@ -97,44 +101,99 @@ function setupExplore() {
   const results = document.querySelector('#results');
   const count = document.querySelector('#result-count');
   const more = document.querySelector('#show-more');
-  const fields = Object.fromEntries(['author', 'theme', 'form', 'language', 'translation', 'country', 'from', 'to'].map(name => [name, document.querySelector(`#filter-${name}`)]));
+  const surprise = document.querySelector('#surprise-poem');
+  const copySearchLink = document.querySelector('#copy-search-link');
+  const drawer = document.querySelector('#filter-drawer');
+  const summary = document.querySelector('#filter-summary');
+  const chips = document.querySelector('#active-filters');
+  const fields = Object.fromEntries(['author', 'theme', 'form', 'language', 'translation', 'country', 'collection', 'from', 'to'].map(name => [name, document.querySelector(`#filter-${name}`)]));
   const search = document.querySelector('#search');
   const sort = document.querySelector('#sort');
   let limit = 12;
-  for (const name of ['author', 'theme', 'form', 'language', 'translation', 'country']) {
-    const values = [...new Set(poems.flatMap(p => name === 'theme' ? p.themes : name === 'translation' ? p.translations.map(t => t.language) : [p[name]]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  let filtered = [];
+  const filterLabels = { author: 'Poet', theme: 'Theme', form: 'Form', language: 'Language', translation: 'Translation', country: 'Country or region', collection: 'Collection', from: 'From', to: 'To' };
+  for (const name of ['author', 'theme', 'form', 'language', 'translation', 'country', 'collection']) {
+    const values = [...new Set(poems.flatMap(p => name === 'theme' ? p.themes : name === 'translation' ? p.translations.map(t => t.language) : name === 'country' ? associatedPlaces(p) : [p[name]]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
     fields[name].insertAdjacentHTML('beforeend', values.map(value => `<option value="${e(value)}">${e(value)}</option>`).join(''));
+  }
+  function restoreURL() {
+    const params = new URL(location.href).searchParams;
+    search.value = params.get('q') || '';
+    for (const [name, input] of Object.entries(fields)) input.value = params.get(name) || '';
+    sort.value = params.get('sort') || 'featured';
+    if (!sort.value) sort.value = 'featured';
+    limit = 12;
+  }
+  function updateURL() {
+    const url = new URL(location.href);
+    const values = { q: search.value.trim(), ...Object.fromEntries(Object.entries(fields).map(([name, input]) => [name, input.value])), sort: sort.value === 'featured' ? '' : sort.value };
+    for (const [name, value] of Object.entries(values)) {
+      if (value) url.searchParams.set(name, value);
+      else url.searchParams.delete(name);
+    }
+    history.replaceState(history.state, '', url);
   }
   function render() {
     const filters = Object.fromEntries(Object.entries(fields).map(([name, input]) => [name, input.value]));
     filters.query = search.value;
-    let filtered = filterPoems(poems, filters);
+    filtered = filterPoems(poems, filters);
     if (sort.value === 'title') filtered = filtered.toSorted((a, b) => (a.displayTitle || a.title).localeCompare(b.displayTitle || b.title));
     if (sort.value === 'author') filtered = filtered.toSorted((a, b) => a.author.localeCompare(b.author) || a.title.localeCompare(b.title));
     if (sort.value === 'year') filtered = filtered.toSorted((a, b) => (a.year ?? Infinity) - (b.year ?? Infinity));
+    if (sort.value === 'featured') filtered = discoveryOrder(filtered);
     count.textContent = `${filtered.length} ${filtered.length === 1 ? 'poem' : 'poems'} found`;
+    const active = Object.values(fields).filter(input => input.value).length;
+    summary.textContent = active ? `Filters (${active} active)` : 'Filters';
+    chips.hidden = active === 0;
+    chips.innerHTML = Object.entries(fields).filter(([, input]) => input.value).map(([name, input]) => `<button type="button" data-clear-filter="${e(name)}" aria-label="Remove ${e(filterLabels[name])}: ${e(input.value)} filter">${e(filterLabels[name])}: ${e(input.value)} <span aria-hidden="true">×</span></button>`).join('');
+    surprise.disabled = !filtered.length;
     results.innerHTML = filtered.length ? filtered.slice(0, limit).map(p => poemCard(p, base)).join('') : '<div class="empty-state"><span>❧</span><h3>No poems found just yet.</h3><p>Try a different word or clear a filter. There’s plenty more to discover.</p></div>';
     more.hidden = filtered.length <= limit;
     updateSaveButtons();
   }
-  [...Object.values(fields), search, sort].forEach(input => input.addEventListener('input', () => { limit = 12; render(); }));
-  document.querySelector('#search-form').addEventListener('submit', event => { event.preventDefault(); limit = 12; render(); });
-  document.querySelector('#clear-filters').addEventListener('click', () => { Object.values(fields).forEach(input => { input.value = ''; }); search.value = ''; sort.value = 'featured'; limit = 12; render(); });
+  [...Object.values(fields), search, sort].forEach(input => input.addEventListener('input', () => { limit = 12; updateURL(); render(); }));
+  document.querySelector('#search-form').addEventListener('submit', event => { event.preventDefault(); limit = 12; updateURL(); render(); });
+  document.querySelector('#clear-filters').addEventListener('click', () => { Object.values(fields).forEach(input => { input.value = ''; }); search.value = ''; sort.value = 'featured'; limit = 12; updateURL(); render(); });
   more.addEventListener('click', () => { limit += 12; render(); });
-  document.querySelectorAll('button.collection-card[data-theme]').forEach(button => button.addEventListener('click', () => {
-    Object.values(fields).forEach(input => { input.value = ''; }); search.value = ''; fields.theme.value = button.dataset.theme; limit = 12; render();
-    document.querySelector('#explore').scrollIntoView({ behavior: 'smooth' });
-  }));
-  document.querySelectorAll('[data-author]').forEach(link => link.addEventListener('click', event => {
-    event.preventDefault(); Object.values(fields).forEach(input => { input.value = ''; }); search.value = ''; fields.author.value = link.dataset.author; limit = 12; render();
-    document.querySelector('#explore').scrollIntoView({ behavior: 'smooth' });
-  }));
+  chips.addEventListener('click', event => {
+    const button = event.target.closest('[data-clear-filter]');
+    if (!button || !fields[button.dataset.clearFilter]) return;
+    fields[button.dataset.clearFilter].value = '';
+    limit = 12; updateURL(); render(); summary.focus();
+  });
+  surprise.addEventListener('click', () => {
+    const poem = surprisePoem(filtered);
+    if (poem) location.assign(`${base}poems/${encodeURIComponent(poem.id)}/`);
+  });
+  copySearchLink.disabled = false;
+  copySearchLink.addEventListener('click', async () => {
+    const url = new URL(location.href);
+    url.hash = 'explore';
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(url.href);
+      announce('Search link copied.');
+    } catch {
+      announce('Could not copy the link. You can copy the address from your browser.');
+    }
+  });
+  window.addEventListener('popstate', () => { restoreURL(); updateURL(); render(); });
+  if (window.matchMedia('(max-width: 700px)').matches) drawer.open = false;
+  restoreURL();
+  updateURL();
   render();
 }
 
 function setupReader() {
   const poem = poems.find(p => p.id === document.body.dataset.poemId);
   if (!poem) return;
+  try {
+    const previous = new URL(document.referrer);
+    const home = new URL(base, location.href);
+    if (previous.origin === home.origin && previous.pathname === home.pathname) {
+      document.querySelector('[data-back-to-library]').href = `${base}${previous.search}#explore`;
+    }
+  } catch { /* Direct visits fall back to the unfiltered library. */ }
   state.recent = [poem.id, ...state.recent.filter(id => id !== poem.id)].slice(0, 20); persist();
   const selector = document.querySelector('#translation-select');
   const original = document.querySelector('#original-panel');

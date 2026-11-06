@@ -11,10 +11,23 @@ function searchableText(poem) {
   return searchIndex.get(poem);
 }
 
+// A source can name multiple associated places. Do not infer nationalities or
+// creation locations beyond the places already recorded on the poem.
+export function associatedPlaces(poem) {
+  return [...new Set(String(poem.country || '').split(/\s+\/\s+/).map(place => place.trim()).filter(Boolean))];
+}
+
+export function placeCounts(poems) {
+  const counts = new Map();
+  for (const poem of poems) for (const place of associatedPlaces(poem)) counts.set(place, (counts.get(place) || 0) + 1);
+  return [...counts].map(([place, count]) => ({ place, count })).toSorted((a, b) => b.count - a.count || a.place.localeCompare(b.place));
+}
+
 export function filterPoems(poems, filters = {}) {
   const query = normalize(filters.query).trim();
   return poems.filter(poem => {
-    for (const key of ['author', 'language', 'country', 'form']) if (filters[key] && poem[key] !== filters[key]) return false;
+    for (const key of ['author', 'language', 'form', 'collection']) if (filters[key] && poem[key] !== filters[key]) return false;
+    if (filters.country && poem.country !== filters.country && !associatedPlaces(poem).includes(filters.country)) return false;
     if (filters.theme && !poem.themes.includes(filters.theme)) return false;
     if (filters.translation && !poem.translations.some(item => item.language === filters.translation)) return false;
     if (filters.from && (poem.year == null || poem.year < Number(filters.from))) return false;
@@ -24,8 +37,44 @@ export function filterPoems(poems, filters = {}) {
   });
 }
 
+// Rotate through languages and then through poets, so a large single-author
+// collection does not crowd the first page. Preserve order within each poet.
+export function discoveryOrder(poems) {
+  const languages = new Map();
+  for (const poem of poems) {
+    if (!languages.has(poem.language)) languages.set(poem.language, new Map());
+    const authors = languages.get(poem.language);
+    if (!authors.has(poem.authorId)) authors.set(poem.authorId, []);
+    authors.get(poem.authorId).push(poem);
+  }
+  const queues = [...languages.values()].map(authors => [...authors.values()]);
+  const ordered = [];
+  while (queues.some(queue => queue.length)) {
+    for (const queue of queues) {
+      if (!queue.length) continue;
+      const author = queue.shift();
+      ordered.push(author.shift());
+      if (author.length) queue.push(author);
+    }
+  }
+  return ordered;
+}
+
+// Choose a poet first so one prolific writer does not dominate the surprise.
+export function surprisePoem(poems, random = Math.random) {
+  if (!poems.length) return null;
+  const authors = new Map();
+  for (const poem of poems) {
+    if (!authors.has(poem.authorId)) authors.set(poem.authorId, []);
+    authors.get(poem.authorId).push(poem);
+  }
+  const groups = [...authors.values()];
+  const group = groups[Math.floor(random() * groups.length)];
+  return group[Math.floor(random() * group.length)];
+}
+
 export function poemCard(poem, base) {
   const e = escapeHtml;
   const excerpt = poem.text.split('\n').filter(Boolean).slice(0, 2).join(' / ');
-  return `<article class="poem-card tone-${e(poem.mood)}"><div class="poem-card-top"><span class="eyebrow">${e(poem.language)} · ${e(poem.form)}</span><button class="save-button" type="button" data-save="${e(poem.id)}" aria-label="Save ${e(poem.displayTitle || poem.title)}" aria-pressed="false">♡</button></div><a class="poem-card-link" href="${e(base)}poems/${e(poem.id)}/"><h3>${e(poem.displayTitle || poem.title)}</h3>${poem.displayTitle ? `<p class="original-title" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}<p class="card-author">${e(poem.author)} <span>·</span> ${e(poem.yearLabel)}</p><p class="card-excerpt" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(excerpt)}</p><span class="card-read">Read poem <span aria-hidden="true">↗</span></span></a></article>`;
+  return `<article class="poem-card tone-${e(poem.mood)}"><div class="poem-card-top"><span class="eyebrow">${e(poem.language)} · ${e(poem.form)}</span><button class="save-button" type="button" data-save="${e(poem.id)}" aria-label="Save ${e(poem.displayTitle || poem.title)}" aria-pressed="false">♡</button></div><a class="poem-card-link" href="${e(base)}poems/${e(poem.id)}/"><h3${poem.displayTitle ? '' : ` lang="${e(poem.lang)}" dir="${e(poem.direction)}"`}>${e(poem.displayTitle || poem.title)}</h3>${poem.displayTitle ? `<p class="original-title" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}<p class="card-author">${e(poem.author)} <span>·</span> ${e(poem.yearLabel)}</p><p class="card-excerpt" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(excerpt)}</p><span class="card-read">Read poem <span aria-hidden="true">↗</span></span></a></article>`;
 }
