@@ -1,5 +1,6 @@
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 export const normalize = value => String(value ?? '').normalize('NFKD').replace(/\p{M}/gu, '').toLocaleLowerCase();
+export const readingLanguages = ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'Chinese', 'Japanese', 'Arabic'];
 
 // Catalogue records are immutable after loading. Index each record only when
 // a text query first needs it, rather than normalizing every poem on each key.
@@ -35,6 +36,7 @@ export function filterPoems(poems, filters = {}) {
     if (filters.country && poem.country !== filters.country && !associatedPlaces(poem).includes(filters.country)) return false;
     if (filters.theme && !poem.themes.includes(filters.theme)) return false;
     if (filters.translation && !poem.translations.some(item => item.language === filters.translation)) return false;
+    if (filters.readable && poem.language !== filters.readable && !poem.translations.some(item => item.language === filters.readable)) return false;
     if (filters.length) {
       const lines = lineCount(poem);
       if (filters.length === '1-4' && lines > 4) return false;

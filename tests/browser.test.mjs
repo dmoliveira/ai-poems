@@ -216,7 +216,8 @@ test('reader switches languages and shows provenance and RTL text', async () => 
   let catalogueRequests = 0;
   page.on('request', request => { if (request.url().endsWith('/data/catalog.json')) catalogueRequests++; });
   await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
-  await page.getByLabel('Read in').selectOption({ label: 'Arabic' });
+  await page.locator('#translation-select').selectOption({ label: 'Arabic' });
+  assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), '');
   await page.getByText('AI-assisted, not yet independently reviewed', { exact: false }).first().waitFor();
   assert.equal(await page.locator('#translation-panel .verse').getAttribute('dir'), 'rtl');
   await page.getByRole('button', { name: 'Side by side' }).click();
@@ -247,7 +248,7 @@ test('mobile focus mode keeps reading controls and provenance, persists, and is 
   assert.equal(await page.locator('.source-note').isVisible(), true);
   assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
   assert.equal(await page.getByText('Li Bai', { exact: true }).first().isVisible(), true);
-  await page.getByLabel('Read in').selectOption({ label: 'Arabic' });
+  await page.getByLabel('Preferred reading language in focus mode').selectOption({ label: 'Arabic' });
   await page.getByRole('button', { name: 'Side by side' }).click();
   assert.equal(await page.locator('#translation-panel .verse').getAttribute('dir'), 'rtl');
   assert.equal(await page.locator('#translation-panel .translation-rights').isVisible(), true);
@@ -275,6 +276,102 @@ test('mobile focus mode keeps reading controls and provenance, persists, and is 
   assert.equal(await focus.isVisible(), true);
   assert.equal(await page.locator('.site-header').isVisible(), true);
   assert.equal(await page.locator('.story').isVisible(), true);
+  await context.close();
+});
+
+test('preferred language finds originals and translations and explains missing ones', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const preferred = page.getByLabel('Preferred reading language', { exact: true });
+  assert.equal(await preferred.inputValue(), '');
+  await preferred.selectOption('English');
+  const button = page.getByRole('button', { name: 'Show poems available in English' });
+  await button.click();
+  const count = filterPoems(poems, { readable: 'English' }).length;
+  await page.getByText(`${count} poems found`).waitFor();
+  assert.equal(await page.locator('#readable-note').isVisible(), true);
+  assert.equal(new URL(page.url()).searchParams.get('readable'), 'English');
+  assert.equal(await button.getAttribute('aria-pressed'), 'true');
+  const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
+  await preferred.selectOption('Portuguese');
+  const portuguese = filterPoems(poems, { readable: 'Portuguese' }).length;
+  await page.getByText(`${portuguese} poems found`).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('readable'), 'Portuguese');
+  await preferred.selectOption('English');
+  await page.getByText(`${count} poems found`).waitFor();
+  await page.goto(`${base}poems/leopardi-ricordanza/`);
+  await page.locator('#translation-panel').getByText(/Frederick Townsend/).waitFor();
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  assert.equal(await preferred.inputValue(), 'English');
+  await preferred.selectOption('Japanese');
+  await page.getByText('No Japanese translation is available.', { exact: false }).waitFor();
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  assert.equal(await page.locator('#translation-panel').isVisible(), false);
+  await page.getByRole('button', { name: 'Focus mode' }).click();
+  await page.getByLabel('Preferred reading language in focus mode').selectOption('English');
+  await page.locator('#translation-panel').getByText(/Frederick Townsend/).waitFor();
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await page.reload();
+  await page.locator('#translation-panel').getByText(/Frederick Townsend/).waitFor();
+  assert.equal(await page.getByLabel('Preferred reading language in focus mode').inputValue(), 'English');
+  await context.close();
+});
+
+test('a shared available-language link works without changing the reader preference', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`${base}?readable=Arabic#explore`);
+  const count = filterPoems(poems, { readable: 'Arabic' }).length;
+  await page.getByText(`${count} poems found`).waitFor();
+  assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), '');
+  assert.equal(await page.getByRole('button', { name: 'Remove Available in: Arabic filter' }).isVisible(), true);
+  assert.equal(await page.locator('#readable-note').isVisible(), true);
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Portuguese');
+  assert.equal(new URL(page.url()).searchParams.get('readable'), 'Arabic');
+  assert.equal(await page.getByText(`${count} poems found`).isVisible(), true);
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('');
+  assert.equal(new URL(page.url()).searchParams.get('readable'), 'Arabic');
+  await context.close();
+});
+
+test('focus mode can choose a translation without changing the preferred language', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 } });
+  const page = await context.newPage();
+  await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
+  await page.getByRole('button', { name: 'Focus mode' }).click();
+  await page.getByLabel('Translation language', { exact: true }).selectOption({ label: 'Arabic' });
+  assert.equal(await page.locator('#translation-panel .verse').getAttribute('dir'), 'rtl');
+  assert.equal(await page.getByLabel('Preferred reading language in focus mode').inputValue(), '');
+  for (const width of [320, 390, 701, 768, 900, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => {
+      const toolbar = document.querySelector('.reading-toolbar').getBoundingClientRect();
+      const options = document.querySelector('.reading-options').getBoundingClientRect();
+      return document.documentElement.scrollWidth <= innerWidth + 1 && options.right <= toolbar.right + 1;
+    }), `focus controls fit at ${width}px`);
+  }
+  await page.reload();
+  await page.getByRole('button', { name: 'Exit focus mode' }).waitFor();
+  assert.equal(await page.getByLabel('Preferred reading language in focus mode').inputValue(), '');
+  assert.equal(await page.getByLabel('Translation language', { exact: true }).inputValue(), '6');
+  assert.equal(await page.locator('#original-panel').isVisible(), true);
+  await context.close();
+});
+
+test('existing saved translation settings do not silently enable a preferred language', async () => {
+  const context = await browser.newContext();
+  await context.addInitScript(() => localStorage.setItem('verso-library-v1', JSON.stringify({ language: 'Arabic', saved: [], recent: [] })));
+  const page = await context.newPage();
+  await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
+  await page.getByRole('button', { name: 'Focus mode' }).waitFor();
+  assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), '');
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  assert.equal(await page.locator('#translation-panel').isVisible(), false);
+  assert.equal(await page.locator('#translation-select').inputValue(), '6');
   await context.close();
 });
 
@@ -309,6 +406,7 @@ test('mobile layout fits and static poems remain readable without JavaScript', a
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await page.goto(base);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).isDisabled(), true);
   assert.equal(await page.getByText(`Browse the complete poetry index (${poems.length})`).count(), 1);
   await context.close();
 });
@@ -320,6 +418,8 @@ test('blocked browser storage does not falsely claim a durable save', async () =
   await page.goto(`${base}poems/shakespeare-sonnet-18/`);
   await page.getByRole('button', { name: /Save poem/ }).click();
   await page.getByRole('status').getByText(/lasts only for this visit/).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Portuguese');
+  await page.getByRole('status').getByText(/Language preference is available for this visit only/).waitFor();
   await page.getByRole('button', { name: 'Focus mode' }).click();
   assert.equal(await page.getByRole('button', { name: 'Exit focus mode' }).isVisible(), true);
   await page.getByRole('status').getByText(/Focus preference is available for this visit only/).waitFor();
