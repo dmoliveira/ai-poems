@@ -27,11 +27,35 @@ export const curated = [
     ],
   },
   {
-    id: 'old-pond-basho', title: '古池や', displayTitle: 'The Old Pond', author: 'Matsuo Bashō', authorId: 'matsuo-basho', authorYears: '1644–1694', country: 'Japan', language: 'Japanese', lang: 'ja', direction: 'ltr', year: 1686, yearLabel: 'Traditionally dated 1686', era: 'Edo period', form: 'Haiku', collection: 'Bashō Haiku Collection', themes: ['Nature', 'Quiet'], mood: 'nature',
+    id: 'old-pond-basho', title: '古池や', displayTitle: 'The Old Pond', author: 'Matsuo Bashō', authorOriginal: '松尾芭蕉', authorId: 'matsuo-basho', authorYears: '1644–1694', country: 'Japan', language: 'Japanese', lang: 'ja', direction: 'ltr', year: 1686, yearLabel: 'Traditionally dated 1686', era: 'Edo period', form: 'Haiku', collection: 'Bashō Haiku Collection', themes: ['Nature', 'Quiet'], mood: 'nature',
     context: 'A frog, a pond and a sound: Bashō’s famous hokku makes a small event feel like an entire world. The original appears here as one line, as in the cited 1903 collection.',
     sourceTitle: 'Wikisource · Bashō Haiku Collection (1903)', source: 'https://ja.wikisource.org/wiki/%E8%8A%AD%E8%95%89%E4%BF%B3%E5%8F%A5%E5%85%A8%E9%9B%86', rights: 'Historical original; public domain in the United States. Check local law before reuse.',
     text: '古池や蛙とびこむ水の音',
     translations: [{ language: 'English', title: 'The Old Pond', text: 'Old pond—frogs jumping in—sound of water.', translator: 'Lafcadio Hearn, 1898', source: 'https://www.gutenberg.org/files/42735/42735-h/42735-h.htm', rights: 'From Exotics and Retrospectives (1898); public domain in the United States. Check local law.' }],
+  },
+  {
+    id: 'summer-grass-basho', title: '夏草や', displayTitle: 'Summer Grass', author: 'Matsuo Bashō', authorOriginal: '松尾芭蕉', authorId: 'matsuo-basho', authorYears: '1644–1694', country: 'Japan', language: 'Japanese', lang: 'ja', direction: 'ltr', year: null, yearLabel: '1689 journey · composition date uncertain', era: 'Edo period', form: 'Haiku', collection: 'Oku no Hosomichi', themes: ['Nature', 'Memory', 'Time'], mood: 'nature',
+    context: 'In the Hiraizumi passage of Oku no Hosomichi, this hokku follows a reflection on the remains of earlier warriors. The cited edition notes a variant particle; the main reading is shown here without the inline note.', contextSource: 'https://chs.iwate-u.ac.jp/heritage/html/literature-sub-natsukusa.html', contextSourceTitle: 'Iwate University · Hiraizumi and literature',
+    sourceTitle: 'Japanese Wikisource · Oku no Hosomichi, 1911 edition · revision 247172', source: 'https://ja.wikisource.org/w/index.php?title=%E3%81%8A%E3%81%8F%E3%81%AE%E3%81%BB%E3%81%9D%E9%81%93&oldid=247172', rights: 'Historical original and 1911 edition are public domain in the United States. Wikisource transcription by CES1596 and contributors, CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/ · See the linked revision history and check local law.',
+    text: '夏草や兵どもが夢の跡', translations: [],
+  },
+  {
+    id: 'mogami-river-basho', title: '五月雨を', displayTitle: 'The Mogami River', author: 'Matsuo Bashō', authorOriginal: '松尾芭蕉', authorId: 'matsuo-basho', authorYears: '1644–1694', country: 'Japan', language: 'Japanese', lang: 'ja', direction: 'ltr', year: null, yearLabel: '1689 journey · composition date uncertain', era: 'Edo period', form: 'Haiku', collection: 'Oku no Hosomichi', themes: ['Nature', 'Travel'], mood: 'nature',
+    context: 'In Oku no Hosomichi, Bashō places this hokku after a passage about the Mogami River. The cited edition prints 早し as its main reading and notes 涼し as a variant; the inline note is omitted here.', contextSource: 'https://www.dwc.doshisha.ac.jp/research/faculty_column/12912', contextSourceTitle: 'Doshisha Women’s College · the Mogami River verse',
+    sourceTitle: 'Japanese Wikisource · Oku no Hosomichi, 1911 edition · revision 247172', source: 'https://ja.wikisource.org/w/index.php?title=%E3%81%8A%E3%81%8F%E3%81%AE%E3%81%BB%E3%81%9D%E9%81%93&oldid=247172', rights: 'Historical original and 1911 edition are public domain in the United States. Wikisource transcription by CES1596 and contributors, CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/ · See the linked revision history and check local law.',
+    text: '五月雨をあつめて早し最上川', translations: [],
+  },
+  {
+    id: 'rapeseed-flowers-buson', title: '菜の花や', displayTitle: 'Rapeseed Flowers', author: 'Yosa Buson', authorOriginal: '与謝蕪村', authorId: 'yosa-buson', authorYears: '1716–1783/84', country: 'Japan', language: 'Japanese', lang: 'ja', direction: 'ltr', year: null, yearLabel: 'Edo period · exact year not established here', era: 'Edo period', form: 'Haiku', collection: 'Yosa Buson (1897 edition)', themes: ['Nature'], mood: 'nature',
+    context: 'Blossoms, the moon and the sun share a wide scene. This one-line text follows Ōno’s 1897 edition; other historical editions use different characters for some particles.', contextSource: 'https://yaenk.sakura.ne.jp/archives/kotenkouza/3165', contextSourceTitle: 'Naoto Yoshikai · the rapeseed-flower verse',
+    sourceTitle: 'National Diet Library · Ōno, Yosa Buson (1897), p. 133', source: 'https://dl.ndl.go.jp/pid/875927/1/75', rights: 'Historical original and 1897 edition are public domain in the United States; the National Diet Library marks its scan public domain. Check local law before reuse.',
+    text: '菜の花や月は東に日は西に', translations: [],
+  },
+  {
+    id: 'spring-sea-buson', title: '春の海', displayTitle: 'The Spring Sea', author: 'Yosa Buson', authorOriginal: '与謝蕪村', authorId: 'yosa-buson', authorYears: '1716–1783/84', country: 'Japan', language: 'Japanese', lang: 'ja', direction: 'ltr', year: null, yearLabel: 'Edo period · exact year uncertain', era: 'Edo period', form: 'Haiku', collection: 'Yosa Buson (1897 edition)', themes: ['Nature', 'Quiet'], mood: 'nature',
+    context: 'The repeated のたり suggests the gentle movement of a spring sea. This follows Ōno’s 1897 edition, expanding its printed repetition mark; the place associated with the verse is debated.', contextSource: 'https://crd.ndl.go.jp/reference/detail?page=ref_view&id=1000162094', contextSourceTitle: 'National Diet Library · competing location evidence',
+    sourceTitle: 'National Diet Library · Ōno, Yosa Buson (1897), p. 132', source: 'https://dl.ndl.go.jp/pid/875927/1/75', rights: 'Historical original and 1897 edition are public domain in the United States; the National Diet Library marks its scan public domain. Check local law before reuse.',
+    text: '春の海ひねもすのたりのたりかな', translations: [],
   },
   {
     id: 'rosa-blanca-marti', title: 'Cultivo una rosa blanca', author: 'José Martí', authorId: 'jose-marti', authorYears: '1853–1895', country: 'Cuba', language: 'Spanish', lang: 'es', direction: 'ltr', year: 1891, yearLabel: 'Published 1891', era: 'Modernismo', form: 'Octosyllabic verse', collection: 'Versos sencillos', themes: ['Love', 'Kindness', 'Nature'], mood: 'rose',

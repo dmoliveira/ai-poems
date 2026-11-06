@@ -768,6 +768,41 @@ test('mobile layout fits and static poems remain readable without JavaScript', a
   await context.close();
 });
 
+test('Japanese additions are searchable and readable on mobile with and without JavaScript', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Japanese&country=Japan#explore`);
+  const japanese = filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length;
+  await page.getByText(`${japanese} poems found`).waitFor();
+  assert.equal(japanese, 5);
+  await page.getByLabel('Search the poetry library').fill('のたりのたり');
+  await page.getByText('1 poem found').waitFor();
+  const result = page.locator('#results .poem-card-link');
+  assert.equal(await result.getAttribute('href'), '/ai-poems/poems/spring-sea-buson/');
+  await result.click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), '春の海ひねもすのたりのたりかな');
+  assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'ja');
+  assert.equal(await page.getByText('Original only · translation not yet available').isVisible(), true);
+  assert.ok(await page.locator('.source-note a[href="https://dl.ndl.go.jp/pid/875927/1/75"]').count());
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
+  await context.close();
+
+  const staticContext = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: false, reducedMotion: 'reduce' });
+  const staticPage = await staticContext.newPage();
+  for (const id of ['summer-grass-basho', 'mogami-river-basho', 'rapeseed-flowers-buson', 'spring-sea-buson']) {
+    const poem = poems.find(p => p.id === id);
+    assert.equal((await staticPage.goto(`${base}poems/${id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.getByText(/available in the original only/).isVisible(), true);
+    assert.equal(await staticPage.locator('#translations').count(), 0);
+    assert.equal(await staticPage.locator('.source-note a').getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), id);
+  }
+  await staticContext.close();
+});
+
 test('without JavaScript, translations and their sources are discoverable without dead controls', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: false, reducedMotion: 'reduce' });
   const page = await context.newPage();
