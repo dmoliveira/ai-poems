@@ -933,6 +933,20 @@ h2 em {
 .shelf-section .text-button {
   margin-top: 15px;
 }
+.clear-control summary {
+  color: var(--olive-dark);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+.clear-control p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.clear-control .text-button {
+  margin-top: 8px;
+}
 .shelf-items {
   display: grid;
   gap: 7px;
@@ -1242,6 +1256,53 @@ h2 em {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+.reading-journey {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(0, 2fr);
+  gap: 24px;
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.reading-journey p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 5px 0 10px;
+}
+.reading-journey [data-journey-back] {
+  color: var(--olive-dark);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.journey-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.journey-links a {
+  display: flex;
+  flex: 1 1 180px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.journey-links a:hover {
+  border-color: var(--olive);
+}
+.journey-links small {
+  color: var(--olive-dark);
+  font-size: 11px;
+  font-weight: 700;
+}
+.journey-links strong {
+  font: 600 20px/1.15 Cormorant, Georgia, serif;
+}
 .related-section {
   padding-top: 65px;
 }
@@ -1498,6 +1559,11 @@ h2 em {
   }
   .reader-layout {
     grid-template-columns: 1fr;
+  }
+  .reading-journey {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px;
   }
   .reading-paper {
     padding: 24px;

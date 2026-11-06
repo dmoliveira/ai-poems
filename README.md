@@ -4,7 +4,7 @@
 
 [![Build and deploy](https://github.com/dmoliveira/ai-poems/actions/workflows/pages.yml/badge.svg)](https://github.com/dmoliveira/ai-poems/actions/workflows/pages.yml)
 [![Read Verso](https://img.shields.io/badge/read-Verso%20Poetry%20Library-697b50)](https://dmoliveira.github.io/ai-poems/)
-[![Poems](https://img.shields.io/badge/poems-1020-d4a084)](https://dmoliveira.github.io/ai-poems/#explore)
+[![Poems](https://img.shields.io/badge/poems-1022-d4a084)](https://dmoliveira.github.io/ai-poems/#explore)
 [![Original languages](https://img.shields.io/badge/original%20languages-8-b99d78)](https://dmoliveira.github.io/ai-poems/#explore)
 [![License: MIT](https://img.shields.io/badge/code%20license-MIT-blue.svg)](LICENSE)
 [![Support via Stripe](https://img.shields.io/badge/support%20via-Stripe-635bff?logo=stripe&logoColor=white)](https://buy.stripe.com/8x200i8bSgVe3Vl3g8bfO00)
@@ -15,18 +15,18 @@ Verso is a free, cozy, multilingual poetry library for discovering classic poetr
 
 ## A little room for discovery ✨
 
-- **Read:** 1,020 poems in English, Spanish, Portuguese, French, Italian, Chinese, Japanese, and Arabic, from more than 150 named or traditional author groups.
-- **Explore:** browse associated countries and regions with flags and poem counts, or search poem text, titles and poets. Filter by poet, original language, collection, form, available translation, place and dated year. A work associated with multiple places is counted under each; an associated place is not necessarily where it was written. Results rotate through languages and poets, and “Surprise me” picks from the current results. Share or return to a search using its link. Theme tags cover only part of the catalogue.
+- **Read:** 1,022 poems in English, Spanish, Portuguese, French, Italian, Chinese, Japanese, and Arabic, from more than 150 named or traditional author groups.
+- **Explore:** browse associated countries and regions with flags and poem counts, or search poem text, titles and poets. Filter by poet, original language, collection, form, transcribed line count, available translation, place and dated year. A work associated with multiple places is counted under each; an associated place is not necessarily where it was written. Results rotate through languages and poets, and “Surprise me” picks from the current results. Share or return to a search using its link, or continue through its results from the reader. Theme tags cover only part of the catalogue.
 - **Understand:** source and rights notes, author, era, place, collection, and context. Linked, sourced relationships are distinguished from same-author and shared-theme suggestions.
-- **Make it yours:** save poems, revisit reading history, choose a light, sepia or dark theme, and adjust poem text size. These preferences stay in your browser's local storage.
+- **Make it yours:** save poems, revisit reading history, choose a light, sepia or dark theme, and adjust poem text size. These preferences stay in your browser's local storage; clearing a shelf or history asks for confirmation.
 - **Read across languages:** original and translation views, side-by-side reading, preserved line breaks, language tags and right-to-left Arabic support. Reader pages load only the data they need rather than downloading the full catalogue. Poem cards and reading rooms take on a subtle palette suited to each work's mood.
 - **Discoverable:** every poem has a static, readable URL, a descriptive title and metadata, canonical and social tags, structured data, and an entry in the sitemap.
 
 ### An honest note about coverage
 
-Coverage remains uneven: the collection includes 320 Chinese and 548 English works, with just one original each in Italian, Japanese and Arabic. It includes the 154 Shakespeare sonnets and 281 Dickinson poems in early edited editions. More poets, countries, modern work, historical context and independently reviewed translations are planned. **Not every poem is available in every language.** The interface is currently in English.
+Coverage remains uneven: the collection includes 320 Chinese and 548 English works, three in Italian, and one original each in Japanese and Arabic. It includes the 154 Shakespeare sonnets and 281 Dickinson poems in early edited editions. More poets, countries, modern work, historical context and independently reviewed translations are planned. **Not every poem is available in every language.** The interface is currently in English.
 
-The seven non-original language versions of Li Bai's *Quiet Night Thought* are explicitly labelled **AI-assisted, unreviewed reading aids**, not attributed to historical translators. Bashō's English version is separately attributed to Lafcadio Hearn; four Baudelaire poems include F. P. Sturm's English translations from a 1919 edition. Other translations are shown only when included and identified. See [rights and sources](docs/rights-and-sources.md) and the [roadmap](docs/roadmap.md).
+The seven non-original language versions of Li Bai's *Quiet Night Thought* are explicitly labelled **AI-assisted, unreviewed reading aids**, not attributed to historical translators. Bashō's English version is separately attributed to Lafcadio Hearn; four Baudelaire poems include F. P. Sturm's English translations from a 1919 edition. Two Leopardi poems include Frederick Townsend's 1887 translations of later textual versions, marked where they differ from the 1826 originals. Other translations are shown only when included and identified. See [rights and sources](docs/rights-and-sources.md) and the [roadmap](docs/roadmap.md).
 
 ## Run locally 🛠️
 
@@ -61,6 +61,6 @@ The launch sonnets can be reproduced from [Project Gutenberg eBook 1041](https:/
 
 ## Privacy, credits and licensing
 
-Verso uses local storage for bookmarks, recent reading and display preferences; no account or cookies are required. The site includes no analytics code or remote font requests. GitHub Pages and any external site you choose to visit have their own policies. Clearing browser storage removes local shelf data.
+Verso uses local storage for bookmarks, recent reading and display preferences, and session storage to continue a search within the same browser tab; no account or cookies are required. The site includes no analytics code or remote font requests. GitHub Pages and any external site you choose to visit have their own policies. Clearing browser storage removes local shelf data.
 
 The application code is [MIT licensed](LICENSE). Poem texts, transcriptions, translations and artwork are **not automatically covered by the code license**; see the individual source and rights notes and [rights and sources](docs/rights-and-sources.md). Copyright and public-domain rules vary by country. The garden hero is an AI-generated illustration created for Verso. Cormorant Garamond and DM Sans are distributed under their included SIL Open Font Licenses.
