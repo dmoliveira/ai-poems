@@ -233,6 +233,51 @@ test('reader switches languages and shows provenance and RTL text', async () => 
   await context.close();
 });
 
+test('mobile focus mode keeps reading controls and provenance, persists, and is easy to exit', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
+  await page.getByLabel('Reading theme').selectOption('dark');
+  const focus = page.getByRole('button', { name: 'Focus mode' });
+  await focus.click();
+  const exitFocus = page.getByRole('button', { name: 'Exit focus mode' });
+  assert.equal(await exitFocus.isVisible(), true);
+  assert.equal(await page.locator('.site-header').isVisible(), false);
+  assert.equal(await page.locator('.story').isVisible(), false);
+  assert.equal(await page.locator('.source-note').isVisible(), true);
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  assert.equal(await page.getByText('Li Bai', { exact: true }).first().isVisible(), true);
+  await page.getByLabel('Read in').selectOption({ label: 'Arabic' });
+  await page.getByRole('button', { name: 'Side by side' }).click();
+  assert.equal(await page.locator('#translation-panel .verse').getAttribute('dir'), 'rtl');
+  assert.equal(await page.locator('#translation-panel .translation-rights').isVisible(), true);
+  assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
+  await page.getByLabel('Focus theme').selectOption('sepia');
+  assert.equal(await page.locator('html').getAttribute('data-theme'), 'sepia');
+  await page.getByLabel('Focus theme').selectOption('dark');
+  await page.locator('.source-note').scrollIntoViewIfNeeded();
+  const bounds = await exitFocus.boundingBox();
+  assert.ok(bounds && bounds.y >= 0 && bounds.y + bounds.height <= 844);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  for (const theme of ['light', 'sepia', 'dark']) {
+    await page.getByLabel('Focus theme').selectOption(theme);
+    const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], `focus / ${theme}`);
+  }
+  await page.reload();
+  await page.getByRole('button', { name: 'Exit focus mode' }).waitFor();
+  assert.equal(await page.locator('.site-header').isVisible(), false);
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.getByRole('button', { name: 'Exit focus mode' }).waitFor();
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  await exitFocus.focus();
+  await page.keyboard.press('Space');
+  assert.equal(await focus.isVisible(), true);
+  assert.equal(await page.locator('.site-header').isVisible(), true);
+  assert.equal(await page.locator('.story').isVisible(), true);
+  await context.close();
+});
+
 test('expanded catalogue supports multilingual and native-name searches', async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
@@ -260,6 +305,7 @@ test('mobile layout fits and static poems remain readable without JavaScript', a
   assert.equal(await page.getByText('古池や蛙とびこむ水の音').count(), 1);
   assert.equal(await page.getByText('Lafcadio Hearn, 1898').count(), 1);
   assert.equal(await page.locator('#reading-journey').isVisible(), false);
+  assert.equal(await page.locator('#focus-toggle').isVisible(), false);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await page.goto(base);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
@@ -274,6 +320,9 @@ test('blocked browser storage does not falsely claim a durable save', async () =
   await page.goto(`${base}poems/shakespeare-sonnet-18/`);
   await page.getByRole('button', { name: /Save poem/ }).click();
   await page.getByRole('status').getByText(/lasts only for this visit/).waitFor();
+  await page.getByRole('button', { name: 'Focus mode' }).click();
+  assert.equal(await page.getByRole('button', { name: 'Exit focus mode' }).isVisible(), true);
+  await page.getByRole('status').getByText(/Focus preference is available for this visit only/).waitFor();
   await context.close();
 });
 

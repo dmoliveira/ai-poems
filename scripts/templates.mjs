@@ -4,6 +4,7 @@ const SITE = 'https://dmoliveira.github.io/ai-poems/';
 const description = 'Read classic poetry in its original language, discover poets and literary history, and explore translations, themes, places and time.';
 const absolute = path => new URL(path, SITE).href;
 const jsonForHtml = object => JSON.stringify(object).replaceAll('<', '\\u003c');
+const themeOptions = '<option value="light">☼ Light</option><option value="sepia">◐ Sepia</option><option value="dark">☾ Dark</option>';
 
 function head({ title, description: desc = description, path = '', base, schema }) {
   const url = absolute(path);
@@ -26,7 +27,7 @@ function header(base) {
     <a class="brand" href="${e(base)}" aria-label="Verso home"><span class="brand-mark" aria-hidden="true">❦</span>verso<span class="brand-dot">.</span></a>
     <nav class="main-nav" aria-label="Main navigation"><a href="${e(base)}#explore">Explore</a><a href="${e(base)}#countries">Countries</a><a href="${e(base)}#poets">Poets</a><a href="${e(base)}#collections">Collections</a><a href="${e(base)}#shelf">My shelf <span class="shelf-count" data-shelf-count></span></a></nav>
     <div class="nav-actions"><a class="icon-link" href="${e(base)}#explore" aria-label="Search poems"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg></a>
-      <label class="theme-label"><span class="sr-only">Reading theme</span><select data-theme-select aria-label="Reading theme"><option value="light">☼ Light</option><option value="sepia">◐ Sepia</option><option value="dark">☾ Dark</option></select></label>
+      <label class="theme-label"><span class="sr-only">Reading theme</span><select data-theme-select aria-label="Reading theme">${themeOptions}</select></label>
       <a class="support-link" href="https://buy.stripe.com/8x200i8bSgVe3Vl3g8bfO00" target="_blank" rel="noopener noreferrer">Support us <span aria-hidden="true">♡</span></a>
     </div>
   </div></header>`;
@@ -152,9 +153,9 @@ export function renderPoem(poem, poems, base) {
       ${poem.displayTitle ? `<p class="reader-original-title" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}
       ${poem.disambiguation ? `<p class="reader-disambiguation">Opening line: ${disambiguation(poem)}</p>` : ''}
       <p class="reader-byline">by <strong>${e(poem.author)}</strong> <span>·</span> ${e(poem.yearLabel)}</p></div>
-      <button type="button" class="button secondary reader-save" data-save="${e(poem.id)}" aria-pressed="false">♡ &nbsp; Save poem</button></div>
+      <div class="reader-actions"><button type="button" class="button secondary reader-save" data-save="${e(poem.id)}" aria-pressed="false">♡ &nbsp; Save poem</button><button type="button" id="focus-toggle" class="button secondary focus-toggle" hidden><span aria-hidden="true">◐</span> <span class="focus-label">Focus mode</span></button></div></div>
     <div class="reading-toolbar" aria-label="Reading controls">${viewSwitch}
-      <div class="reading-options">${translations ? `<label>Read in <select id="translation-select">${translations}</select></label>` : ''}<button type="button" data-font="down" aria-label="A− Decrease poem text size">A−</button><button type="button" data-font="up" aria-label="A+ Increase poem text size">A+</button></div></div>
+      <div class="reading-options">${translations ? `<label>Read in <select id="translation-select">${translations}</select></label>` : ''}<label class="focus-theme">Theme <select data-theme-select aria-label="Focus theme">${themeOptions}</select></label><div class="font-controls" role="group" aria-label="Poem text size"><button type="button" data-font="down" aria-label="A− Decrease poem text size">A−</button><button type="button" data-font="up" aria-label="A+ Increase poem text size">A+</button></div></div></div>
     <div class="reader-layout"><article class="reading-paper"><div class="poem-columns" id="poem-columns"><section id="original-panel"><span class="language-pill">ORIGINAL · ${e(poem.language.toUpperCase())}</span><h2 class="sr-only">Original text</h2><p class="verse" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.text)}</p></section><section id="translation-panel" hidden aria-live="polite"></section></div>
       <div class="story"><p class="eyebrow">THE STORY BEHIND THE POEM</p><h2>A little context <span aria-hidden="true">✳</span></h2><p>${e(poem.context)}</p><a href="${e(poem.source)}" target="_blank" rel="noopener noreferrer">Explore the text source <span aria-hidden="true">↗</span></a> ${contextSource}</div>${translationIndex}</article>
       <aside class="context-card"><p class="eyebrow">GET TO KNOW THE POEM</p><h2>At a glance</h2><dl><dt>Poet</dt><dd>${e(poem.author)}<br><small>${e(poem.authorYears)}</small></dd><dt>Year</dt><dd>${e(poem.yearLabel)}</dd><dt>Associated place</dt><dd>${e(poem.country)}</dd><dt>Created in</dt><dd>${e(poem.creationPlace || 'Not established')}</dd><dt>Era</dt><dd>${e(poem.era)}</dd><dt>Form</dt><dd>${e(poem.form)}</dd><dt>Lines</dt><dd>${lineCount(poem)}</dd><dt>Collection</dt><dd>${e(poem.collection)}</dd><dt>Themes</dt><dd>${e(poem.themes.join(', ') || 'Not yet classified')}</dd><dt>Original</dt><dd>${e(poem.language)}</dd></dl>
