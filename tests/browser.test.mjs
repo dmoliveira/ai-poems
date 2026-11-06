@@ -573,6 +573,45 @@ test('homepage uses progressive discovery without breaking filters or poet links
   await context.close();
 });
 
+test('editorial paths lead to short poems and the sourced edition sequence', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  const paths = page.getByRole('navigation', { name: 'Suggested reading paths' });
+  const short = filterPoems(poems, { length: '1-4' }).length;
+  assert.equal(await paths.getByText(`${short.toLocaleString('en-US')} poems · lines in the original`).isVisible(), true);
+  const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
+  const shortLink = paths.getByRole('link', { name: /Poems in 1–4 lines/ });
+  await shortLink.focus();
+  await page.keyboard.press('Enter');
+  await page.getByText(`${short} poems found`).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('length'), '1-4');
+  assert.equal(await page.locator('#advanced-filters').getAttribute('open'), '');
+  await page.goto(base);
+  await paths.getByRole('link', { name: /Three Leopardi idylls/ }).click();
+  assert.equal(await page.locator('body').getAttribute('data-poem-id'), 'linfinito-leopardi');
+  const connections = page.locator('.connections-section');
+  await connections.getByText(/edition sequence, not a claim of influence/).waitFor();
+  await connections.getByRole('link', { name: /La sera del giorno festivo/ }).click();
+  assert.equal(await page.locator('body').getAttribute('data-poem-id'), 'leopardi-sera-giorno-festivo');
+  await connections.getByRole('link', { name: /La ricordanza/ }).click();
+  assert.equal(await page.locator('body').getAttribute('data-poem-id'), 'leopardi-ricordanza');
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+});
+
+test('the edition path remains readable without JavaScript', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto(base);
+  assert.equal(await page.getByText(/Short-poem filtering needs JavaScript/).isVisible(), true);
+  await page.getByRole('link', { name: /Three Leopardi idylls/ }).click();
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  assert.equal(await page.locator('.connections-section').getByRole('link', { name: /La sera del giorno festivo/ }).count(), 1);
+  await context.close();
+});
+
 test('the real catalogue total is visible near the entry point without JavaScript', async () => {
   const context = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce' });
   const page = await context.newPage();

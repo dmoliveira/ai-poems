@@ -1,4 +1,4 @@
-import { escapeHtml as e, lineCount, placeCounts, poemCard, readingLanguages } from '../src/catalog.mjs';
+import { escapeHtml as e, filterPoems, lineCount, placeCounts, poemCard, readingLanguages } from '../src/catalog.mjs';
 
 const SITE = 'https://dmoliveira.github.io/ai-poems/';
 const description = 'Read classic poetry in its original language, discover poets and literary history, and explore translations, themes, places and time.';
@@ -75,6 +75,13 @@ export function renderHome(poems, base) {
   const regions = new Set(['Not established', 'Arabian Peninsula']);
   const orderedPlaces = [...places.filter(p => !regions.has(p.place)), ...places.filter(p => regions.has(p.place))];
   const countryCard = ({ place, count }) => `<a class="country-card" href="${e(searchLink(base, { country: place }))}"><span class="country-flag" aria-hidden="true">${flag(place, base)}</span><span class="country-label"><strong>${e(place)}</strong><small>${count} ${count === 1 ? 'poem' : 'poems'}</small></span><span class="country-arrow" aria-hidden="true">↗</span></a>`;
+  const shortCount = filterPoems(poems, { length: '1-4' }).length;
+  const sequence = ['linfinito-leopardi', 'leopardi-sera-giorno-festivo', 'leopardi-ricordanza'].map(id => poems.find(poem => poem.id === id));
+  const editionPath = sequence.every(Boolean) && sequence.slice(0, -1).every((poem, index) => (poem.connections || []).some(connection => connection.type === 'followed_by' && connection.targetId === sequence[index + 1].id && connection.source && /1826/.test(connection.note)));
+  const paths = [
+    shortCount ? `<a href="${e(searchLink(base, { length: '1-4' }))}"><span>HAVE A MOMENT?</span><strong>Poems in 1–4 lines</strong><small>${shortCount.toLocaleString('en-US')} ${shortCount === 1 ? 'poem' : 'poems'} · lines in the original</small><span class="path-arrow" aria-hidden="true">↗</span></a>` : '',
+    editionPath ? `<a href="${e(base)}poems/${e(sequence[0].id)}/"><span>FOLLOW A SEQUENCE</span><strong>Three Leopardi idylls</strong><small>Read in their 1826 edition order.</small><span class="path-arrow" aria-hidden="true">↗</span></a>` : '',
+  ].join('');
   return `${head({ title: 'Verso Poetry Library | Poems Across Languages, Places & Time', base, schema })}<body>${header(base)}
   <main id="main">
     <section class="hero"><div class="hero-image" role="img" aria-label="An open book and tea in a sunlit garden reading nook"></div>
@@ -87,6 +94,7 @@ export function renderHome(poems, base) {
     <div class="page-wrap">
       <section class="intro-section" id="collections"><div class="section-heading"><div><p class="eyebrow"><span>01 /</span> FIND YOUR WAY IN</p><h2>Where will you <em>begin?</em></h2><p>Explore a language, a collection, or a form.</p></div><a class="text-link" href="#explore">Explore all poems <span aria-hidden="true">↗</span></a></div>
         <div class="collection-grid">${collections.map(c => `<a class="collection-card collection-${c.className}" href="${e(searchLink(base, c.filters))}"><span class="collection-icon" aria-hidden="true">${c.icon}</span><span><small>${e(c.eyebrow)}</small><strong>${e(c.label)}</strong><em>${c.count} poems</em></span><b aria-hidden="true">↗</b></a>`).join('')}</div>
+        ${paths ? `<aside class="reading-paths" aria-labelledby="reading-paths-title"><div><p class="eyebrow">A GENTLE START</p><h3 id="reading-paths-title">A path into poetry.</h3></div><div><noscript><p>Short-poem filtering needs JavaScript; browse the <a href="#complete-index">complete index</a> to read without it.</p></noscript><nav class="reading-path-links" aria-label="Suggested reading paths">${paths}</nav></div></aside>` : ''}
       </section>
       <section id="explore" class="explore-section"><div class="section-heading"><div><p class="eyebrow"><span>02 /</span> WANDER A LITTLE</p><h2>Explore the <em>library.</em></h2><p>Search by poet, poem, language, place, or a line you remember.</p></div><span class="catalogue-count">${total} to discover <span aria-hidden="true">✳</span></span></div>
         <form class="search-bar" id="search-form" role="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label class="sr-only" for="search">Search the poetry library</label><input id="search" type="search" placeholder="Search poems, poets, a line..." autocomplete="off"><button class="button primary" type="submit">Search <span aria-hidden="true">↗</span></button></form>
