@@ -25,7 +25,9 @@ after(async () => { await browser?.close(); server?.kill(); });
 test('search, filters, shelf and history work across page loads', async () => {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   const page = await context.newPage();
+  const hero = page.waitForResponse(response => response.url().endsWith('/assets/verso-garden.webp'));
   await page.goto(base);
+  assert.equal((await hero).status(), 200);
   await page.getByText(totalText).waitFor();
   await page.getByRole('button', { name: /A quiet moment/ }).click();
   const quietCount = filterPoems(poems, { theme: 'Quiet' }).length;

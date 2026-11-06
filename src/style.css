@@ -261,7 +261,7 @@ h2 em {
       rgba(246, 239, 223, 0.35),
       rgba(246, 239, 223, 0) 63%
     ),
-    url("assets/verso-garden.png");
+    url("assets/verso-garden.webp");
   background-size: cover;
   background-position: center;
 }
