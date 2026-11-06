@@ -10,14 +10,53 @@ import { escapeHtml, filterPoems } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
 test('catalogue has distinct, sourced records in all eight original languages', () => {
-  assert.ok(poems.length >= 161);
+  assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
+  assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
+  const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
+  assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
   for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');
     for (const translation of p.translations) assert.ok(translation.translator && translation.source && translation.rights && translation.text, p.id);
   }
+});
+test('historical imports retain complete lines, attribution, and edition caveats', () => {
+  const byId = id => {
+    const poem = poems.find(p => p.id === id);
+    assert.ok(poem, id);
+    return poem;
+  };
+  const tang = poems.filter(p => p.id.startsWith('tang-'));
+  assert.equal(tang.length, 319);
+  assert.ok(!tang.some(p => p.id === 'tang-233'), 'existing Li Bai work is not duplicated');
+  assert.equal(byId('tang-108').author, 'Du Fu');
+  assert.match(byId('tang-108').title, /左拾遺/);
+  assert.equal(byId('tang-108').text.split('\n').length, 8);
+  assert.match(byId('tang-179').title, /應制$/);
+  assert.match(byId('tang-208').title, /弟妹。$/);
+  assert.match(byId('tang-320').text, /莫待無花空折枝。$/);
+  assert.equal(byId('castellana-003').text.split('\n').filter(Boolean).length, 46);
+  assert.match(byId('castellana-003').text, /muy grande bien me quería\.$/);
+  assert.match(byId('castellana-022').text, /RESPUESTA DE LAS CRIATURAS/);
+  assert.match(byId('castellana-022').text, /ESPOSO/);
+  assert.equal(byId('castellana-072').country, 'Venezuela');
+  assert.equal(byId('castellana-086').country, 'Cuba');
+  assert.match(byId('american-1922-00332').text, /^Done at Atlanta[\s\S]*O Silent God/);
+  assert.match(byId('american-1922-00332').text, /In silence, O Silent God\.\nSelah!$/);
+  assert.equal(byId('american-1922-00659').author, 'Claude McKay');
+  assert.equal(new URL(byId('american-1922-00659').source).pathname, '/cache/epub/11986/pg11986-images.html');
+  assert.equal(byId('american-1922-00659').text.split('\n').filter(Boolean).length, 14);
+  assert.match(byId('american-1922-00611').text, /I am tired of civilization\.$/);
+  assert.equal(byId('espanca-magoas-02').text.split('\n').filter(Boolean).length, 14);
+  assert.equal(new URL(byId('espanca-magoas-02').source).pathname, '/cache/epub/17610/pg17610-images.html');
+  assert.match(byId('espanca-magoas-02').text, /Acordo do meu sonho\.\.\. E não sou nada!/);
+  assert.equal(byId('baudelaire-l-albatros').text.split('\n').filter(Boolean).length, 16);
+  assert.match(byId('dickinson-2-1-06').context, /altered punctuation/);
+  assert.match(byId('dickinson-2-1-06').text, /It asked a crumb of me\.$/);
+  assert.equal(byId('castellana-003').anonymous, true);
+  assert.equal(byId('tang-108').year, null);
 });
 test('sonnet import keeps all 154 poems and their authentic line-count exceptions', () => {
   const sonnets = poems.filter(p => p.authorId === 'william-shakespeare');
@@ -28,6 +67,9 @@ test('sonnet import keeps all 154 poems and their authentic line-count exception
 test('search combines text, accents, metadata, translation and dates without guessing unknown years', () => {
   assert.ok(filterPoems(poems, { query: 'jose marti' }).some(p => p.id === 'rosa-blanca-marti'));
   assert.ok(filterPoems(poems, { query: '蛙とびこむ' }).some(p => p.id === 'old-pond-basho'));
+  assert.ok(filterPoems(poems, { query: '杜甫' }).some(p => p.id === 'tang-108'));
+  assert.ok(filterPoems(poems, { query: 'florbela espanca' }).some(p => p.id === 'espanca-magoas-02'));
+  assert.ok(filterPoems(poems, { query: 'if we must die' }).some(p => p.id === 'american-1922-00659'));
   assert.ok(filterPoems(poems, { language: 'Arabic' }).some(p => p.id === 'let-the-days-do-as-they-will'));
   assert.ok(filterPoems(poems, { translation: 'Arabic' }).some(p => p.id === 'quiet-night-thought-li-bai'));
   assert.ok(filterPoems(poems, { author: 'William Shakespeare', from: '1609', to: '1609' }).length >= 154);
@@ -77,4 +119,8 @@ test('build creates crawlable pages, valid schema and a complete sitemap', async
   const sonnet18 = await readFile('_site/poems/shakespeare-sonnet-18/index.html', 'utf8');
   assert.match(sonnet18, /Connections we can trace/);
   assert.match(sonnet18, /not a claim of influence/);
+  const anonymous = await readFile('_site/poems/castellana-003/index.html', 'utf8');
+  const anonymousSchema = JSON.parse(anonymous.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+  assert.equal(anonymousSchema.author, undefined);
+  assert.doesNotMatch(anonymous, /More poems by the same author/);
 });

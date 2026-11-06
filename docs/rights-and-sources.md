@@ -15,6 +15,30 @@ Verso cites the source and an explicit rights note on each poem and translation.
 
 Wikisource pages may include transcriptions and contributions under their stated Creative Commons terms; follow each linked page and revision history for attribution and license details. The MIT license in this repository applies to application code, not automatically to third-party content. Images and fonts have separate terms; the fonts' SIL OFL texts are in `assets/fonts/`.
 
+## Expanded historical collections
+
+- [*Three Hundred Tang Poems*, Gutenberg 52323](https://www.gutenberg.org/ebooks/52323): 319 selections from the numbered Chinese transcription; no. 233 is omitted because Li Bai's *Quiet Night Thought* already has a stable page. The eBook does not identify a particular print edition. Names follow the source, with readable romanizations; the source's 劉春虛 is associated with [Liu Shenxu, 劉眘虛 / 劉慎虛](https://zh.wikisource.org/wiki/%E9%97%95%E9%A1%8C_(%E5%8A%89%E7%9C%98%E8%99%9B)). 西鄙人 is an anonymous designation, not an identified person. Dates and precise creation places are not inferred.
+- [*Las cien mejores poesías de la lengua castellana*, Gutenberg 65880](https://www.gutenberg.org/ebooks/65880): the 1910 third edition selected by Marcelino Menéndez y Pelayo. It includes traditional romances and Spanish-language poets from outside Spain; the anthology's own author headings are recorded, including anonymous attributions. Section and speaker headings and historical spelling are retained.
+- [*The Book of American Negro Poetry*, Gutenberg 11986](https://www.gutenberg.org/ebooks/11986): James Weldon Johnson's 1922 collection, with its historical spellings and dialect retained. Some texts reflect the racism and violence of their period. Explicitly marked excerpts and ambiguous nested selections are excluded; prose-poetry paragraphs are preserved alongside verse.
+- [*Livro de Mágoas*, Gutenberg 17610](https://www.gutenberg.org/ebooks/17610): Florbela Espanca's 1919 collection, including the historical spelling of the transcription.
+- [*Poems by Emily Dickinson*, Gutenberg 12242](https://www.gutenberg.org/ebooks/12242): the first (1890) and second (1891) series, edited by Mabel Loomis Todd and T. W. Higginson. Their assigned titles and altered punctuation are not a diplomatic transcription of Dickinson's manuscripts. The poems are credited to the early published editions, not to modern editors.
+- [*Les Fleurs du Mal*, Gutenberg 6099](https://www.gutenberg.org/ebooks/6099): a limited set of separately headed French originals by Charles Baudelaire. The eBook does not identify its particular print edition and contains possible transcription errors; other headings that combine poems were not imported.
+
+Gutenberg identifies these eBooks as public domain in the United States. Rights and moral rights elsewhere may differ, especially for later transcriptions and editions; check local law. No new translations or historical influence claims are supplied for these imports. The historical source title for the 1922 anthology is retained for accurate citation.
+
+For reproducibility, download the following Gutenberg files under the listed local names:
+
+| Local filename | Source |
+| --- | --- |
+| `tang-52323.txt` | [eBook 52323 text](https://www.gutenberg.org/cache/epub/52323/pg52323.txt) |
+| `spanish-100.html` | [eBook 65880 HTML](https://www.gutenberg.org/cache/epub/65880/pg65880-images.html) |
+| `black-american-verse.html` | [eBook 11986 HTML](https://www.gutenberg.org/cache/epub/11986/pg11986-images.html) |
+| `espanca.html` | [eBook 17610 HTML](https://www.gutenberg.org/cache/epub/17610/pg17610-images.html) |
+| `fleurs.html` | [eBook 6099 HTML](https://www.gutenberg.org/cache/epub/6099/pg6099-images.html) |
+| `emily-source.txt` | [eBook 12242 text](https://www.gutenberg.org/cache/epub/12242/pg12242.txt) |
+
+Run `python3 scripts/import-tang.py /path/to/tang-52323.txt` and `uv run --no-project --with beautifulsoup4 python scripts/import-anthologies.py /path/to/sources`. The scripts verify SHA-256 checksums before extracting and require review if the upstream files change. They extract works, not Gutenberg's license boilerplate. The committed JSON makes builds independent of network access.
+
 ## Editorial standard
 
 Keep author attribution, original text, edition, translator, dates, source, rights and historical evidence distinct. Use unknown or qualified values when facts are uncertain. Documented influence requires a citation; a shared theme or adjacent publication is not influence. Obtain permission before adding protected modern poems or translations. Never bulk-import texts merely to reach a target count.

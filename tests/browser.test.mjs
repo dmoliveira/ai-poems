@@ -70,6 +70,25 @@ test('reader switches languages and shows provenance and RTL text', async () => 
   await context.close();
 });
 
+test('expanded catalogue supports multilingual and native-name searches', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const search = page.getByLabel('Search the poetry library');
+  await search.fill('杜甫');
+  await page.locator('#results').getByText('Du Fu').first().waitFor();
+  await search.fill('Florbela Espanca');
+  await page.locator('#results').getByText('Florbela Espanca').first().waitFor();
+  await search.fill('If we must die');
+  await page.locator('#results').getByText('Claude McKay').first().waitFor();
+  await page.goto(`${base}poems/american-1922-00659/`);
+  assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'en');
+  assert.ok(await page.getByText('Pressed to the wall, dying, but—fighting back!', { exact: false }).count());
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+});
+
 test('mobile layout fits and static poems remain readable without JavaScript', async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, javaScriptEnabled: false });
   const page = await context.newPage();

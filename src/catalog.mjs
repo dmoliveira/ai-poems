@@ -1,16 +1,25 @@
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 export const normalize = value => String(value ?? '').normalize('NFKD').replace(/\p{M}/gu, '').toLocaleLowerCase();
 
+// Catalogue records are immutable after loading. Index each record only when
+// a text query first needs it, rather than normalizing every poem on each key.
+const searchIndex = new WeakMap();
+function searchableText(poem) {
+  if (!searchIndex.has(poem)) {
+    searchIndex.set(poem, normalize([poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form, poem.collection, poem.language, poem.text, ...poem.themes, ...poem.translations.flatMap(t => [t.language, t.title, t.text])].join(' ')));
+  }
+  return searchIndex.get(poem);
+}
+
 export function filterPoems(poems, filters = {}) {
   const query = normalize(filters.query).trim();
   return poems.filter(poem => {
-    const searchable = [poem.title, poem.displayTitle, poem.author, poem.country, poem.era, poem.form, poem.collection, poem.language, poem.text, ...poem.themes, ...poem.translations.flatMap(t => [t.language, t.title, t.text])].join(' ');
-    if (query && !normalize(searchable).includes(query)) return false;
     for (const key of ['author', 'language', 'country', 'form']) if (filters[key] && poem[key] !== filters[key]) return false;
     if (filters.theme && !poem.themes.includes(filters.theme)) return false;
     if (filters.translation && !poem.translations.some(item => item.language === filters.translation)) return false;
     if (filters.from && (poem.year == null || poem.year < Number(filters.from))) return false;
     if (filters.to && (poem.year == null || poem.year > Number(filters.to))) return false;
+    if (query && !searchableText(poem).includes(query)) return false;
     return true;
   });
 }

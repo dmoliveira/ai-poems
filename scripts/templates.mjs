@@ -28,8 +28,8 @@ export function renderPoem(poem, poems, base) {
   const title = poem.displayTitle || poem.title;
   const path = `poems/${poem.id}/`;
   const desc = `${title} by ${poem.author}. Read the ${poem.language} original, explore its ${poem.form.toLowerCase()} form, context, sources and related poetry on Verso.`;
-  const schema = { '@context': 'https://schema.org', '@type': 'CreativeWork', '@id': absolute(path), name: title, alternateName: poem.displayTitle ? poem.title : undefined, author: { '@type': 'Person', name: poem.author }, inLanguage: poem.lang, description: poem.context, isBasedOn: poem.source, ...(poem.year && poem.yearLabel.startsWith('Published') ? { datePublished: String(poem.year) } : {}) };
-  const related = poems.filter(p => p.id !== poem.id && p.authorId === poem.authorId).slice(0, 3);
+  const schema = { '@context': 'https://schema.org', '@type': 'CreativeWork', '@id': absolute(path), name: title, alternateName: poem.displayTitle ? poem.title : undefined, ...(poem.anonymous ? {} : { author: { '@type': 'Person', name: poem.author } }), inLanguage: poem.lang, description: poem.context, isBasedOn: poem.source, ...(poem.year && poem.yearLabel.startsWith('Published') ? { datePublished: String(poem.year) } : {}) };
+  const related = poem.anonymous ? [] : poems.filter(p => p.id !== poem.id && !p.anonymous && p.authorId === poem.authorId).slice(0, 3);
   const suggestions = related.length ? related : poems.filter(p => p.id !== poem.id && p.themes.some(t => poem.themes.includes(t))).slice(0, 3);
   const translations = poem.translations.map((t, i) => `<option value="${i}">${e(t.language)}</option>`).join('');
   const languageTags = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
