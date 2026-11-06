@@ -175,6 +175,40 @@ test('available-language filtering includes originals and translations without i
   assert.ok(filterPoems(poems, { readable: 'Arabic' }).some(p => p.id === 'quiet-night-thought-li-bai'));
   assert.ok(filterPoems(poems, { readable: 'Arabic' }).some(p => p.id === 'let-the-days-do-as-they-will'));
 });
+test('Japanese additions preserve sourced edition readings and leave translations and dates unasserted', () => {
+  const expected = [
+    ['summer-grass-basho', '夏草や兵どもが夢の跡', 'matsuo-basho', 'oldid=247172'],
+    ['mogami-river-basho', '五月雨をあつめて早し最上川', 'matsuo-basho', 'oldid=247172'],
+    ['rapeseed-flowers-buson', '菜の花や月は東に日は西に', 'yosa-buson', '/875927/1/75'],
+    ['spring-sea-buson', '春の海ひねもすのたりのたりかな', 'yosa-buson', '/875927/1/75'],
+  ];
+  for (const [id, text, authorId, source] of expected) {
+    const poem = poems.find(p => p.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.text, text);
+    assert.equal(poem.authorId, authorId);
+    assert.equal(poem.language, 'Japanese');
+    assert.equal(poem.lang, 'ja');
+    assert.equal(poem.country, 'Japan');
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.year, null);
+    assert.equal(lineCount(poem), 1);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(poem.source.includes(source));
+    assert.ok(poem.contextSource && poem.contextSourceTitle);
+    assert.match(poem.rights, /public domain in the United States/i);
+    assert.ok(!filterPoems([poem], { readable: 'English' }).length);
+    assert.ok(filterPoems([poem], { query: text }).length);
+  }
+  for (const id of ['summer-grass-basho', 'mogami-river-basho']) {
+    assert.match(poems.find(p => p.id === id).rights, /CES1596.*CC BY-SA 4\.0: https:\/\/creativecommons\.org\/licenses\/by-sa\/4\.0\//);
+  }
+  assert.match(poems.find(p => p.id === 'mogami-river-basho').context, /涼し as a variant/);
+  assert.match(poems.find(p => p.id === 'spring-sea-buson').context, /repetition mark.*place.*debated/);
+  assert.equal(filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length, 5);
+  assert.equal(filterPoems(poems, { query: '松尾芭蕉' }).length, 3);
+  assert.equal(filterPoems(poems, { query: '与謝蕪村' }).length, 2);
+});
 test('Italian additions retain early-edition texts and separately sourced translations', () => {
   const byId = id => poems.find(p => p.id === id);
   const moon = byId('leopardi-ricordanza');

@@ -4,7 +4,7 @@
 
 [![Build and deploy](https://github.com/dmoliveira/ai-poems/actions/workflows/pages.yml/badge.svg)](https://github.com/dmoliveira/ai-poems/actions/workflows/pages.yml)
 [![Read Verso](https://img.shields.io/badge/read-Verso%20Poetry%20Library-697b50)](https://dmoliveira.github.io/ai-poems/)
-[![Poems](https://img.shields.io/badge/poems-1022-d4a084)](https://dmoliveira.github.io/ai-poems/#explore)
+[![Poems](https://img.shields.io/badge/poems-1026-d4a084)](https://dmoliveira.github.io/ai-poems/#explore)
 [![Original languages](https://img.shields.io/badge/original%20languages-8-b99d78)](https://dmoliveira.github.io/ai-poems/#explore)
 [![License: MIT](https://img.shields.io/badge/code%20license-MIT-blue.svg)](LICENSE)
 [![Support via Stripe](https://img.shields.io/badge/support%20via-Stripe-635bff?logo=stripe&logoColor=white)](https://buy.stripe.com/8x200i8bSgVe3Vl3g8bfO00)
@@ -15,7 +15,7 @@ Verso is a free, cozy, multilingual poetry library for discovering classic poetr
 
 ## A little room for discovery ✨
 
-- **Read:** 1,022 poems in English, Spanish, Portuguese, French, Italian, Chinese, Japanese, and Arabic, from more than 150 named or traditional author groups.
+- **Read:** 1,026 poems in English, Spanish, Portuguese, French, Italian, Chinese, Japanese, and Arabic, from more than 150 named or traditional author groups.
 - **Explore:** browse associated countries and regions with flags and poem counts, or search poem text, titles and poets. Choose a preferred reading language and optionally find poems available in it, including originals and translations. Filter by poet, original language, collection, form, transcribed line count, available translation, place and dated year. A work associated with multiple places is counted under each; an associated place is not necessarily where it was written. Results rotate through languages and poets, and “Surprise me” picks from the current results. Share or return to a search using its link, or continue through its results from the reader. When tab storage is available, returning to a matching search restores expanded results and the last poem read; a surprise outside the loaded results returns to the search controls instead. Theme tags cover only part of the catalogue.
 - **Understand:** source and rights notes, author, era, place, collection, and context. Linked, sourced relationships are distinct from varied suggestions labelled by shared poet, theme, original language or associated place; these suggestions do not claim influence.
 - **Find a way in:** try a short poem by its original line count, or follow a sourced sequence through three Leopardi idylls as arranged in an 1826 edition.
@@ -26,7 +26,7 @@ Verso is a free, cozy, multilingual poetry library for discovering classic poetr
 
 ### An honest note about coverage
 
-Coverage remains uneven: the collection includes 320 Chinese and 548 English works, three in Italian, and one original each in Japanese and Arabic. It includes the 154 Shakespeare sonnets and 281 Dickinson poems in early edited editions. More poets, countries, modern work, historical context and independently reviewed translations are planned. **Not every poem is available in every language.** The interface is currently in English.
+Coverage remains uneven: the collection includes 320 Chinese and 548 English works, five in Japanese, three in Italian, and one original in Arabic. It includes the 154 Shakespeare sonnets and 281 Dickinson poems in early edited editions. More poets, countries, modern work, historical context and independently reviewed translations are planned. **Not every poem is available in every language.** The interface is currently in English.
 
 The seven non-original language versions of Li Bai's *Quiet Night Thought* are explicitly labelled **AI-assisted, unreviewed reading aids**, not attributed to historical translators. Bashō's English version is separately attributed to Lafcadio Hearn; four Baudelaire poems include F. P. Sturm's English translations from a 1919 edition. Two Leopardi poems include Frederick Townsend's 1887 translations of later textual versions, marked where they differ from the 1826 originals. Other translations are shown only when included and identified. See [rights and sources](docs/rights-and-sources.md) and the [roadmap](docs/roadmap.md).
 
