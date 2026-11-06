@@ -7,8 +7,9 @@ import { join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
 import { renderFeed } from '../scripts/feed.mjs';
+import { relatedPoems } from '../scripts/recommendations.mjs';
 import { renderHome, renderPoem } from '../scripts/templates.mjs';
-import { associatedPlaces, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, surprisePoem } from '../src/catalog.mjs';
+import { associatedPlaces, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, surprisePoem } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
 test('catalogue has distinct, sourced records in all eight original languages', () => {
@@ -90,6 +91,55 @@ test('varied discovery preserves all works and rotates languages and authors', (
   assert.equal(surprisePoem([], () => 0), null);
   assert.equal(surprisePoem(sample, () => 0.75).id, 'b1');
   assert.equal(surprisePoem(sample, () => 0).id, 'a1');
+});
+test('related poems are deterministic, diverse, explainable and exclude authored connections', () => {
+  const source = { id: 'source', authorId: 'a', language: 'English', country: 'Jamaica / United States', themes: ['Night'], connections: [{ targetId: 'linked' }] };
+  const same = { id: 'same', authorId: 'a', language: 'English', country: 'Jamaica', themes: [] };
+  const themed = { id: 'themed', authorId: 'b', language: 'French', country: 'France', themes: ['Night'] };
+  const language = { id: 'language', authorId: 'c', language: 'English', country: 'England', themes: [] };
+  const linked = { id: 'linked', authorId: 'a', language: 'English', country: 'Jamaica', themes: ['Night'] };
+  const collection = [source, same, themed, language, linked, same];
+  const chosen = relatedPoems(source, collection);
+  assert.deepEqual(chosen.map(item => [item.poem.id, item.reason]), [['same', 'Same poet'], ['themed', 'Shared theme: Night'], ['language', 'Same original language: English']]);
+  assert.deepEqual(relatedPoems(source, [...collection].reverse()).map(item => [item.poem.id, item.reason]), chosen.map(item => [item.poem.id, item.reason]));
+  const placeOnly = { id: 'place', authorId: 'd', language: 'Arabic', country: 'United States', themes: [] };
+  assert.deepEqual(relatedPoems({ ...source, themes: [] }, [source, placeOnly]).map(item => item.reason), ['Shared associated place: United States']);
+  const anonymous = { id: 'anon-a', authorId: 'traditional', anonymous: true, language: 'Spanish', country: 'Not established', themes: [] };
+  const anonymousOther = { ...anonymous, id: 'anon-b' };
+  assert.deepEqual(relatedPoems(anonymous, [anonymous, anonymousOther]).map(item => item.reason), ['Same original language: Spanish']);
+  assert.deepEqual(relatedPoems({ ...anonymous, language: 'Japanese' }, [{ ...anonymousOther, language: 'Arabic' }]), []);
+  const sample = poems.find(poem => poem.id === 'shakespeare-sonnet-18');
+  assert.match(poemCard(sample, '/ai-poems/', 'Shared theme: <script>'), /Shared theme: &lt;script&gt;/);
+  assert.doesNotMatch(poemCard(sample, '/ai-poems/', 'Shared theme: <script>'), /<script>/);
+});
+test('real-catalogue recommendations use only supported relationships and vary across sonnets', () => {
+  const samePoetChoices = new Set();
+  for (const source of poems) {
+    const suggestions = relatedPoems(source, poems);
+    assert.ok(suggestions.length <= 3);
+    assert.equal(new Set(suggestions.map(item => item.poem.id)).size, suggestions.length, source.id);
+    const excluded = new Set([source.id, ...(source.connections || []).map(connection => connection.targetId)]);
+    for (const { poem, reason } of suggestions) {
+      assert.ok(!excluded.has(poem.id), `${source.id} -> ${poem.id}`);
+      if (reason === 'Same poet') {
+        assert.ok(!source.anonymous && !poem.anonymous && source.authorId === poem.authorId);
+        if (source.authorId === 'william-shakespeare') samePoetChoices.add(poem.id);
+      } else if (reason.startsWith('Shared theme: ')) {
+        const theme = reason.slice('Shared theme: '.length);
+        assert.ok(source.themes.includes(theme) && poem.themes.includes(theme));
+      } else if (reason.startsWith('Same original language: ')) {
+        assert.equal(source.language, poem.language);
+        assert.equal(reason, `Same original language: ${source.language}`);
+      } else if (reason.startsWith('Shared associated place: ')) {
+        const place = reason.slice('Shared associated place: '.length);
+        assert.notEqual(place, 'Not established');
+        assert.ok(associatedPlaces(source).includes(place) && associatedPlaces(poem).includes(place));
+      } else assert.fail(`Unexpected recommendation reason: ${reason}`);
+    }
+  }
+  assert.ok(samePoetChoices.size >= 50, `varied sonnet suggestions: ${samePoetChoices.size}`);
+  const sonnet = poems.find(poem => poem.id === 'shakespeare-sonnet-18');
+  assert.ok(new Set(relatedPoems(sonnet, poems).map(item => item.poem.authorId)).size >= 2);
 });
 test('country counts match results and explicit multi-place associations overlap', () => {
   assert.deepEqual(associatedPlaces({ country: 'Jamaica / United States' }), ['Jamaica', 'United States']);

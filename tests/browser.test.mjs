@@ -426,6 +426,61 @@ test('reader switches languages and shows provenance and RTL text', async () => 
   await context.close();
 });
 
+test('related poems explain varied suggestions and keep authored connections distinct', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}poems/shakespeare-sonnet-18/`);
+  const related = page.locator('.related-section');
+  assert.equal(await related.getByText(/not claims of historical influence/).isVisible(), true);
+  assert.equal(await related.locator('.poem-card').count(), 3);
+  const labels = await related.locator('.card-reason').allTextContents();
+  assert.equal(labels[0], 'Same poet');
+  assert.ok(labels.some(label => label.startsWith('Shared theme:')));
+  assert.ok(labels.some(label => label.startsWith('Same original language:')));
+  const links = await related.locator('.poem-card-link').evaluateAll(elements => elements.map(element => element.getAttribute('href')));
+  assert.equal(new Set(links).size, links.length);
+  assert.ok(!links.includes('/ai-poems/poems/shakespeare-sonnet-18/'));
+  const save = related.locator('[data-save]').first();
+  await save.click();
+  assert.equal(await save.getAttribute('aria-pressed'), 'true');
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `related poems fit at ${width}px`);
+  }
+  for (const theme of ['light', 'sepia', 'dark']) {
+    await page.getByLabel('Reading theme').selectOption(theme);
+    const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], `related poems / ${theme}`);
+  }
+  await page.goto(`${base}poems/linfinito-leopardi/`);
+  assert.equal(await page.locator('.connections-section').getByRole('link', { name: /La sera del giorno festivo/ }).count(), 1);
+  assert.equal(await page.locator('.related-section a[href="/ai-poems/poems/leopardi-sera-giorno-festivo/"]').count(), 0);
+  await context.close();
+});
+
+test('varied related poems remain readable and navigable without JavaScript', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, javaScriptEnabled: false, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}poems/shakespeare-sonnet-18/`);
+  const section = page.locator('.related-section');
+  assert.equal(await section.locator('.poem-card').count(), 3);
+  assert.equal(await section.locator('.card-reason').first().textContent(), 'Same poet');
+  assert.equal(await section.locator('[data-save]').first().isVisible(), false);
+  const firstChoice = await section.locator('.poem-card-link').first().getAttribute('href');
+  await page.goto(`${base}poems/shakespeare-sonnet-19/`);
+  assert.notEqual(await section.locator('.poem-card-link').first().getAttribute('href'), firstChoice);
+  const choice = section.locator('.poem-card-link').first();
+  const target = await choice.getAttribute('href');
+  await choice.focus();
+  const navigation = page.waitForURL(url => url.pathname === target);
+  await page.keyboard.press('Enter');
+  await navigation;
+  assert.equal(new URL(page.url()).pathname, target);
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  await context.close();
+});
+
 test('typeface choice persists, scales and remains available in focus mode across scripts', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();

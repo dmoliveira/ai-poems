@@ -1,4 +1,5 @@
 import { escapeHtml as e, filterPoems, lineCount, placeCounts, poemCard, readingLanguages } from '../src/catalog.mjs';
+import { relatedPoems } from './recommendations.mjs';
 
 const SITE = 'https://dmoliveira.github.io/ai-poems/';
 const description = 'Read classic poetry in its original language, discover poets and literary history, and explore translations, themes, places and time.';
@@ -141,11 +142,7 @@ export function renderPoem(poem, poems, base) {
   const seoTitle = poem.disambiguation ? `${title} — ${poem.disambiguation}` : title;
   const desc = `${title} by ${poem.author}. Read the ${poem.language} original, explore its ${poem.form.toLowerCase()} form, context, sources and related poetry on Verso.`;
   const schema = { '@context': 'https://schema.org', '@type': 'CreativeWork', '@id': absolute(path), name: title, alternateName: poem.displayTitle ? poem.title : undefined, ...(poem.anonymous ? {} : { author: { '@type': 'Person', name: poem.author } }), inLanguage: poem.lang, description: poem.context, isBasedOn: poem.source, ...(poem.year && poem.yearLabel.startsWith('Published') ? { datePublished: String(poem.year) } : {}) };
-  const sameAuthor = poem.anonymous ? [] : poems.filter(p => p.id !== poem.id && !p.anonymous && p.authorId === poem.authorId).slice(0, 3);
-  const sharedThemes = poems.filter(p => p.id !== poem.id && p.themes.some(t => poem.themes.includes(t))).slice(0, 3);
-  const sameLanguage = poems.filter(p => p.id !== poem.id && p.language === poem.language && p.authorId !== poem.authorId).slice(0, 3);
-  const suggestions = sameAuthor.length ? sameAuthor : sharedThemes.length ? sharedThemes : sameLanguage;
-  const suggestionNote = sameAuthor.length ? 'More poems by the same author.' : sharedThemes.length ? 'Suggested for shared themes—not a claim of historical influence.' : `More poetry in ${poem.language}—not a claim of historical influence.`;
+  const suggestions = relatedPoems(poem, poems);
   const translations = poem.translations.map((t, i) => `<option value="${i}">${e(t.language)}</option>`).join('');
   const viewSwitch = translations ? `<div class="view-switch" role="group" aria-label="Poem view"><button type="button" data-view="original" aria-pressed="true" disabled>Original</button><button type="button" data-view="translation" aria-pressed="false" disabled>Translation</button><button type="button" data-view="both" aria-pressed="false" disabled>Side by side</button></div>` : '<span class="muted">Original only · translation not yet available</span>';
   const languageTags = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
@@ -158,8 +155,8 @@ export function renderPoem(poem, poems, base) {
     return `<div class="connection-entry"><span class="language-pill">${e(connectionNames[connection.type])}</span><a href="${e(base)}poems/${e(target.id)}/"><strong>${e(target.displayTitle || target.title)}</strong> · ${e(target.author)} ↗</a><p>${e(connection.note)}</p><a href="${e(connection.source)}" target="_blank" rel="noopener noreferrer">View evidence ↗</a></div>`;
   }).join('');
   const connectionsSection = connections ? `<section class="connections-section"><p class="eyebrow">TRACING CONNECTIONS</p><h2>Connections we can trace.</h2>${connections}</section>` : '';
-  const relatedSection = suggestions.length ? `<section class="related-section"><div class="section-heading"><div><p class="eyebrow">KEEP WANDERING</p><h2>One poem leads <em>to another.</em></h2><p>${e(suggestionNote)}</p></div><a class="text-link" href="${e(base)}#explore">Explore all poems ↗</a></div><div class="poem-grid">${suggestions.map(p => poemCard(p, base)).join('')}</div><p class="relationship-note">Documented influences will be linked here when evidence is available. Similar themes alone do not establish influence.</p></section>` : '';
-  const readerData = [poem, ...suggestions.map(p => ({ id: p.id, title: p.title, displayTitle: p.displayTitle }))];
+  const relatedSection = suggestions.length ? `<section class="related-section"><div class="section-heading"><div><p class="eyebrow">KEEP WANDERING</p><h2>One poem leads <em>to another.</em></h2><p>Suggestions share catalogue details, not claims of historical influence.</p></div><a class="text-link" href="${e(base)}#explore">Explore all poems ↗</a></div><div class="poem-grid">${suggestions.map(item => poemCard(item.poem, base, item.reason)).join('')}</div></section>` : '';
+  const readerData = [poem, ...suggestions.map(({ poem: p }) => ({ id: p.id, title: p.title, displayTitle: p.displayTitle }))];
   return `${head({ title: `${seoTitle} by ${poem.author} | Verso Poetry Library`, description: desc, path, base, schema })}<body class="reader-page tone-${e(poem.mood)}" data-poem-id="${e(poem.id)}">${header(base)}
   <main id="main" class="reader-wrap"><a class="back-link" data-back-to-library href="${e(base)}#explore">← Back to the library</a>
     <div class="reader-intro"><div><p class="eyebrow"><span>THE READING ROOM</span> &nbsp; / &nbsp; ${e(poem.language.toUpperCase())} POETRY</p>
