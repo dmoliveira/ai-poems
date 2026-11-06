@@ -1,5 +1,37 @@
 [
   {
+    "id": "2026-11-06-summer-grass-basho",
+    "poemId": "summer-grass-basho",
+    "publishedAt": "2026-11-06T07:48:17Z",
+    "title": "Summer Grass — Matsuo Bashō",
+    "description": "Read the Japanese original from Oku no Hosomichi, with its source, variant note and historical context.",
+    "evidence": "https://github.com/dmoliveira/ai-poems/actions/runs/42182999788"
+  },
+  {
+    "id": "2026-11-06-mogami-river-basho",
+    "poemId": "mogami-river-basho",
+    "publishedAt": "2026-11-06T07:48:17Z",
+    "title": "The Mogami River — Matsuo Bashō",
+    "description": "Read Bashō's Japanese river verse, with its historical edition and a noted variant reading.",
+    "evidence": "https://github.com/dmoliveira/ai-poems/actions/runs/42182999788"
+  },
+  {
+    "id": "2026-11-06-rapeseed-flowers-buson",
+    "poemId": "rapeseed-flowers-buson",
+    "publishedAt": "2026-11-06T07:48:17Z",
+    "title": "Rapeseed Flowers — Yosa Buson",
+    "description": "Explore Buson's Japanese verse in the wording of an 1897 edition, with source and rights notes.",
+    "evidence": "https://github.com/dmoliveira/ai-poems/actions/runs/42182999788"
+  },
+  {
+    "id": "2026-11-06-spring-sea-buson",
+    "poemId": "spring-sea-buson",
+    "publishedAt": "2026-11-06T07:48:17Z",
+    "title": "The Spring Sea — Yosa Buson",
+    "description": "Read Buson's Japanese spring-sea verse, with a historical source and a note on its uncertain location.",
+    "evidence": "https://github.com/dmoliveira/ai-poems/actions/runs/42182999788"
+  },
+  {
     "id": "2026-11-06-leopardi-ricordanza",
     "poemId": "leopardi-ricordanza",
     "publishedAt": "2026-11-06T03:41:53Z",
