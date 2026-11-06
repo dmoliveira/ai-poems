@@ -1052,6 +1052,17 @@ h2 em {
   align-items: end;
   margin: 45px 0 30px;
 }
+.reader-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.focus-toggle {
+  gap: 7px;
+}
+.reader-save {
+  white-space: nowrap;
+}
 .reader-intro h1 {
   font-size: clamp(48px, 5.5vw, 72px);
   margin: 0 0 10px;
@@ -1117,12 +1128,22 @@ h2 em {
   align-items: center;
   gap: 10px;
 }
+.font-controls {
+  display: flex;
+  align-items: center;
+}
 .reading-options label {
   font-size: 11px;
   color: var(--muted);
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.reading-options .focus-theme {
+  display: none;
+}
+.reader-page.is-focus .reading-options .focus-theme {
+  display: flex;
 }
 .reading-options select {
   width: auto;
@@ -1147,6 +1168,45 @@ h2 em {
   background: var(--paper);
   border: 1px solid var(--line);
   padding: 40px;
+}
+.reader-page.is-focus .announcement,
+.reader-page.is-focus .site-header,
+.reader-page.is-focus .back-link,
+.reader-page.is-focus .story,
+.reader-page.is-focus .translation-index,
+.reader-page.is-focus .context-card > .eyebrow,
+.reader-page.is-focus .context-card > h2,
+.reader-page.is-focus .context-card > dl,
+.reader-page.is-focus .connections-section,
+.reader-page.is-focus .related-section,
+.reader-page.is-focus .reading-journey,
+.reader-page.is-focus .site-footer {
+  display: none;
+}
+.reader-page.is-focus .reader-wrap {
+  max-width: 860px;
+  margin-inline: auto;
+  padding-top: 56px;
+}
+.reader-page.is-focus .reader-intro {
+  margin-top: 20px;
+}
+.reader-page.is-focus .focus-toggle {
+  position: fixed;
+  z-index: 10;
+  top: 12px;
+  right: 12px;
+  box-shadow: var(--shadow);
+}
+.reader-page.is-focus .reader-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.reader-page.is-focus .context-card {
+  padding: 20px 24px;
+}
+.reader-page.is-focus .source-note {
+  border: 0;
+  padding: 0;
 }
 .poem-columns.side-by-side {
   display: grid;

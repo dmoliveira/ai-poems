@@ -3,7 +3,7 @@ import { associatedPlaces, discoveryOrder, escapeHtml as e, filterPoems, poemCar
 const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
 const journeyKey = 'verso-reading-journey-v1';
-const defaults = { saved: [], recent: [], theme: 'light', font: 0, language: 'English' };
+const defaults = { saved: [], recent: [], theme: 'light', font: 0, language: 'English', focus: false };
 let state;
 try {
   const stored = JSON.parse(localStorage.getItem(key) || '{}');
@@ -11,6 +11,7 @@ try {
 } catch { state = { ...defaults }; }
 if (!['light', 'sepia', 'dark'].includes(state.theme)) state.theme = 'light';
 state.font = Math.max(-2, Math.min(4, Number(state.font) || 0));
+state.focus = state.focus === true;
 const notice = document.createElement('div');
 notice.className = 'toast';
 notice.setAttribute('role', 'status');
@@ -30,8 +31,19 @@ function applyPreferences() {
   document.documentElement.dataset.theme = state.theme;
   document.documentElement.style.setProperty('--verse-scale', String(1 + state.font * 0.1));
   document.querySelectorAll('[data-theme-select]').forEach(select => { select.value = state.theme; });
+  const focus = document.querySelector('#focus-toggle');
+  if (focus) {
+    document.body.classList.toggle('is-focus', state.focus);
+    focus.hidden = false;
+    focus.querySelector('.focus-label').textContent = state.focus ? 'Exit focus mode' : 'Focus mode';
+  }
 }
 applyPreferences();
+document.querySelector('#focus-toggle')?.addEventListener('click', () => {
+  state.focus = !state.focus; applyPreferences();
+  const durable = persist();
+  announce(durable ? (state.focus ? 'Focus mode on.' : 'Focus mode off.') : 'Focus preference is available for this visit only; browser storage is unavailable.');
+});
 document.querySelectorAll('[data-theme-select]').forEach(select => select.addEventListener('change', () => {
   state.theme = select.value; applyPreferences();
   if (!persist()) announce('Your preference is available for this visit only; browser storage is unavailable.');
