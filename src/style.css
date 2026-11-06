@@ -1553,11 +1553,14 @@ h2 em {
 .related-section .poem-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.relationship-note {
+.card-reason {
   font-size: 11px;
-  color: var(--muted);
-  margin-top: 15px;
+  font-weight: 700;
+  color: var(--olive-dark);
+  margin: 15px 0 0;
+  overflow-wrap: anywhere;
 }
+.card-reason + h3 { margin-top: 6px; }
 .translation-index {
   margin-top: 28px;
   border-top: 1px solid var(--line);
