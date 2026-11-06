@@ -195,6 +195,191 @@ test('length filters and search journeys work on mobile', async () => {
   await context.close();
 });
 
+test('returning from an expanded search restores the list and focuses the poem', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=English&sort=title#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  await page.getByRole('button', { name: /Show more poems/ }).click();
+  const link = page.locator('#results .poem-card-link').nth(8);
+  const href = await link.getAttribute('href');
+  await link.focus();
+  await page.keyboard.press('Enter');
+  await page.getByText(/Poem 9 of .* in your search/).waitFor();
+  await page.reload();
+  await page.getByText(/Poem 9 of .* in your search/).waitFor();
+  await page.getByRole('link', { name: 'Back to the library' }).click();
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  const restored = page.locator('#results .poem-card-link').nth(8);
+  assert.equal(await page.locator('#results .poem-card').count(), 16);
+  assert.equal(await restored.getAttribute('href'), href);
+  assert.equal(await restored.evaluate(element => element === document.activeElement), true);
+  assert.equal(await restored.evaluate(element => { const box = element.getBoundingClientRect(); return box.top < innerHeight && box.bottom > 0; }), true);
+  assert.equal(new URL(page.url()).searchParams.get('sort'), 'title');
+  assert.equal(new URL(page.url()).searchParams.get('language'), 'English');
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
+  await context.close();
+});
+
+test('returning after moving beyond expanded results reveals the last poem read', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=English#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  await page.getByRole('button', { name: /Show more poems/ }).click();
+  await page.locator('#results .poem-card-link').nth(15).click();
+  await page.getByText(/Poem 16 of .* in your search/).waitFor();
+  await page.getByRole('link', { name: /Next poem/ }).click();
+  await page.getByText(/Poem 17 of .* in your search/).waitFor();
+  const id = await page.locator('body').getAttribute('data-poem-id');
+  await page.getByRole('link', { name: 'Back to results ↗' }).click();
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  assert.equal(await page.locator('#results .poem-card').count(), 24);
+  const restored = page.locator('#results .poem-card-link').nth(16);
+  assert.equal(await restored.getAttribute('href'), `/ai-poems/poems/${id}/`);
+  assert.equal(await restored.evaluate(element => element === document.activeElement), true);
+  await context.close();
+});
+
+test('a distant surprise returns to the loaded results without rendering the entire catalogue', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  await context.addInitScript(() => { Math.random = () => 0.999999; });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=English#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  await page.getByRole('button', { name: /Show more poems/ }).click();
+  await page.getByRole('button', { name: /Surprise me/ }).click();
+  await page.locator('#reading-journey').waitFor();
+  assert.ok(await page.evaluate(() => {
+    const journey = JSON.parse(sessionStorage.getItem('verso-reading-journey-v1'));
+    return journey.items.findIndex(item => item.id === journey.resumeId) >= 16;
+  }));
+  await page.getByRole('link', { name: 'Back to the library' }).click();
+  await page.getByRole('status').getByText(/surprise poem is beyond the loaded results/).waitFor();
+  assert.equal(await page.locator('#results .poem-card').count(), 16);
+  assert.equal(await page.getByRole('button', { name: /Surprise me/ }).evaluate(element => element === document.activeElement), true);
+  await context.close();
+});
+
+test('browser history restores the matching expanded search without affecting direct links', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=English#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  await page.getByRole('button', { name: /Show more poems/ }).click();
+  const href = await page.locator('#results .poem-card-link').nth(8).getAttribute('href');
+  await page.locator('#results .poem-card-link').nth(8).click();
+  await page.getByText(/Poem 9 of .* in your search/).waitFor();
+  await page.goBack();
+  await page.waitForFunction(() => document.querySelectorAll('#results .poem-card').length === 16);
+  assert.equal(await page.locator('#results .poem-card-link').nth(8).getAttribute('href'), href);
+  await page.waitForFunction(() => document.activeElement === document.querySelectorAll('#results .poem-card-link')[8]);
+  assert.equal(await page.locator('#results .poem-card-link').nth(8).evaluate(element => { const box = element.getBoundingClientRect(); return box.top < innerHeight && box.bottom > 0; }), true);
+  await page.goForward();
+  await page.locator('#original-panel .verse').waitFor();
+  await page.goBack();
+  await page.waitForFunction(() => document.querySelectorAll('#results .poem-card').length === 16);
+  const other = await browser.newContext();
+  const direct = await other.newPage();
+  await direct.goto(`${base}?language=English#explore`);
+  await direct.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  assert.equal(await direct.locator('#results .poem-card').count(), 8);
+  await other.close();
+  await context.close();
+});
+
+test('a direct poem visit does not reuse a previously completed search journey', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=English#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  await page.getByRole('button', { name: /Show more poems/ }).click();
+  const href = await page.locator('#results .poem-card-link').nth(8).getAttribute('href');
+  await page.locator('#results .poem-card-link').nth(8).click();
+  await page.getByText(/Poem 9 of .* in your search/).waitFor();
+  await page.getByRole('link', { name: 'Back to the library' }).click();
+  await page.waitForFunction(() => document.querySelectorAll('#results .poem-card').length === 16);
+  const referrer = page.url();
+  await page.goto(new URL(href, base).href, { referer: referrer });
+  await page.getByRole('button', { name: 'Focus mode' }).waitFor();
+  assert.equal(await page.locator('#reading-journey').isVisible(), false);
+  await page.getByRole('link', { name: 'Back to the library' }).click();
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  assert.equal(await page.locator('#results .poem-card').count(), 8);
+  await context.close();
+});
+
+test('browser Back through a reading journey returns to the poem last viewed', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=English#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  await page.getByRole('button', { name: /Show more poems/ }).click();
+  const href = await page.locator('#results .poem-card-link').nth(8).getAttribute('href');
+  await page.locator('#results .poem-card-link').nth(8).click();
+  await page.getByText(/Poem 9 of .* in your search/).waitFor();
+  await page.getByRole('link', { name: /Next poem/ }).click();
+  await page.getByText(/Poem 10 of .* in your search/).waitFor();
+  await page.goBack();
+  await page.getByText(/Poem 9 of .* in your search/).waitFor();
+  await page.goBack();
+  await page.waitForFunction(() => document.querySelectorAll('#results .poem-card').length === 16);
+  const restored = page.locator('#results .poem-card-link').nth(8);
+  assert.equal(await restored.getAttribute('href'), href);
+  await page.waitForFunction(() => document.activeElement === document.querySelectorAll('#results .poem-card-link')[8]);
+  await context.close();
+});
+
+test('blocked session storage falls back to the first results without breaking navigation', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  await context.addInitScript(() => Object.defineProperty(window, 'sessionStorage', { get() { throw new Error('Storage blocked'); } }));
+  const page = await context.newPage();
+  await page.goto(`${base}?language=English#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  await page.getByRole('button', { name: /Show more poems/ }).click();
+  await page.locator('#results .poem-card-link').nth(8).click();
+  await page.waitForFunction(() => new URL(document.querySelector('[data-back-to-library]').href).searchParams.get('language') === 'English');
+  assert.equal(await page.locator('#reading-journey').isVisible(), false);
+  await page.getByRole('link', { name: 'Back to the library' }).click();
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  assert.equal(await page.locator('#results .poem-card').count(), 8);
+  await context.close();
+});
+
+test('mismatched and malformed journeys do not expand or focus stale results', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=English#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  await page.getByRole('button', { name: /Show more poems/ }).click();
+  await page.locator('#results .poem-card-link').nth(8).click();
+  await page.getByText(/Poem 9 of .* in your search/).waitFor();
+  const reader = page.url();
+  await page.goto(`${base}?language=Portuguese#explore`, { referer: reader });
+  await page.getByText(`${filterPoems(poems, { language: 'Portuguese' }).length} poems found`).waitFor();
+  assert.equal(await page.locator('#results .poem-card').count(), 8);
+  await page.goto(`${base}?language=English#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  await page.getByRole('button', { name: /Show more poems/ }).click();
+  await page.locator('#results .poem-card-link').nth(8).click();
+  await page.getByText(/Poem 9 of .* in your search/).waitFor();
+  await page.evaluate(() => {
+    const journey = JSON.parse(sessionStorage.getItem('verso-reading-journey-v1'));
+    journey.limit = Number.MAX_SAFE_INTEGER;
+    sessionStorage.setItem('verso-reading-journey-v1', JSON.stringify(journey));
+  });
+  await page.getByRole('link', { name: 'Back to the library' }).click();
+  await page.getByText(`${filterPoems(poems, { language: 'English' }).length} poems found`).waitFor();
+  assert.equal(await page.locator('#results .poem-card').count(), 8);
+  assert.equal(await page.locator('#results .poem-card-link').first().evaluate(element => element === document.activeElement), false);
+  await page.goto(`${base}?language=Portuguese#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Portuguese' }).length} poems found`).waitFor();
+  assert.equal(await page.locator('#results .poem-card').count(), 8);
+  await context.close();
+});
+
 test('clearing the shelf requires an explicit confirmation', async () => {
   const context = await browser.newContext();
   const page = await context.newPage();
