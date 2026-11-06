@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
-import { filterPoems } from '../src/catalog.mjs';
+import { filterPoems, placeCounts } from '../src/catalog.mjs';
 
 const port = 43817;
 const base = `http://127.0.0.1:${port}/ai-poems/`;
@@ -29,9 +29,10 @@ test('search, filters, shelf and history work across page loads', async () => {
   await page.goto(base);
   assert.equal((await hero).status(), 200);
   await page.getByText(totalText).waitFor();
-  await page.getByRole('button', { name: /A quiet moment/ }).click();
-  const quietCount = filterPoems(poems, { theme: 'Quiet' }).length;
-  await page.getByText(`${quietCount} ${quietCount === 1 ? 'poem' : 'poems'} found`).waitFor();
+  await page.getByRole('link', { name: /Chinese poetry/ }).click();
+  const chineseCount = filterPoems(poems, { language: 'Chinese' }).length;
+  await page.getByText(`${chineseCount} poems found`).waitFor();
+  assert.equal(await page.getByLabel('Original language').inputValue(), 'Chinese');
   await page.getByRole('button', { name: 'Clear all' }).click();
   await page.getByLabel('Search the poetry library').fill('Cultivo una rosa blanca');
   await page.getByText('1 poem found').waitFor();
@@ -56,9 +57,102 @@ test('search, filters, shelf and history work across page loads', async () => {
   await context.close();
 });
 
+test('shareable filters survive the reader and surprise respects the current results', async () => {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  await context.addInitScript(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async text => { window.copiedSearchLink = text; } } }));
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Portuguese&sort=title#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Portuguese' }).length} poems found`).waitFor();
+  const search = page.getByLabel('Search the poetry library');
+  await search.fill('Florbela');
+  await page.getByText('32 poems found').waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('q'), 'Florbela');
+  await page.getByRole('button', { name: 'Copy search link' }).click();
+  await page.getByRole('status').getByText('Search link copied.').waitFor();
+  const copied = new URL(await page.evaluate(() => window.copiedSearchLink));
+  assert.equal(copied.searchParams.get('language'), 'Portuguese');
+  assert.equal(copied.searchParams.get('q'), 'Florbela');
+  assert.equal(copied.hash, '#explore');
+  await page.locator('#results .poem-card-link').first().click();
+  const returnLink = page.getByRole('link', { name: 'Back to the library' });
+  assert.match(await returnLink.getAttribute('href'), /language=Portuguese/);
+  await returnLink.click();
+  await page.getByText('32 poems found').waitFor();
+  assert.equal(await search.inputValue(), 'Florbela');
+  assert.equal(await page.getByLabel('Original language').inputValue(), 'Portuguese');
+  assert.equal(await page.getByLabel('Sort').inputValue(), 'title');
+  await page.getByRole('button', { name: /Surprise me/ }).click();
+  await page.waitForURL('**/poems/**');
+  const id = await page.locator('body').getAttribute('data-poem-id');
+  assert.equal(poems.find(p => p.id === id).author, 'Florbela Espanca');
+  await context.close();
+});
+
+test('mobile filters collapse, empty searches disable surprise, and translation credits remain visible', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  assert.equal(await page.locator('#filter-drawer').getAttribute('open'), null);
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Arabic');
+  await page.getByText('1 poem found').waitFor();
+  assert.equal(await page.locator('#filter-summary').textContent(), 'Filters (1 active)');
+  await page.getByLabel('Search the poetry library').fill('nothing-matches-this-phrase');
+  await page.getByText('0 poems found').waitFor();
+  assert.equal(await page.getByRole('button', { name: /Surprise me/ }).isDisabled(), true);
+  assert.equal(await page.getByRole('button', { name: /Show more poems/ }).isVisible(), false);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await page.goto(`${base}poems/baudelaire-la-muse-venale/`);
+  await page.getByRole('button', { name: 'Side by side' }).click();
+  await page.locator('#translation-panel').getByText(/F\. P\. Sturm/).waitFor();
+  assert.equal(await page.locator('#original-panel').isVisible(), true);
+  assert.equal(await page.locator('#translation-panel').isVisible(), true);
+  await context.close();
+});
+
+test('country flags and counts link to the matching country results', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const section = page.locator('#countries');
+  const count = placeCounts(poems).find(item => item.place === 'United States').count;
+  const card = section.getByRole('link', { name: new RegExp(`^United States ${count} poems$`) });
+  assert.equal(await card.locator('.country-flag img').getAttribute('src'), '/ai-poems/assets/flags/us.svg');
+  assert.equal(await card.locator('.country-flag img').getAttribute('alt'), '');
+  await section.locator('.more-countries summary').click();
+  assert.equal(await section.getByRole('link', { name: /Not established/ }).locator('.country-flag').textContent(), '⌁');
+  assert.equal(await section.getByRole('link', { name: /Arabian Peninsula/ }).locator('.country-flag').textContent(), '⌁');
+  const flags = await section.locator('.country-flag img').evaluateAll(async images => {
+    return Promise.all(images.map(async image => {
+      image.loading = 'eager';
+      await image.decode();
+      return { src: new URL(image.src).pathname, width: image.naturalWidth };
+    }));
+  });
+  assert.deepEqual(flags.map(flag => flag.src.split('/').pop()).sort(), ['cn.svg', 'cu.svg', 'es.svg', 'fr.svg', 'gb-eng.svg', 'it.svg', 'jm.svg', 'jp.svg', 'pt.svg', 'us.svg', 've.svg']);
+  assert.ok(flags.every(flag => flag.src.startsWith('/ai-poems/assets/flags/') && flag.width > 0));
+  await card.click();
+  await page.getByText(`${count} poems found`).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('country'), 'United States');
+  await page.locator('#filter-summary').click();
+  assert.equal(await page.getByRole('combobox', { name: 'Country or region', exact: true }).inputValue(), 'United States');
+  assert.ok(filterPoems(poems, { country: 'United States' }).some(p => p.author === 'Claude McKay'));
+  await page.getByRole('button', { name: 'Remove Country or region: United States filter' }).click();
+  await page.getByText(totalText).waitFor();
+  assert.equal(new URL(page.url()).searchParams.has('country'), false);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await page.setViewportSize({ width: 320, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+});
+
 test('reader switches languages and shows provenance and RTL text', async () => {
   const context = await browser.newContext();
   const page = await context.newPage();
+  let catalogueRequests = 0;
+  page.on('request', request => { if (request.url().endsWith('/data/catalog.json')) catalogueRequests++; });
   await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
   await page.getByLabel('Read in').selectOption({ label: 'Arabic' });
   await page.getByText('AI-assisted, not yet independently reviewed', { exact: false }).first().waitFor();
@@ -67,6 +161,13 @@ test('reader switches languages and shows provenance and RTL text', async () => 
   assert.equal(await page.locator('#original-panel').isVisible(), true);
   assert.equal(await page.locator('#translation-panel').isVisible(), true);
   assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'zh-Hant');
+  assert.equal(catalogueRequests, 0, 'reader does not download the whole catalogue');
+  const relatedSave = page.locator('.related-section [data-save]').first();
+  const relatedId = await relatedSave.getAttribute('data-save');
+  await relatedSave.click();
+  assert.equal(await relatedSave.getAttribute('aria-pressed'), 'true');
+  assert.match(await relatedSave.getAttribute('aria-label'), /Remove from shelf/);
+  assert.ok(poems.some(p => p.id === relatedId));
   await context.close();
 });
 

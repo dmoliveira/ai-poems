@@ -6,7 +6,8 @@ import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
-import { escapeHtml, filterPoems } from '../src/catalog.mjs';
+import { renderHome, renderPoem } from '../scripts/templates.mjs';
+import { associatedPlaces, discoveryOrder, escapeHtml, filterPoems, placeCounts, surprisePoem } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
 test('catalogue has distinct, sourced records in all eight original languages', () => {
@@ -75,9 +76,58 @@ test('search combines text, accents, metadata, translation and dates without gue
   assert.ok(filterPoems(poems, { author: 'William Shakespeare', from: '1609', to: '1609' }).length >= 154);
   assert.ok(!filterPoems(poems, { language: 'Chinese', from: '1' }).some(p => p.id === 'quiet-night-thought-li-bai'));
   assert.ok(filterPoems(poems, { theme: 'Nature' }).every(p => p.themes.includes('Nature')));
+  assert.equal(filterPoems(poems, { collection: 'The Book of American Negro Poetry' }).length, 113);
+});
+test('varied discovery preserves all works and rotates languages and authors', () => {
+  const varied = discoveryOrder(poems);
+  assert.equal(varied.length, poems.length);
+  assert.equal(new Set(varied.map(p => p.id)).size, poems.length);
+  assert.equal(new Set(varied.slice(0, 8).map(p => p.language)).size, 8);
+  const oneLanguage = discoveryOrder(poems.filter(p => p.language === 'English'));
+  assert.equal(new Set(oneLanguage.slice(0, 10).map(p => p.authorId)).size, 10);
+  const sample = [{ id: 'a1', authorId: 'a' }, { id: 'a2', authorId: 'a' }, { id: 'b1', authorId: 'b' }];
+  assert.equal(surprisePoem([], () => 0), null);
+  assert.equal(surprisePoem(sample, () => 0.75).id, 'b1');
+  assert.equal(surprisePoem(sample, () => 0).id, 'a1');
+});
+test('country counts match results and explicit multi-place associations overlap', () => {
+  assert.deepEqual(associatedPlaces({ country: 'Jamaica / United States' }), ['Jamaica', 'United States']);
+  assert.deepEqual(associatedPlaces({ country: 'China / China' }), ['China']);
+  for (const { place, count } of placeCounts(poems)) assert.equal(filterPoems(poems, { country: place }).length, count, place);
+  const mckay = poems.find(p => p.id === 'american-1922-00659');
+  assert.ok(filterPoems([mckay], { country: 'United States' }).includes(mckay));
+  assert.ok(filterPoems([mckay], { country: 'Jamaica' }).includes(mckay));
+  assert.ok(!filterPoems([mckay], { country: 'Cuba' }).length);
+  const home = renderHome([{ ...mckay, country: 'United States / New place' }], '/test-base/');
+  assert.match(home, /src="\/test-base\/assets\/flags\/us\.svg" alt=""/);
+  assert.match(home, /class="country-flag" aria-hidden="true">⌁<\/span><span class="country-label"><strong>New place/);
+});
+test('distinct same-titled works retain their texts and show their opening lines', () => {
+  const first = poems.find(p => p.id === 'tang-013');
+  const second = poems.find(p => p.id === 'tang-226');
+  assert.equal(first.title, second.title);
+  assert.equal(first.authorId, second.authorId);
+  assert.notEqual(first.text, second.text);
+  assert.equal(first.disambiguation, '下馬飲君酒，');
+  assert.equal(second.disambiguation, '山中相送罷，');
+});
+test('historical English translations are individually credited and complete', () => {
+  for (const id of ['baudelaire-la-muse-venale', 'baudelaire-la-vie-anterieure', 'baudelaire-don-juan-aux-enfers', 'baudelaire-remords-posthume']) {
+    const poem = poems.find(p => p.id === id);
+    const translation = poem.translations.find(t => t.language === 'English');
+    assert.match(translation.translator, /F\. P\. Sturm/);
+    assert.match(translation.source, /gutenberg\.org\/files\/47032/);
+    assert.match(translation.rights, /1919.*public domain in the United States/i);
+    assert.equal(translation.text.split('\n').filter(Boolean).length, id === 'baudelaire-don-juan-aux-enfers' ? 20 : 14);
+  }
 });
 test('HTML escaping protects text and attribute contexts', () => {
   assert.equal(escapeHtml(`<script x='a'>&"`), '&lt;script x=&#39;a&#39;&gt;&amp;&quot;');
+  const unsafe = { ...poems[0], title: '</script><script>alert(1)</script>', displayTitle: undefined };
+  const page = renderPoem(unsafe, poems, '/ai-poems/');
+  const embedded = page.match(/<script type="application\/json" id="reader-data">(.*?)<\/script>/s)[1];
+  assert.equal(JSON.parse(embedded)[0].title, unsafe.title);
+  assert.ok(!embedded.includes('</script>'));
 });
 test('additional individual or batched JSON files extend the catalogue', async t => {
   const dir = await mkdtemp(join(tmpdir(), 'verso-catalog-test-'));
@@ -97,6 +147,8 @@ test('build creates crawlable pages, valid schema and a complete sitemap', async
   const robots = await readFile('_site/robots.txt', 'utf8');
   assert.match(home, /Verso Poetry Library \| Poems Across Languages/);
   assert.ok(home.includes(`Browse the complete poetry index (${poems.length})`));
+  for (const { place, count } of placeCounts(poems)) assert.ok(home.includes(`${escapeHtml(place)}</strong><small>${count} ${count === 1 ? 'poem' : 'poems'}</small>`), place);
+  assert.match(home, /Places are associations, not necessarily where a poem was written/);
   assert.equal((sitemap.match(/<loc>/g) || []).length, poems.length + 1);
   assert.match(robots, /https:\/\/dmoliveira\.github\.io\/ai-poems\/sitemap\.xml/);
   for (const p of poems) {
@@ -123,4 +175,15 @@ test('build creates crawlable pages, valid schema and a complete sitemap', async
   const anonymousSchema = JSON.parse(anonymous.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
   assert.equal(anonymousSchema.author, undefined);
   assert.doesNotMatch(anonymous, /More poems by the same author/);
+  const ambiguous = await readFile('_site/poems/tang-013/index.html', 'utf8');
+  assert.match(ambiguous, /Opening line:.*下馬飲君酒，/);
+  assert.match(home, /送別.*下馬飲君酒，/);
+  const translated = await readFile('_site/poems/baudelaire-la-muse-venale/index.html', 'utf8');
+  assert.match(translated, /F\. P\. Sturm/);
+  assert.match(translated, /jests to drive away thy spleen/);
+  const untranslated = await readFile('_site/poems/shakespeare-sonnet-18/index.html', 'utf8');
+  assert.match(untranslated, /Original only · translation not yet available/);
+  assert.doesNotMatch(untranslated, /data-view="translation"/);
+  assert.match(untranslated, /<dt>Themes<\/dt><dd>Love, Nature, Time<\/dd>/);
+  assert.match(anonymous, /<dt>Themes<\/dt><dd>Not yet classified<\/dd>/);
 });
