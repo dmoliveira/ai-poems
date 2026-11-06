@@ -73,9 +73,26 @@ test('shareable filters survive the reader and surprise respects the current res
   assert.equal(copied.searchParams.get('language'), 'Portuguese');
   assert.equal(copied.searchParams.get('q'), 'Florbela');
   assert.equal(copied.hash, '#explore');
-  await page.locator('#results .poem-card-link').first().click();
+  // Hold the reader module to exercise the static fallback before hydration.
+  let releaseReaderScript;
+  const readerScriptGate = new Promise(resolve => { releaseReaderScript = resolve; });
+  await page.route('**/app.mjs', async route => { await readerScriptGate; await route.continue(); });
   const returnLink = page.getByRole('link', { name: 'Back to the library' });
-  assert.match(await returnLink.getAttribute('href'), /language=Portuguese/);
+  try {
+    await page.locator('#results .poem-card-link').first().click({ noWaitAfter: true });
+    await page.waitForURL('**/poems/**', { waitUntil: 'commit' });
+    await returnLink.waitFor({ state: 'attached' });
+    assert.equal(await returnLink.getAttribute('href'), '/ai-poems/#explore');
+  } finally {
+    releaseReaderScript();
+  }
+  await page.waitForFunction(() => {
+    const link = document.querySelector('[data-back-to-library]');
+    if (!link) return false;
+    const params = new URL(link.href).searchParams;
+    return params.get('language') === 'Portuguese' && params.get('q') === 'Florbela' && params.get('sort') === 'title';
+  });
+  await page.unroute('**/app.mjs');
   await returnLink.click();
   await page.getByText('32 poems found').waitFor();
   assert.equal(await search.inputValue(), 'Florbela');
