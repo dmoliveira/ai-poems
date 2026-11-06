@@ -771,7 +771,11 @@ h2 em {
 .poet-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-auto-rows: min-content;
   gap: 10px;
+  max-height: 36rem;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 .poet-list a,
 .shelf-items a {
