@@ -43,7 +43,7 @@ npm run serve
 
 Open **http://127.0.0.1:4173/ai-poems/**. The path matches the GitHub Pages project path. For browser tests, install Chromium once with `npx playwright install chromium`, then run `npm run test:browser`. To use an existing Chrome installation, set `CHROME_PATH` to its executable.
 
-The GitHub Actions workflow tests and builds pull requests, then publishes `_site/` to GitHub Pages when `main` changes. Static poem pages and the complete index remain readable with JavaScript disabled; interactive search and the shelf require JavaScript.
+The GitHub Actions workflow tests and builds pull requests, then publishes `_site/` to GitHub Pages when `main` changes. Static poem pages, available translations and the complete index remain readable with JavaScript disabled; interactive search, display controls and the shelf require JavaScript.
 
 The sitemap is published at [`/ai-poems/sitemap.xml`](https://dmoliveira.github.io/ai-poems/sitemap.xml) and can be submitted to search-engine webmaster tools. Search engines decide whether and when to index pages. Because this is a project site under a path, crawlers normally consult `robots.txt` at the **domain root**; the generated project-level `robots.txt` does not control that root.
 
