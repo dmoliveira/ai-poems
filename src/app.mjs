@@ -139,12 +139,14 @@ function setupExplore() {
   const preferredFilter = document.querySelector('#preferred-filter');
   const readableNote = document.querySelector('#readable-note');
   const drawer = document.querySelector('#filter-drawer');
+  const advanced = document.querySelector('#advanced-filters');
   const summary = document.querySelector('#filter-summary');
   const chips = document.querySelector('#active-filters');
   const fields = Object.fromEntries(['author', 'theme', 'form', 'length', 'language', 'translation', 'readable', 'country', 'collection', 'from', 'to'].map(name => [name, document.querySelector(`#filter-${name}`)]));
   const search = document.querySelector('#search');
   const sort = document.querySelector('#sort');
-  let limit = 12;
+  const pageSize = 8;
+  let limit = pageSize;
   let filtered = [];
   const filterLabels = { author: 'Poet', theme: 'Theme', form: 'Form', length: 'Length', language: 'Language', translation: 'Translation', readable: 'Available in', country: 'Country or region', collection: 'Collection', from: 'From', to: 'To' };
   for (const name of ['author', 'theme', 'form', 'language', 'translation', 'country', 'collection']) {
@@ -155,9 +157,10 @@ function setupExplore() {
     const params = new URL(location.href).searchParams;
     search.value = params.get('q') || '';
     for (const [name, input] of Object.entries(fields)) input.value = params.get(name) || '';
+    if (['collection', 'form', 'length', 'theme', 'translation', 'from', 'to'].some(name => fields[name].value)) advanced.open = true;
     sort.value = params.get('sort') || 'featured';
     if (!sort.value) sort.value = 'featured';
-    limit = 12;
+    limit = pageSize;
   }
   function updateURL() {
     const url = new URL(location.href);
@@ -198,20 +201,20 @@ function setupExplore() {
       sessionStorage.setItem(journeyKey, JSON.stringify({ search: location.search, items: filtered.map(p => ({ id: p.id, title: p.displayTitle || p.title })) }));
     } catch { /* Reading still works when browser storage is unavailable. */ }
   }
-  [...Object.values(fields), search, sort].forEach(input => input.addEventListener('input', () => { limit = 12; updateURL(); render(); }));
-  document.querySelector('#search-form').addEventListener('submit', event => { event.preventDefault(); limit = 12; updateURL(); render(); });
-  document.querySelector('#clear-filters').addEventListener('click', () => { Object.values(fields).forEach(input => { input.value = ''; }); search.value = ''; sort.value = 'featured'; limit = 12; updateURL(); render(); });
-  more.addEventListener('click', () => { limit += 12; render(); });
+  [...Object.values(fields), search, sort].forEach(input => input.addEventListener('input', () => { limit = pageSize; updateURL(); render(); }));
+  document.querySelector('#search-form').addEventListener('submit', event => { event.preventDefault(); limit = pageSize; updateURL(); render(); });
+  document.querySelector('#clear-filters').addEventListener('click', () => { Object.values(fields).forEach(input => { input.value = ''; }); search.value = ''; sort.value = 'featured'; limit = pageSize; updateURL(); render(); });
+  more.addEventListener('click', () => { limit += pageSize; render(); });
   results.addEventListener('click', event => {
     if (event.target.closest('a.poem-card-link')) rememberJourney();
   });
   preferredFilter.addEventListener('click', () => {
     fields.readable.value = fields.readable.value === state.preferredLanguage ? '' : state.preferredLanguage;
-    limit = 12; updateURL(); render();
+    limit = pageSize; updateURL(); render();
   });
   document.addEventListener('verso:preferred-language', event => {
     if (event.detail.previousLanguage && fields.readable.value === event.detail.previousLanguage) {
-      fields.readable.value = state.preferredLanguage; limit = 12; updateURL();
+      fields.readable.value = state.preferredLanguage; limit = pageSize; updateURL();
     }
     render();
   });
@@ -219,7 +222,7 @@ function setupExplore() {
     const button = event.target.closest('[data-clear-filter]');
     if (!button || !fields[button.dataset.clearFilter]) return;
     fields[button.dataset.clearFilter].value = '';
-    limit = 12; updateURL(); render(); summary.focus();
+    limit = pageSize; updateURL(); render(); summary.focus();
   });
   surprise.addEventListener('click', () => {
     const poem = surprisePoem(filtered);

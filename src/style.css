@@ -381,29 +381,6 @@ h2 em {
     transform: translateX(3px);
   }
 }
-.hero-note {
-  margin: 56px 0 0;
-  color: #6d6959;
-  font:
-    italic 15px Cormorant,
-    Georgia,
-    serif;
-}
-.hero-note span {
-  color: #8b9675;
-  font-size: 19px;
-  margin-right: 7px;
-}
-.hero-side-note {
-  position: absolute;
-  right: 3%;
-  bottom: 28px;
-  writing-mode: vertical-rl;
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  color: #fff9e7;
-  text-shadow: 0 1px 3px #333;
-}
 .trust-strip {
   min-height: 58px;
   display: flex;
@@ -770,6 +747,15 @@ h2 em {
   font-weight: 700;
   margin-top: 13px;
 }
+.advanced-filters {
+  margin-top: 18px;
+}
+.advanced-filters > summary {
+  color: var(--olive-dark);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
 .filters select,
 .filters input,
 .results-heading select,
@@ -918,6 +904,26 @@ h2 em {
 .poets-section > div:first-child,
 .shelf-section > div:first-child {
   max-width: 420px;
+}
+.poet-directory > summary {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 14px 16px;
+}
+.poet-directory .poet-list {
+  margin-top: 12px;
+}
+.poets-section .poet-directory noscript p {
+  margin-top: 12px;
+}
+.poet-directory noscript a,
+.results-area noscript a {
+  color: var(--olive-dark);
+  text-decoration: underline;
 }
 .poet-list {
   display: grid;
@@ -1581,12 +1587,6 @@ h2 em {
   .hero-copy {
     max-width: 270px;
   }
-  .hero-note {
-    margin-top: 52px;
-  }
-  .hero-side-note {
-    display: none;
-  }
   .trust-strip {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1659,7 +1659,16 @@ h2 em {
     gap: 0 12px;
   }
   .filter-head,
-  .filter-note {
+  .filter-note,
+  .advanced-filters {
+    grid-column: 1/-1;
+  }
+  .advanced-filter-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 12px;
+  }
+  .advanced-filter-fields .year-inputs {
     grid-column: 1/-1;
   }
   .filter-head {
@@ -1752,6 +1761,10 @@ h2 em {
   }
   .nav-actions .icon-link {
     display: none;
+  }
+  .filters,
+  .advanced-filter-fields {
+    grid-template-columns: 1fr;
   }
   .preferred-label select {
     max-width: 88px;
