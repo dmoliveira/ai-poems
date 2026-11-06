@@ -407,6 +407,8 @@ test('reader switches languages and shows provenance and RTL text', async () => 
   page.on('request', request => { if (request.url().endsWith('/data/catalog.json')) catalogueRequests++; });
   await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
   await page.locator('#translation-select').selectOption({ label: 'Arabic' });
+  assert.equal(await page.locator('#static-reading-note').isVisible(), false);
+  assert.equal(await page.locator('#translations').getAttribute('open'), null);
   assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), '');
   await page.getByText('AI-assisted, not yet independently reviewed', { exact: false }).first().waitFor();
   assert.equal(await page.locator('#translation-panel .verse').getAttribute('dir'), 'rtl');
@@ -706,9 +708,129 @@ test('mobile layout fits and static poems remain readable without JavaScript', a
   assert.equal(await page.getByRole('link', { name: 'RSS updates ↗' }).getAttribute('href'), '/ai-poems/feed.xml');
   assert.equal(await page.getByText(`Browse the complete poetry index (${poems.length})`).count(), 1);
   assert.equal(await page.getByRole('link', { name: 'complete index' }).first().getAttribute('href'), '#complete-index');
-  await page.locator('.poet-directory summary').click();
-  assert.equal(await page.locator('.poet-directory').getAttribute('open'), '');
-  assert.equal(await page.locator('.poet-directory').getByText(/Poet filters need JavaScript/).isVisible(), true);
+  assert.equal(await page.locator('.poet-directory').isVisible(), false);
+  assert.equal(await page.locator('#poets').getByText(/Poet filters need JavaScript/).isVisible(), true);
+  await context.close();
+});
+
+test('without JavaScript, translations and their sources are discoverable without dead controls', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: false, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  assert.equal(await page.locator('#translation-select').isDisabled(), true);
+  assert.equal(await page.locator('#translation-select').isVisible(), false);
+  assert.equal(await page.getByRole('button', { name: 'Translation', exact: true }).count(), 0);
+  assert.equal(await page.locator('.reader-save').isDisabled(), true);
+  assert.equal(await page.locator('.reader-save').isVisible(), false);
+  const translations = page.locator('#translations');
+  assert.equal(await translations.getAttribute('open'), '');
+  assert.equal(await translations.locator('section').count(), 7);
+  assert.equal(await translations.locator('.verse[lang="ar"][dir="rtl"]').count(), 1);
+  assert.ok(await translations.getByText(/AI-assisted, not yet independently reviewed/).count() > 0);
+  assert.equal(await translations.locator('section a[href^="https://"]').count(), 7);
+  const jump = page.getByRole('link', { name: /Read the available translations and reading aids/ });
+  await jump.focus();
+  await page.keyboard.press('Enter');
+  assert.equal(new URL(page.url()).hash, '#translations');
+  assert.equal(await translations.locator('section').first().isVisible(), true);
+  for (const width of [320, 390, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `static reader fits at ${width}px`);
+  }
+  await page.goto(`${base}poems/old-pond-basho/`);
+  const hearn = poems.find(poem => poem.id === 'old-pond-basho').translations[0];
+  assert.equal(await page.locator('#translations').getAttribute('open'), '');
+  assert.equal(await page.locator('#translations').getByText('Lafcadio Hearn, 1898').isVisible(), true);
+  assert.equal(await page.locator('#translations').getByRole('link', { name: /Source/ }).getAttribute('href'), hearn.source);
+  await page.goto(`${base}poems/shakespeare-sonnet-18/`);
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  assert.equal(await page.locator('#translations').count(), 0);
+  assert.equal(await page.getByText(/available in the original only/).isVisible(), true);
+  await context.close();
+});
+
+test('without JavaScript, the home page offers the static index instead of inert filters and shelf controls', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: false, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  const seed = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: ['old-pond-basho'] });
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', value), seed);
+  await page.reload();
+  assert.equal(await page.locator('#search').isDisabled(), true);
+  assert.equal(await page.locator('#search-form').isVisible(), false);
+  assert.equal(await page.locator('#filter-drawer').isVisible(), false);
+  assert.equal(await page.locator('#clear-shelf').isDisabled(), true);
+  assert.equal(await page.locator('#shelf-items').isVisible(), false);
+  assert.equal(await page.locator('#shelf').getByText(/existing saved data is not changed/).isVisible(), true);
+  assert.equal(await page.locator('#collections .collection-card').first().isVisible(), false);
+  assert.equal(await page.locator('#countries .country-card').first().isVisible(), false);
+  assert.equal(await page.locator('#poets').getByText(/Poet filters need JavaScript/).isVisible(), true);
+  const indexLink = page.locator('#explore').getByRole('link', { name: 'complete index' });
+  await indexLink.focus();
+  await page.keyboard.press('Enter');
+  assert.equal(new URL(page.url()).hash, '#complete-index');
+  await page.locator('#complete-index summary').focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#complete-index').getAttribute('open'), '');
+  assert.equal(await page.locator('#complete-index').getByRole('link', { name: /The Old Pond — Matsuo Bashō/ }).count(), 1);
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), seed);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+});
+
+test('static fallback markup passes automated WCAG checks when the app module is blocked', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route('**/app.mjs', route => route.abort());
+  for (const path of ['', 'poems/quiet-night-thought-li-bai/']) {
+    await page.goto(`${base}${path}`);
+    // Axe needs script execution, so expose the same noscript markup in a script-enabled test page.
+    await page.evaluate(() => {
+      for (const node of [...document.querySelectorAll('noscript')]) {
+        const template = document.createElement('template');
+        template.innerHTML = node.textContent;
+        if (node.parentElement.tagName === 'HEAD') node.replaceWith(template.content);
+        else {
+          const mirror = document.createElement('div');
+          mirror.className = 'noscript-mirror';
+          mirror.append(template.content);
+          node.replaceWith(mirror);
+        }
+      }
+      const style = document.createElement('style');
+      style.textContent = 'main .noscript-mirror a{color:var(--olive-dark);font-weight:700;text-decoration:underline;text-underline-offset:3px}.reading-paths .noscript-mirror p{color:var(--muted);font-size:12px}';
+      document.head.append(style);
+    });
+    if (path) assert.equal(await page.locator('.static-reading-note').isVisible(), true);
+    else assert.equal(await page.locator('#explore .noscript-mirror').getByText(/Search needs JavaScript/).isVisible(), true);
+    const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], path || 'home');
+  }
+  await context.close();
+});
+
+test('if the application module fails to load, interactive controls stay disabled and translations remain open', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route('**/app.mjs', route => route.abort());
+  await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
+  assert.equal(await page.locator('#translation-select').isDisabled(), true);
+  assert.equal(await page.locator('[data-view="translation"]').isDisabled(), true);
+  assert.equal(await page.locator('.reader-save').isDisabled(), true);
+  assert.equal(await page.getByLabel('Reading theme').isDisabled(), true);
+  assert.equal(await page.getByRole('button', { name: 'A+ Increase poem text size' }).isDisabled(), true);
+  assert.equal(await page.locator('#translations').getAttribute('open'), '');
+  assert.equal(await page.locator('#translations .verse[lang="ar"]').isVisible(), true);
+  assert.equal(await page.getByRole('link', { name: /Read the available translations and reading aids/ }).isVisible(), true);
+  await page.goto(base);
+  assert.equal(await page.locator('#search').isDisabled(), true);
+  assert.equal(await page.locator('#filter-language').isDisabled(), true);
+  assert.equal(await page.locator('#sort').isDisabled(), true);
+  assert.equal(await page.locator('#clear-shelf').isDisabled(), true);
+  assert.equal(await page.getByText(/Search is unavailable until the library loads/).isVisible(), true);
+  assert.equal(await page.locator('#collections .collection-card').first().isVisible(), false);
+  assert.equal(await page.locator('#countries .country-card').first().isVisible(), false);
   await context.close();
 });
 

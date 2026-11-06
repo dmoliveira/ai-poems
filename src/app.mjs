@@ -130,7 +130,7 @@ function applyPreferences() {
   document.documentElement.dataset.theme = state.theme;
   document.documentElement.dataset.verseTypeface = state.typeface;
   document.documentElement.style.setProperty('--verse-scale', String(1 + state.font * 0.1));
-  document.querySelectorAll('[data-theme-select]').forEach(select => { select.value = state.theme; });
+  document.querySelectorAll('[data-theme-select]').forEach(select => { select.value = state.theme; select.disabled = false; });
   document.querySelectorAll('[data-typeface-select]').forEach(select => { select.value = state.typeface; select.disabled = false; select.closest('.typeface-control').hidden = false; });
   document.querySelectorAll('[data-preferred-language]').forEach(select => { select.value = state.preferredLanguage; select.disabled = false; });
   const focus = document.querySelector('#focus-toggle');
@@ -180,6 +180,7 @@ document.querySelectorAll('[data-font]').forEach(button => button.addEventListen
   const durable = await result;
   announceResult(durable, durable ? 'Text size saved.' : `Text size changed on this page. ${temporaryNotice()}`);
 }));
+document.querySelectorAll('[data-font]').forEach(button => { button.disabled = false; });
 
 let poems = [];
 let catalogueFailed = false;
@@ -196,6 +197,7 @@ function unavailableShelfItems(ids, type) {
 }
 function updateSaveButtons() {
   document.querySelectorAll('[data-save]').forEach(button => {
+    button.disabled = false;
     const saved = state.saved.includes(button.dataset.save);
     button.setAttribute('aria-pressed', String(saved));
     const isReader = button.classList.contains('reader-save');
@@ -270,6 +272,7 @@ document.querySelector('#clear-history')?.addEventListener('click', async () => 
   if (durable === 'conflict') clearConflict(control, message);
   announceResult(durable, message);
 });
+document.querySelectorAll('#clear-shelf, #clear-history').forEach(button => { button.disabled = false; });
 
 window.addEventListener('storage', event => {
   if (storageFailure || (event.key !== key && event.key !== null)) return;
@@ -447,6 +450,8 @@ function setupExplore() {
   });
   window.addEventListener('popstate', () => { restoreURL(); updateURL(); render(); });
   if (window.matchMedia('(max-width: 700px)').matches) drawer.open = false;
+  [...Object.values(fields), search, sort, document.querySelector('#clear-filters'), document.querySelector('#search-form button[type="submit"]')].forEach(input => { input.disabled = false; });
+  document.querySelectorAll('[data-explore-only]').forEach(element => { element.hidden = false; });
   restoreURL();
   updateURL();
   render();
@@ -558,4 +563,9 @@ function setupReader() {
   buttons.forEach(button => button.addEventListener('click', () => { view = button.dataset.view; renderView(); }));
   document.addEventListener('verso:preferred-language', applyPreferredLanguage);
   applyPreferredLanguage();
+  buttons.forEach(button => { button.disabled = false; });
+  if (selector) selector.disabled = false;
+  const translationIndex = document.querySelector('#translations');
+  if (translationIndex) translationIndex.open = false;
+  document.querySelector('#static-reading-note').hidden = true;
 }
