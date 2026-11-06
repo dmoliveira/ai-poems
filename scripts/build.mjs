@@ -1,10 +1,13 @@
-import { cp, mkdir, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { loadCatalog } from './catalog-data.mjs';
+import { renderFeed } from './feed.mjs';
 import { renderHome, renderPoem, SITE } from './templates.mjs';
 
 const out = new URL('../_site/', import.meta.url);
 const base = '/ai-poems/';
 const poems = await loadCatalog();
+const updates = JSON.parse(await readFile(new URL('../content/updates.json', import.meta.url), 'utf8'));
+const feed = renderFeed(updates, poems);
 const ids = new Set();
 for (const poem of poems) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(poem.id) || ids.has(poem.id)) throw new Error(`Invalid or duplicate poem ID: ${poem.id}`);
@@ -22,6 +25,7 @@ await mkdir(new URL('data/', out), { recursive: true });
 await cp(new URL('../assets/', import.meta.url), new URL('assets/', out), { recursive: true });
 for (const name of ['app.mjs', 'catalog.mjs', 'style.css']) await cp(new URL(`../src/${name}`, import.meta.url), new URL(name, out));
 await writeFile(new URL('index.html', out), renderHome(poems, base));
+await writeFile(new URL('feed.xml', out), feed);
 await writeFile(new URL('data/catalog.json', out), JSON.stringify(poems));
 for (const poem of poems) {
   const dir = new URL(`poems/${poem.id}/`, out);

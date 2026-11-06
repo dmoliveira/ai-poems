@@ -1,0 +1,18 @@
+[
+  {
+    "id": "2026-11-06-leopardi-ricordanza",
+    "poemId": "leopardi-ricordanza",
+    "publishedAt": "2026-11-06T03:41:53Z",
+    "title": "La ricordanza — Giacomo Leopardi",
+    "description": "Read the 1826 Italian text alongside Frederick Townsend's credited 1887 translation of a later version, To the Moon.",
+    "evidence": "https://github.com/dmoliveira/ai-poems/actions/runs/42158013730"
+  },
+  {
+    "id": "2026-11-06-leopardi-sera",
+    "poemId": "leopardi-sera-giorno-festivo",
+    "publishedAt": "2026-11-06T03:41:53Z",
+    "title": "La sera del giorno festivo — Giacomo Leopardi",
+    "description": "Explore Leopardi's 1826 Italian text, with its source, rights notes and links to the surrounding idylls.",
+    "evidence": "https://github.com/dmoliveira/ai-poems/actions/runs/42158013730"
+  }
+]

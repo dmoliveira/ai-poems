@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
+import { renderFeed } from '../scripts/feed.mjs';
 import { renderHome, renderPoem } from '../scripts/templates.mjs';
 import { associatedPlaces, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, surprisePoem } from '../src/catalog.mjs';
 
@@ -180,12 +181,35 @@ test('additional individual or batched JSON files extend the catalogue', async t
   assert.ok(extended.some(p => p.id === 'test-individual'));
   assert.ok(extended.some(p => p.id === 'test-batch'));
 });
+test('RSS updates are valid, stable, safely escaped and point to real poems', async () => {
+  const updates = JSON.parse(await readFile('content/updates.json', 'utf8'));
+  const feed = renderFeed(updates, poems);
+  assert.equal(feed, renderFeed(updates.toReversed(), poems), 'feed order does not depend on ledger order');
+  const latest = updates.map(update => update.publishedAt).toSorted().at(-1);
+  assert.ok(feed.includes(`<lastBuildDate>${new Date(latest).toUTCString()}</lastBuildDate>`));
+  for (const update of updates) {
+    assert.ok(feed.includes(`<guid isPermaLink="false">verso:${update.id}</guid>`));
+    assert.ok(feed.includes(`https://dmoliveira.github.io/ai-poems/poems/${update.poemId}/`));
+  }
+  const entry = { ...updates[0], id: 'sample-update', title: 'A & <B> "C"', description: "A poet's work & source" };
+  const escaped = renderFeed([entry], poems);
+  assert.match(escaped, /A &amp; &lt;B&gt; &quot;C&quot;/);
+  assert.match(escaped, /A poet&#39;s work &amp; source/);
+  assert.throws(() => renderFeed([entry, entry], poems), /duplicate feed update ID/);
+  assert.throws(() => renderFeed([{ ...entry, poemId: 'missing-poem' }], poems), /Unknown feed poem/);
+  assert.throws(() => renderFeed([{ ...entry, publishedAt: '2026-02-30T00:00:00Z' }], poems), /Invalid feed publication date/);
+  assert.throws(() => renderFeed([{ ...entry, title: 'Invalid\u0001text' }], poems), /Invalid feed title/);
+  assert.throws(() => renderFeed([{ ...entry, evidence: 'http://example.com/' }], poems), /Invalid feed publication evidence/);
+});
 test('build creates crawlable pages, valid schema and a complete sitemap', async () => {
   execFileSync('node', ['scripts/build.mjs'], { stdio: 'pipe' });
   const home = await readFile('_site/index.html', 'utf8');
   const sitemap = await readFile('_site/sitemap.xml', 'utf8');
   const robots = await readFile('_site/robots.txt', 'utf8');
+  const feed = await readFile('_site/feed.xml', 'utf8');
   assert.match(home, /Verso Poetry Library \| Poems Across Languages/);
+  assert.match(home, /<link rel="alternate" type="application\/rss\+xml" title="Verso poetry updates" href="\/ai-poems\/feed.xml">/);
+  assert.match(feed, /<rss version="2\.0"/);
   assert.ok(home.includes(`Browse the complete poetry index (${poems.length})`));
   for (const { place, count } of placeCounts(poems)) assert.ok(home.includes(`${escapeHtml(place)}</strong><small>${count} ${count === 1 ? 'poem' : 'poems'}</small>`), place);
   assert.match(home, /Places are associations, not necessarily where a poem was written/);

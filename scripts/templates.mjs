@@ -17,6 +17,7 @@ function head({ title, description: desc = description, path = '', base, schema 
     <meta property="og:description" content="${e(desc)}"><meta property="og:url" content="${e(url)}">
     <meta property="og:image" content="${e(absolute('assets/verso-garden.png'))}"><meta name="twitter:card" content="summary_large_image">
     <meta name="theme-color" content="#f8f5ed"><link rel="icon" href="${e(base)}assets/favicon.svg" type="image/svg+xml">
+    <link rel="alternate" type="application/rss+xml" title="Verso poetry updates" href="${e(base)}feed.xml">
     <link rel="stylesheet" href="${e(base)}style.css"><script type="application/ld+json">${jsonForHtml(schema)}</script>
     <script type="module" src="${e(base)}app.mjs"></script></head>`;
 }
@@ -38,7 +39,7 @@ function header(base) {
 function footer(base) {
   return `<footer class="site-footer"><div class="footer-inner">
     <div><a class="brand footer-brand" href="${e(base)}"><span class="brand-mark" aria-hidden="true">❦</span>verso<span class="brand-dot">.</span></a><p>A little room for words that stay with us.</p></div>
-    <div><strong>Explore</strong><a href="${e(base)}#explore">The poetry library</a><a href="${e(base)}#collections">Collections</a><a href="${e(base)}#shelf">Your shelf</a></div>
+    <div><strong>Explore</strong><a href="${e(base)}#explore">The poetry library</a><a href="${e(base)}#collections">Collections</a><a href="${e(base)}#shelf">Your shelf</a><a href="${e(base)}feed.xml">RSS updates ↗</a></div>
     <div><strong>From the same maker</strong><a href="https://dmoliveira.github.io/master-philosophers/">Master Philosophers ↗</a><a href="https://dmoliveira.github.io/learn-spanish-immersion/">Learn Spanish Immersion ↗</a><a href="https://github.com/dmoliveira/ai-poems">Our open-source repository ↗</a></div>
     <div><strong>A note from us</strong><p>Free to read, made with care. Saved poems and preferences stay on this device.</p><a href="https://buy.stripe.com/8x200i8bSgVe3Vl3g8bfO00" target="_blank" rel="noopener noreferrer">Support the project via Stripe ↗</a></div>
   </div><div class="footer-bottom"><span>© Verso · An open poetry library</span><span>Read slowly. Stay a while. ✳</span></div></footer>`;
