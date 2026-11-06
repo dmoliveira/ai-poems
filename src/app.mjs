@@ -179,6 +179,18 @@ document.querySelectorAll('[data-font]').forEach(button => button.addEventListen
 }));
 
 let poems = [];
+let catalogueFailed = false;
+function unavailableShelfItems(ids, type) {
+  const label = type === 'saved' ? 'Saved poems' : 'Reading history';
+  const note = `<p class="shelf-unavailable-note">${label} could not be loaded because the library is unavailable. This does not remove stored data. Refresh the page to try again.</p>`;
+  const index = type === 'saved' ? '<a href="#complete-index" data-open-index><span aria-hidden="true">☷</span><span><strong>Browse the complete index</strong><small>Available without the interactive library</small></span><span aria-hidden="true">↗</span></a>' : '';
+  if (storageFailure === 'read') return note + index;
+  const valid = ids.filter(id => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id));
+  const explanation = valid.length ? '<p class="shelf-unavailable-note">Titles are unavailable; these links use poem IDs.</p>' : '';
+  const links = valid.map(id => `<a href="${e(base)}poems/${e(id)}/"><span aria-hidden="true">↗</span><span><strong>${e(id)}</strong><small>Poem ID</small></span></a>`).join('');
+  const omitted = valid.length < ids.length ? '<p class="shelf-unavailable-note">Some stored IDs cannot be displayed as links.</p>' : '';
+  return note + index + explanation + links + omitted;
+}
 function updateSaveButtons() {
   document.querySelectorAll('[data-save]').forEach(button => {
     const saved = state.saved.includes(button.dataset.save);
@@ -190,18 +202,28 @@ function updateSaveButtons() {
   document.querySelectorAll('[data-shelf-count]').forEach(count => { count.textContent = state.saved.length ? String(state.saved.length) : ''; });
   const shelf = document.querySelector('#shelf-items');
   if (shelf) {
-    const saved = state.saved.map(id => poems.find(p => p.id === id)).filter(Boolean);
-    const items = saved.length ? saved.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>♡</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '' : '<p>Your saved poems will appear here. Tap ♡ on a poem to keep it close.</p>';
+    const saved = catalogueFailed ? [] : state.saved.map(id => poems.find(p => p.id === id)).filter(Boolean);
+    const items = catalogueFailed ? unavailableShelfItems(state.saved, 'saved') : saved.length ? saved.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>♡</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '' : '<p>Your saved poems will appear here. Tap ♡ on a poem to keep it close.</p>';
     if (shelf.innerHTML !== items) shelf.innerHTML = items;
   }
   const recent = document.querySelector('#recent-items');
   if (recent) {
-    const read = state.recent.map(id => poems.find(p => p.id === id)).filter(Boolean);
-    const items = read.length ? read.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>◷</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '<p>Reading history could not be read from browser storage.</p>' : '<p>Your recently read poems will appear here.</p>';
+    const read = catalogueFailed ? [] : state.recent.map(id => poems.find(p => p.id === id)).filter(Boolean);
+    const items = catalogueFailed ? unavailableShelfItems(state.recent, 'recent') : read.length ? read.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>◷</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '<p>Reading history could not be read from browser storage.</p>' : '<p>Your recently read poems will appear here.</p>';
     if (recent.innerHTML !== items) recent.innerHTML = items;
   }
 }
 if (storageFailure === 'read') updateSaveButtons();
+document.addEventListener('click', event => {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !event.target.closest('[data-open-index]')) return;
+  const index = document.querySelector('#complete-index');
+  if (index) {
+    event.preventDefault();
+    index.open = true;
+    if (location.hash !== '#complete-index') history.pushState(history.state, '', '#complete-index');
+    index.querySelector('summary').focus();
+  }
+});
 function clearConflict(control, message) {
   const warning = document.createElement('p');
   warning.className = 'clear-conflict';
@@ -271,7 +293,10 @@ try {
   if (document.body.dataset.poemId) setupReader();
 } catch (error) {
   const count = document.querySelector('#result-count');
-  if (count) count.textContent = 'The library could not load. Please try refreshing, or use the complete index below.';
+  if (count) {
+    count.textContent = 'The library could not load. Please try refreshing, or use the complete index below.';
+    catalogueFailed = true; poems = []; updateSaveButtons();
+  }
   console.error('Could not load Verso catalogue:', error);
 }
 
