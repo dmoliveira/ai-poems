@@ -868,8 +868,12 @@ test('legacy saved state without newer fields remains usable and preserves unkno
   await context.close();
 });
 
+async function pausePageTime(page) {
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-01-01T01:00:00Z'));
+}
+
 async function holdReadingStateLock(page) {
-  await page.clock.install();
   await page.evaluate(() => {
     window.testLockHeld = false;
     window.testLockRequest = navigator.locks.request('verso-library-v1', async () => {
@@ -911,7 +915,7 @@ test('simultaneous saves in open tabs preserve both poems and synchronize their 
 });
 
 test('queued writes cancel a stale shelf clear rather than discard a concurrent addition', async () => {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
   const home = await context.newPage();
   await home.goto(base);
   await home.getByText(totalText).waitFor();
@@ -923,6 +927,8 @@ test('queued writes cancel a stale shelf clear rather than discard a concurrent 
   await reader.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho'));
   const holder = await context.newPage();
   await holder.goto(base);
+  await pausePageTime(reader);
+  await pausePageTime(home);
   await holdReadingStateLock(holder);
   try {
     await reader.getByRole('button', { name: /Save poem/ }).click();
@@ -964,7 +970,7 @@ test('queued writes cancel a stale shelf clear rather than discard a concurrent 
 });
 
 test('tabs merge preference changes with queued saves without overwriting unrelated state', async () => {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
   const first = await context.newPage();
   const second = await context.newPage();
   const holder = await context.newPage();
@@ -972,6 +978,8 @@ test('tabs merge preference changes with queued saves without overwriting unrela
   await second.goto(`${base}poems/old-pond-basho/`);
   await second.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('old-pond-basho'));
   await holder.goto(base);
+  await pausePageTime(first);
+  await pausePageTime(second);
   await holdReadingStateLock(holder);
   try {
     await first.getByLabel('Reading theme').selectOption('sepia');
@@ -990,7 +998,7 @@ test('tabs merge preference changes with queued saves without overwriting unrela
 });
 
 test('clear confirmation cannot erase a concurrent remove and re-add of the same poem', async () => {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
   const reader = await context.newPage();
   await reader.goto(`${base}poems/shakespeare-sonnet-18/`);
   await reader.getByRole('button', { name: /Save poem/ }).click();
@@ -1000,6 +1008,8 @@ test('clear confirmation cannot erase a concurrent remove and re-add of the same
   await home.locator('#shelf-items').getByText('Sonnet 18').waitFor();
   const holder = await context.newPage();
   await holder.goto(base);
+  await pausePageTime(reader);
+  await pausePageTime(home);
   await holdReadingStateLock(holder);
   try {
     await reader.getByRole('button', { name: /Saved to your shelf/ }).click();
@@ -1017,12 +1027,13 @@ test('clear confirmation cannot erase a concurrent remove and re-add of the same
 });
 
 test('success feedback waits for newer queued preference changes', async () => {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
   const page = await context.newPage();
   const holder = await context.newPage();
   await page.goto(`${base}poems/quiet-night-thought-li-bai/`);
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('quiet-night-thought-li-bai'));
   await holder.goto(base);
+  await pausePageTime(page);
   await holdReadingStateLock(holder);
   try {
     const preferred = page.getByLabel('Preferred reading language', { exact: true });
@@ -1041,7 +1052,7 @@ test('success feedback waits for newer queued preference changes', async () => {
 });
 
 test('clear history asks for reconfirmation when a poem is read concurrently', async () => {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
   const first = await context.newPage();
   await first.goto(`${base}poems/shakespeare-sonnet-18/`);
   await first.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('shakespeare-sonnet-18'));
@@ -1050,9 +1061,11 @@ test('clear history asks for reconfirmation when a poem is read concurrently', a
   await home.locator('#recent-items').getByText('Sonnet 18').waitFor();
   const holder = await context.newPage();
   await holder.goto(base);
+  const reader = await context.newPage();
+  await pausePageTime(reader);
+  await pausePageTime(home);
   await holdReadingStateLock(holder);
   try {
-    const reader = await context.newPage();
     await reader.goto(`${base}poems/old-pond-basho/`);
     await reader.getByRole('button', { name: 'Focus mode' }).waitFor();
     await home.getByText('Clear history', { exact: true }).click();
@@ -1097,7 +1110,7 @@ test('unavailable browser locks and malformed external updates preserve existing
 });
 
 test('repeated pending toggles and simultaneous saves of the same poem do not duplicate it', async () => {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
   const first = await context.newPage();
   const second = await context.newPage();
   const holder = await context.newPage();
@@ -1105,6 +1118,8 @@ test('repeated pending toggles and simultaneous saves of the same poem do not du
   await second.goto(`${base}poems/shakespeare-sonnet-18/`);
   await second.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('shakespeare-sonnet-18'));
   await holder.goto(base);
+  await pausePageTime(first);
+  await pausePageTime(second);
   await holdReadingStateLock(holder);
   try {
     await first.getByRole('button', { name: /Save poem/ }).click();
@@ -1123,12 +1138,13 @@ test('repeated pending toggles and simultaneous saves of the same poem do not du
 });
 
 test('a timed-out browser lock cannot later write stale pending changes', async () => {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
   const page = await context.newPage();
   const holder = await context.newPage();
   await page.goto(`${base}poems/shakespeare-sonnet-18/`);
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('shakespeare-sonnet-18'));
   await holder.goto(base);
+  await pausePageTime(page);
   await holdReadingStateLock(holder);
   const before = await page.evaluate(() => localStorage.getItem('verso-library-v1'));
   try {
@@ -1151,12 +1167,13 @@ test('a timed-out browser lock cannot later write stale pending changes', async 
 });
 
 test('external corruption while a write is queued cancels the pending durable update', async () => {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
   const page = await context.newPage();
   const holder = await context.newPage();
   await page.goto(`${base}poems/shakespeare-sonnet-18/`);
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('shakespeare-sonnet-18'));
   await holder.goto(base);
+  await pausePageTime(page);
   await holdReadingStateLock(holder);
   try {
     await page.getByRole('button', { name: /Save poem/ }).click();
