@@ -14,7 +14,7 @@ Thank you for helping make poetry easier to discover. A small, accurate addition
 
 Add a UTF-8 `.json` file to `content/poems/` containing a record object or array of records, each with a stable URL-safe `id`. Follow an example in `content/curated.mjs`. Required fields include `title`, `author`, `authorId`, `authorYears`, associated `country` or region, `language`, BCP 47 `lang`, `direction`, `year`, `yearLabel`, `era`, `form`, `collection`, `themes`, `mood`, `context`, `sourceTitle`, HTTPS `source`, `rights`, `text`, and `translations`. An associated country is not necessarily where a poem was written; add optional `creationPlace` only when it can be substantiated. Preserve original line breaks with `\n`; Arabic should use `direction: 'rtl'`.
 
-Every translation needs `language`, `title`, `text`, `translator`, HTTPS `source` and `rights`. Label AI-assisted or unreviewed reading aids plainly, and do not misattribute them to a historical translator. Expand the language mapping in `src/app.mjs` and `scripts/templates.mjs` if adding another language.
+Every translation needs `language`, `title`, `text`, `translator`, HTTPS `source` and `rights`. Label AI-assisted or unreviewed reading aids plainly, and do not misattribute them to a historical translator. Expand `readingLanguages` in `src/catalog.mjs` and the language mappings in `src/app.mjs` and `scripts/templates.mjs` if adding another language.
 
 Optional `connections` are directional records with `type` (`followed_by`, `preceded_by`, `influenced_by`, `inspired`, or `response_to`), `targetId`, HTTPS evidence `source`, and an explanatory `note`. The target must exist. Link sequence separately from influence. See the Sonnet 18 example in `scripts/catalog-data.mjs`.
 

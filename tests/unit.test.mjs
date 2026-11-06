@@ -113,6 +113,17 @@ test('length filters count transcribed nonblank lines and cover the whole catalo
   assert.equal(groups.reduce((sum, group) => sum + group.length, 0), poems.length);
   assert.ok(filterPoems(poems, { country: 'Italy', length: '5-14' }).some(p => p.id === 'leopardi-ricordanza'));
 });
+test('available-language filtering includes originals and translations without inventing either', () => {
+  const english = filterPoems(poems, { readable: 'English' });
+  assert.ok(english.some(p => p.id === 'shakespeare-sonnet-18'));
+  assert.ok(english.some(p => p.id === 'leopardi-ricordanza'));
+  assert.ok(!english.some(p => p.id === 'let-the-days-do-as-they-will'));
+  const italianEnglish = filterPoems(poems, { country: 'Italy', readable: 'English' });
+  assert.ok(italianEnglish.some(p => p.id === 'linfinito-leopardi'));
+  assert.ok(!italianEnglish.some(p => p.id === 'leopardi-sera-giorno-festivo'));
+  assert.ok(filterPoems(poems, { readable: 'Arabic' }).some(p => p.id === 'quiet-night-thought-li-bai'));
+  assert.ok(filterPoems(poems, { readable: 'Arabic' }).some(p => p.id === 'let-the-days-do-as-they-will'));
+});
 test('Italian additions retain early-edition texts and separately sourced translations', () => {
   const byId = id => poems.find(p => p.id === id);
   const moon = byId('leopardi-ricordanza');

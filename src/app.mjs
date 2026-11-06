@@ -1,9 +1,9 @@
-import { associatedPlaces, discoveryOrder, escapeHtml as e, filterPoems, poemCard, surprisePoem } from './catalog.mjs';
+import { associatedPlaces, discoveryOrder, escapeHtml as e, filterPoems, poemCard, readingLanguages, surprisePoem } from './catalog.mjs';
 
 const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
 const journeyKey = 'verso-reading-journey-v1';
-const defaults = { saved: [], recent: [], theme: 'light', font: 0, language: 'English', focus: false };
+const defaults = { saved: [], recent: [], theme: 'light', font: 0, language: 'English', preferredLanguage: '', focus: false };
 let state;
 try {
   const stored = JSON.parse(localStorage.getItem(key) || '{}');
@@ -12,6 +12,7 @@ try {
 if (!['light', 'sepia', 'dark'].includes(state.theme)) state.theme = 'light';
 state.font = Math.max(-2, Math.min(4, Number(state.font) || 0));
 state.focus = state.focus === true;
+if (!readingLanguages.includes(state.preferredLanguage)) state.preferredLanguage = '';
 const notice = document.createElement('div');
 notice.className = 'toast';
 notice.setAttribute('role', 'status');
@@ -31,6 +32,7 @@ function applyPreferences() {
   document.documentElement.dataset.theme = state.theme;
   document.documentElement.style.setProperty('--verse-scale', String(1 + state.font * 0.1));
   document.querySelectorAll('[data-theme-select]').forEach(select => { select.value = state.theme; });
+  document.querySelectorAll('[data-preferred-language]').forEach(select => { select.value = state.preferredLanguage; select.disabled = false; });
   const focus = document.querySelector('#focus-toggle');
   if (focus) {
     document.body.classList.toggle('is-focus', state.focus);
@@ -47,6 +49,14 @@ document.querySelector('#focus-toggle')?.addEventListener('click', () => {
 document.querySelectorAll('[data-theme-select]').forEach(select => select.addEventListener('change', () => {
   state.theme = select.value; applyPreferences();
   if (!persist()) announce('Your preference is available for this visit only; browser storage is unavailable.');
+}));
+document.querySelectorAll('[data-preferred-language]').forEach(select => select.addEventListener('change', () => {
+  const previousLanguage = state.preferredLanguage;
+  state.preferredLanguage = readingLanguages.includes(select.value) ? select.value : '';
+  if (state.preferredLanguage) state.language = state.preferredLanguage;
+  applyPreferences();
+  if (!persist()) announce('Language preference is available for this visit only; browser storage is unavailable.');
+  document.dispatchEvent(new CustomEvent('verso:preferred-language', { detail: { previousLanguage } }));
 }));
 document.querySelectorAll('[data-font]').forEach(button => button.addEventListener('click', () => {
   state.font = Math.max(-2, Math.min(4, state.font + (button.dataset.font === 'up' ? 1 : -1)));
@@ -118,15 +128,17 @@ function setupExplore() {
   const more = document.querySelector('#show-more');
   const surprise = document.querySelector('#surprise-poem');
   const copySearchLink = document.querySelector('#copy-search-link');
+  const preferredFilter = document.querySelector('#preferred-filter');
+  const readableNote = document.querySelector('#readable-note');
   const drawer = document.querySelector('#filter-drawer');
   const summary = document.querySelector('#filter-summary');
   const chips = document.querySelector('#active-filters');
-  const fields = Object.fromEntries(['author', 'theme', 'form', 'length', 'language', 'translation', 'country', 'collection', 'from', 'to'].map(name => [name, document.querySelector(`#filter-${name}`)]));
+  const fields = Object.fromEntries(['author', 'theme', 'form', 'length', 'language', 'translation', 'readable', 'country', 'collection', 'from', 'to'].map(name => [name, document.querySelector(`#filter-${name}`)]));
   const search = document.querySelector('#search');
   const sort = document.querySelector('#sort');
   let limit = 12;
   let filtered = [];
-  const filterLabels = { author: 'Poet', theme: 'Theme', form: 'Form', length: 'Length', language: 'Language', translation: 'Translation', country: 'Country or region', collection: 'Collection', from: 'From', to: 'To' };
+  const filterLabels = { author: 'Poet', theme: 'Theme', form: 'Form', length: 'Length', language: 'Language', translation: 'Translation', readable: 'Available in', country: 'Country or region', collection: 'Collection', from: 'From', to: 'To' };
   for (const name of ['author', 'theme', 'form', 'language', 'translation', 'country', 'collection']) {
     const values = [...new Set(poems.flatMap(p => name === 'theme' ? p.themes : name === 'translation' ? p.translations.map(t => t.language) : name === 'country' ? associatedPlaces(p) : [p[name]]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
     fields[name].insertAdjacentHTML('beforeend', values.map(value => `<option value="${e(value)}">${e(value)}</option>`).join(''));
@@ -165,6 +177,10 @@ function setupExplore() {
       return `<button type="button" data-clear-filter="${e(name)}" aria-label="Remove ${e(filterLabels[name])}: ${e(label)} filter">${e(filterLabels[name])}: ${e(label)} <span aria-hidden="true">×</span></button>`;
     }).join('');
     surprise.disabled = !filtered.length;
+    preferredFilter.hidden = !state.preferredLanguage;
+    preferredFilter.textContent = `Show poems available in ${state.preferredLanguage}`;
+    preferredFilter.setAttribute('aria-pressed', String(Boolean(state.preferredLanguage && fields.readable.value === state.preferredLanguage)));
+    readableNote.hidden = !fields.readable.value;
     results.innerHTML = filtered.length ? filtered.slice(0, limit).map(p => poemCard(p, base)).join('') : '<div class="empty-state"><span>❧</span><h3>No poems found just yet.</h3><p>Try a different word or clear a filter. There’s plenty more to discover.</p></div>';
     more.hidden = filtered.length <= limit;
     updateSaveButtons();
@@ -180,6 +196,16 @@ function setupExplore() {
   more.addEventListener('click', () => { limit += 12; render(); });
   results.addEventListener('click', event => {
     if (event.target.closest('a.poem-card-link')) rememberJourney();
+  });
+  preferredFilter.addEventListener('click', () => {
+    fields.readable.value = fields.readable.value === state.preferredLanguage ? '' : state.preferredLanguage;
+    limit = 12; updateURL(); render();
+  });
+  document.addEventListener('verso:preferred-language', event => {
+    if (event.detail.previousLanguage && fields.readable.value === event.detail.previousLanguage) {
+      fields.readable.value = state.preferredLanguage; limit = 12; updateURL();
+    }
+    render();
   });
   chips.addEventListener('click', event => {
     const button = event.target.closest('[data-clear-filter]');
@@ -247,6 +273,7 @@ function setupReader() {
   const translation = document.querySelector('#translation-panel');
   const columns = document.querySelector('#poem-columns');
   const buttons = [...document.querySelectorAll('[data-view]')];
+  const preferredNote = document.querySelector('#preferred-note');
   let view = 'original';
   if (selector) {
     const preferred = poem.translations.findIndex(t => t.language === state.language);
@@ -266,11 +293,27 @@ function setupReader() {
     buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
     if (view !== 'original') renderTranslation();
   }
+  function applyPreferredLanguage() {
+    preferredNote.hidden = true;
+    const language = state.preferredLanguage;
+    if (!language) return;
+    const index = poem.translations.findIndex(t => t.language === language);
+    if (poem.language === language) view = 'original';
+    else if (index >= 0 && selector) { selector.value = String(index); view = 'both'; }
+    else {
+      view = 'original';
+      preferredNote.textContent = `No ${language} translation is available. ${poem.translations.length ? 'Choose the original or another available translation.' : 'The original remains available.'}`;
+      preferredNote.hidden = false;
+    }
+    renderView();
+  }
   selector?.addEventListener('change', () => {
     state.language = poem.translations[Number(selector.value)]?.language || 'English';
-    if (!persist()) announce('Language preference is available for this visit only; browser storage is unavailable.');
+    if (!persist()) announce('Translation choice is available for this visit only; browser storage is unavailable.');
     if (view === 'original') view = 'translation';
     renderView();
   });
   buttons.forEach(button => button.addEventListener('click', () => { view = button.dataset.view; renderView(); }));
+  document.addEventListener('verso:preferred-language', applyPreferredLanguage);
+  applyPreferredLanguage();
 }
