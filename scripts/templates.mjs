@@ -55,7 +55,7 @@ function disambiguation(poem) {
   return poem.disambiguation ? `<span lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.disambiguation)}</span>` : '';
 }
 
-const flags = new Map([['China', 'cn'], ['Spain', 'es'], ['United States', 'us'], ['Portugal', 'pt'], ['France', 'fr'], ['Jamaica', 'jm'], ['Cuba', 'cu'], ['Japan', 'jp'], ['Italy', 'it'], ['Venezuela', 've'], ['England', 'gb-eng']]);
+const flags = new Map([['China', 'cn'], ['Spain', 'es'], ['United States', 'us'], ['Portugal', 'pt'], ['France', 'fr'], ['Jamaica', 'jm'], ['Cuba', 'cu'], ['Japan', 'jp'], ['Italy', 'it'], ['Venezuela', 've'], ['England', 'gb-eng'], ['Canada', 'ca'], ['Chile', 'cl']]);
 function flag(place, base) {
   const code = flags.get(place);
   return code ? `<img src="${e(base)}assets/flags/${code}.svg" alt="" width="32" height="32" loading="lazy">` : '⌁';

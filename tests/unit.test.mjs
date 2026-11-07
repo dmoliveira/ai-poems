@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { readFile, writeFile, mkdtemp, unlink, rmdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
@@ -45,7 +46,7 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.match(byId('castellana-003').text, /muy grande bien me quería\.$/);
   assert.match(byId('castellana-022').text, /RESPUESTA DE LAS CRIATURAS/);
   assert.match(byId('castellana-022').text, /ESPOSO/);
-  assert.equal(byId('castellana-072').country, 'Venezuela');
+  assert.ok(associatedPlaces(byId('castellana-072')).includes('Venezuela'));
   assert.equal(byId('castellana-086').country, 'Cuba');
   assert.match(byId('american-1922-00332').text, /^Done at Atlanta[\s\S]*O Silent God/);
   assert.match(byId('american-1922-00332').text, /In silence, O Silent God\.\nSelah!$/);
@@ -61,6 +62,51 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.match(byId('dickinson-2-1-06').text, /It asked a crumb of me\.$/);
   assert.equal(byId('castellana-003').anonymous, true);
   assert.equal(byId('tang-108').year, null);
+});
+test('reviewed poet associations preserve sources, texts and legacy place filters', () => {
+  const cases = [
+    { id: 'castellana-072', authorId: 'andres-bello', years: '1781–1865', places: ['Venezuela', 'England', 'Chile'], source: 'https://www.gutenberg.org/files/65880/65880-h/65880-h.htm#P072', sourceTitle: 'Project Gutenberg · Las cien mejores poesías, 1910, no. 72', contextSource: 'https://uchile.cl/presentacion/historia/rectores-de-la-u-de-chile/andres-bello-lopez-1843-1865', digest: '17497bcd8cbbb154613010d62bb98115e0a8045ba32327bab819cca81565ce68' },
+    { id: 'american-1922-00633', authorId: 'r-nathaniel-dett', years: '1882–1943', places: ['United States', 'Canada'], source: 'https://www.gutenberg.org/cache/epub/11986/pg11986-images.html#id00633', sourceTitle: 'Project Gutenberg · The Book of American Negro Poetry (1922)', contextSource: 'https://www.lva.virginia.gov/collections/dvb/bio/dett-r-nathaniel', digest: '0c0cdd668007b3e124c75e54c4464651daee41a1e78b62c4765bbad306abcf01' },
+  ];
+  const original = poems.map(p => p.id === cases[0].id ? { ...p, country: 'Venezuela' } : p.id === cases[1].id ? { ...p, country: 'United States' } : p);
+  for (const { id, authorId, years, places, source, sourceTitle, contextSource, digest } of cases) {
+    const poem = poems.find(p => p.id === id);
+    assert.equal(poem.authorId, authorId);
+    assert.equal(poem.authorYears, years);
+    assert.deepEqual(associatedPlaces(poem), places);
+    assert.equal(poem.source, source);
+    assert.equal(poem.sourceTitle, sourceTitle);
+    assert.equal(poem.contextSource, contextSource);
+    assert.equal(poem.rights, 'Historical original in a pre-1931 edition; public domain in the United States. Check local law before reuse.');
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), digest);
+    assert.deepEqual(poem.translations, []);
+    assert.equal(poem.year, null);
+    assert.equal(poem.yearLabel, 'Composition date not established');
+    assert.equal(poem.creationPlace, undefined);
+    assert.match(poem.context, /places describe the poet, not necessarily where this poem was written/);
+    const page = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(page.includes(`href="${escapeHtml(contextSource)}"`));
+    assert.match(page, /<dt>Created in<\/dt><dd>Not established<\/dd>/);
+    const poet = groupPoets(poems).find(group => group.id === authorId);
+    assert.ok(renderPoet(poet, '/ai-poems/').includes(escapeHtml(years)));
+    for (const place of places) {
+      assert.ok(filterPoems(poems, { country: place }).some(p => p.id === id), `${id}: ${place}`);
+      assert.equal(contextualCounts(poems, { author: poem.author }).country.get(place), 1, `${id}: ${place}`);
+    }
+  }
+  for (const place of ['Venezuela', 'United States']) assert.equal(filterPoems(poems, { country: place }).length, filterPoems(original, { country: place }).length);
+  for (const place of ['England', 'Chile', 'Canada']) assert.equal(filterPoems(poems, { country: place }).length, filterPoems(original, { country: place }).length + 1);
+  const home = renderHome(poems, '/ai-poems/');
+  for (const code of ['ca', 'cl']) assert.ok(home.includes(`/ai-poems/assets/flags/${code}.svg`));
+});
+test('new circle flags match the pinned upstream revision', async () => {
+  for (const [code, digest] of [
+    ['ca', 'be435f09cf3e411f2436202801a90d127800cc5f7b970fdd95aa4f177f8075a9'],
+    ['cl', 'adc5239ae20b01235b9a6e62947c1b21f77d33adc21dae70b8cbb23f507b7fae'],
+  ]) {
+    const data = await readFile(new URL(`../assets/flags/${code}.svg`, import.meta.url));
+    assert.equal(createHash('sha256').update(data).digest('hex'), digest, code);
+  }
 });
 test('sonnet import keeps all 154 poems and their authentic line-count exceptions', () => {
   const sonnets = poems.filter(p => p.authorId === 'william-shakespeare');

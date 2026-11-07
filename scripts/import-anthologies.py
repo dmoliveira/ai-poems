@@ -130,6 +130,14 @@ def spanish(soup):
             f"https://www.gutenberg.org/files/65880/65880-h/65880-h.htm#P{number}", text,
             f"Selection {int(number)} in Menéndez y Pelayo's 1910 anthology. The heading credits {source_author}; the date of this work is not established here. The transcription retains the edition's historical spelling.",
         )
+        if number == "072" and source_author == "DON ANDRÉS BELLO":
+            record.update({
+                "authorYears": "1781–1865",
+                "country": "Venezuela / England / Chile",
+                "context": record["context"] + " Bello was born in Caracas, worked on poetry in London from 1810 to 1829, and later worked in Chile. These places describe the poet, not necessarily where this poem was written.",
+                "contextSource": "https://uchile.cl/presentacion/historia/rectores-de-la-u-de-chile/andres-bello-lopez-1843-1865",
+                "contextSourceTitle": "Universidad de Chile · Andrés Bello biography",
+            })
         record["anonymous"] = source_author in {"ROMANCES VIEJOS", "ANÓNIMO", "ANÓNIMO SEVILLANO"}
         records.append(record)
     return records
@@ -156,14 +164,23 @@ def black_american(soup):
         # Legacy place associations need individual source review; do not infer
         # a poet's nationality or a poem's creation place from this anthology.
         country = "Jamaica / United States" if poet == "Claude McKay" else "United States / Caribbean" if poet == "George Reginald Margetson" else "United States"
-        records.append(common(
+        record = common(
             f"american-1922-{ident[2:]}", title, poet, country, "English", "en",
             "The Book of American Negro Poetry",
             "Project Gutenberg · The Book of American Negro Poetry (1922)",
             f"https://www.gutenberg.org/cache/epub/11986/pg11986-images.html#{ident}",
             "\n\n".join("\n".join(stanza) for stanza in stanzas),
             "This poem appears in James Weldon Johnson's 1922 anthology. The historical edition's spellings and dialect are retained; the composition date is not established here.",
-        ))
+        )
+        if ident == "id00633" and poet == "R. Nathaniel Dett":
+            record.update({
+                "authorYears": "1882–1943",
+                "country": "United States / Canada",
+                "context": record["context"] + " Dett was born in Ontario, Canada, and worked in the United States. These places describe the poet, not necessarily where this poem was written.",
+                "contextSource": "https://www.lva.virginia.gov/collections/dvb/bio/dett-r-nathaniel",
+                "contextSourceTitle": "Library of Virginia · R. Nathaniel Dett biography",
+            })
+        records.append(record)
 
     for node in start.next_siblings:
         if not isinstance(node, Tag):

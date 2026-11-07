@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
-import { filterPoems, placeCounts } from '../src/catalog.mjs';
+import { associatedPlaces, filterPoems, placeCounts } from '../src/catalog.mjs';
 
 const port = 43817;
 const base = `http://127.0.0.1:${port}/ai-poems/`;
@@ -151,7 +151,7 @@ test('country flags and counts link to the matching country results', async () =
       return { src: new URL(image.src).pathname, width: image.naturalWidth };
     }));
   });
-  assert.deepEqual(flags.map(flag => flag.src.split('/').pop()).sort(), ['cn.svg', 'cu.svg', 'es.svg', 'fr.svg', 'gb-eng.svg', 'it.svg', 'jm.svg', 'jp.svg', 'pt.svg', 'us.svg', 've.svg']);
+  assert.deepEqual(flags.map(flag => flag.src.split('/').pop()).sort(), ['ca.svg', 'cl.svg', 'cn.svg', 'cu.svg', 'es.svg', 'fr.svg', 'gb-eng.svg', 'it.svg', 'jm.svg', 'jp.svg', 'pt.svg', 'us.svg', 've.svg']);
   assert.ok(flags.every(flag => flag.src.startsWith('/ai-poems/assets/flags/') && flag.width > 0));
   await card.click();
   await page.getByText(`${count} poems found`).waitFor();
@@ -166,6 +166,52 @@ test('country flags and counts link to the matching country results', async () =
   await page.setViewportSize({ width: 320, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await context.close();
+});
+
+test('reviewed poet places have matching counts, sources and static reader pages', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.locator('#countries .more-countries summary').click();
+  for (const [place, code, id] of [['Canada', 'ca', 'american-1922-00633'], ['Chile', 'cl', 'castellana-072']]) {
+    const card = page.locator('#countries').getByRole('link', { name: `${place} 1 poem` });
+    assert.equal(await card.locator('img').getAttribute('src'), `/ai-poems/assets/flags/${code}.svg`);
+    await card.click();
+    await page.getByText('1 poem found', { exact: true }).waitFor();
+    assert.equal(new URL(page.url()).searchParams.get('country'), place);
+    assert.equal(await page.locator(`#results a[href*="/poems/${id}/"]`).count(), 1);
+    await page.goto(base);
+    await page.getByText(totalText).waitFor();
+    await page.locator('#countries .more-countries summary').click();
+  }
+  for (const [place, author] of [['England', 'Andrés Bello'], ['Venezuela', 'Andrés Bello'], ['United States', 'R. Nathaniel Dett']]) {
+    const params = new URLSearchParams({ country: place, author });
+    await page.goto(`${base}?${params}#explore`);
+    await page.getByText('1 poem found', { exact: true }).waitFor();
+    assert.equal(await page.locator('#filter-country').inputValue(), place);
+    assert.equal(await page.locator('#filter-country option:checked').textContent(), `${place} (1)`);
+  }
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  for (const [id, years] of [['castellana-072', '1781–1865'], ['american-1922-00633', '1882–1943']]) {
+    const poem = poems.find(p => p.id === id);
+    await staticPage.goto(`${base}poems/${id}/`);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+    assert.equal(await staticPage.locator('.context-card dt').evaluateAll(items => items.find(item => item.textContent === 'Created in')?.nextElementSibling?.textContent), 'Not established');
+    assert.match(await staticPage.locator('.story').textContent(), /places describe the poet, not necessarily where this poem was written/);
+    await staticPage.getByRole('link', { name: poem.author, exact: true }).click();
+    assert.equal(new URL(staticPage.url()).pathname, `/ai-poems/poets/${poem.authorId}/`);
+    const facts = await staticPage.locator('.poet-facts').textContent();
+    assert.match(facts, new RegExp(years));
+    for (const place of associatedPlaces(poem)) assert.ok(facts.includes(place));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticContext.close();
 });
 
 test('filter option counts follow the other filters without changing values or accessible chips', async () => {
