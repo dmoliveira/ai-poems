@@ -7,9 +7,10 @@ import { join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
 import { renderFeed } from '../scripts/feed.mjs';
+import { groupPoets } from '../scripts/poets.mjs';
 import { relatedPoems } from '../scripts/recommendations.mjs';
-import { renderHome, renderPoem } from '../scripts/templates.mjs';
-import { associatedPlaces, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, surprisePoem } from '../src/catalog.mjs';
+import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
+import { associatedPlaces, collectionLabel, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, surprisePoem } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
 test('catalogue has distinct, sourced records in all eight original languages', () => {
@@ -79,6 +80,8 @@ test('search combines text, accents, metadata, translation and dates without gue
   assert.ok(!filterPoems(poems, { language: 'Chinese', from: '1' }).some(p => p.id === 'quiet-night-thought-li-bai'));
   assert.ok(filterPoems(poems, { theme: 'Nature' }).every(p => p.themes.includes('Nature')));
   assert.equal(filterPoems(poems, { collection: 'The Book of American Negro Poetry' }).length, 113);
+  assert.equal(collectionLabel('The Book of American Negro Poetry'), 'American poetry · 1922 anthology');
+  assert.equal(collectionLabel('Oku no Hosomichi'), 'Oku no Hosomichi');
 });
 test('varied discovery preserves all works and rotates languages and authors', () => {
   const varied = discoveryOrder(poems);
@@ -236,6 +239,40 @@ test('distinct same-titled works retain their texts and show their opening lines
   assert.equal(first.disambiguation, '下馬飲君酒，');
   assert.equal(second.disambiguation, '山中相送罷，');
 });
+test('poet pages group by validated IDs, not names or assumed anonymous authorship', () => {
+  const groups = groupPoets(poems);
+  assert.equal(groups.reduce((total, group) => total + group.poems.length, 0), poems.length);
+  assert.equal(new Set(groups.map(group => group.id)).size, groups.length);
+  const li = groups.find(group => group.id === 'li-bai');
+  const liPage = renderPoet(li, '/ai-poems/');
+  assert.match(liPage, /701–762/);
+  assert.match(liPage, /Tang dynasty/);
+  assert.match(liPage, /not a biography/);
+  const anonymous = groups.find(group => group.id === 'traditional-anonymous-romances-viejos');
+  const anonymousPage = renderPoet(anonymous, '/ai-poems/');
+  assert.match(anonymousPage, /not necessarily by the same person/);
+  assert.doesNotMatch(anonymousPage, /"@type":"Person"/);
+  const ambiguousTitle = renderPoet(groups.find(group => group.id === 'wang-wei'), '/ai-poems/');
+  assert.match(ambiguousTitle, /Opening line:.*下馬飲君酒，/);
+  assert.match(ambiguousTitle, /Opening line:.*山中相送罷，/);
+  const shared = [
+    { ...poems[0], authorId: 'shared-a', author: 'Shared Name' },
+    { ...poems[0], authorId: 'shared-b', author: 'Shared Name' },
+  ];
+  const distinct = groupPoets(shared);
+  assert.equal(distinct.length, 2);
+  assert.ok(distinct.every(group => !group.uniqueName));
+  assert.doesNotMatch(renderPoet(distinct[0], '/ai-poems/'), /Filter these poems in the library/);
+  assert.match(renderPoet(distinct[0], '/ai-poems/'), /Catalogue ID: shared-a/);
+  assert.match(renderHome(shared, '/ai-poems/'), /catalogue ID: shared-b/);
+  assert.throws(() => groupPoets([shared[0], { ...shared[0], author: 'Different Name' }]), /Conflicting author identity/);
+  assert.throws(() => groupPoets([shared[0], { ...shared[0], anonymous: true }]), /Conflicting author identity/);
+  assert.throws(() => groupPoets([{ ...shared[0], authorId: '../escape' }]), /Invalid author ID/);
+  const unsafe = groupPoets([{ ...poems[0], author: '</script><script>alert(1)</script>' }])[0];
+  const page = renderPoet(unsafe, '/ai-poems/');
+  assert.ok(!page.includes('</script><script>alert(1)</script>'));
+  assert.match(page, /&lt;\/script&gt;/);
+});
 test('historical English translations are individually credited and complete', () => {
   for (const id of ['baudelaire-la-muse-venale', 'baudelaire-la-vie-anterieure', 'baudelaire-don-juan-aux-enfers', 'baudelaire-remords-posthume']) {
     const poem = poems.find(p => p.id === id);
@@ -324,7 +361,8 @@ test('build creates crawlable pages, valid schema and a complete sitemap', async
   assert.ok(home.includes(`Browse the complete poetry index (${poems.length})`));
   for (const { place, count } of placeCounts(poems)) assert.ok(home.includes(`${escapeHtml(place)}</strong><small>${count} ${count === 1 ? 'poem' : 'poems'}</small>`), place);
   assert.match(home, /Places are associations, not necessarily where a poem was written/);
-  assert.equal((sitemap.match(/<loc>/g) || []).length, poems.length + 1);
+  const poets = groupPoets(poems);
+  assert.equal((sitemap.match(/<loc>/g) || []).length, poems.length + poets.length + 1);
   assert.match(robots, /https:\/\/dmoliveira\.github\.io\/ai-poems\/sitemap\.xml/);
   for (const p of poems) {
     const page = await readFile(`_site/poems/${p.id}/index.html`, 'utf8');
@@ -335,6 +373,15 @@ test('build creates crawlable pages, valid schema and a complete sitemap', async
     assert.equal(schema['@type'], 'CreativeWork');
     assert.equal(schema.inLanguage, p.lang);
   }
+  for (const poet of poets) {
+    const page = await readFile(`_site/poets/${poet.id}/index.html`, 'utf8');
+    assert.ok(sitemap.includes(`/poets/${poet.id}/`), poet.id);
+    assert.ok(page.includes(`https://dmoliveira.github.io/ai-poems/poets/${poet.id}/`), poet.id);
+    assert.ok(home.includes(`/poets/${poet.id}/`), poet.id);
+    for (const poem of poet.poems) assert.ok(page.includes(`/poems/${poem.id}/`), poem.id);
+    const schema = JSON.parse(page.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+    assert.equal(schema['@type'], 'CollectionPage');
+  }
   const chinese = await readFile('_site/poems/quiet-night-thought-li-bai/index.html', 'utf8');
   assert.match(chinese, /AI-assisted, not yet independently reviewed/);
   assert.match(chinese, /dir="rtl"/);
@@ -344,6 +391,7 @@ test('build creates crawlable pages, valid schema and a complete sitemap', async
   assert.match(leopardi, /"datePublished":"1825"/);
   assert.match(leopardi, /Research on the first publication of the Idilli/);
   const sonnet18 = await readFile('_site/poems/shakespeare-sonnet-18/index.html', 'utf8');
+  assert.match(sonnet18, /href="\/ai-poems\/poets\/william-shakespeare\/"/);
   assert.match(sonnet18, /Connections we can trace/);
   assert.match(sonnet18, /not a claim of influence/);
   const anonymous = await readFile('_site/poems/castellana-003/index.html', 'utf8');

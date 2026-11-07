@@ -1,4 +1,4 @@
-import { associatedPlaces, discoveryOrder, escapeHtml as e, filterPoems, poemCard, readingLanguages, surprisePoem } from './catalog.mjs';
+import { associatedPlaces, collectionLabel, discoveryOrder, escapeHtml as e, filterPoems, poemCard, readingLanguages, surprisePoem } from './catalog.mjs';
 
 const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
@@ -289,7 +289,7 @@ window.addEventListener('storage', event => {
 try {
   if (document.body.dataset.poemId) {
     poems = JSON.parse(document.querySelector('#reader-data').textContent);
-  } else {
+  } else if (!document.body.dataset.poetId) {
     const response = await fetch(`${base}data/catalog.json`);
     if (!response.ok) throw new Error(`Catalogue request returned ${response.status}`);
     poems = await response.json();
@@ -327,7 +327,7 @@ function setupExplore() {
   const filterLabels = { author: 'Poet', theme: 'Theme', form: 'Form', length: 'Length', language: 'Language', translation: 'Translation', readable: 'Available in', country: 'Country or region', collection: 'Collection', from: 'From', to: 'To' };
   for (const name of ['author', 'theme', 'form', 'language', 'translation', 'country', 'collection']) {
     const values = [...new Set(poems.flatMap(p => name === 'theme' ? p.themes : name === 'translation' ? p.translations.map(t => t.language) : name === 'country' ? associatedPlaces(p) : [p[name]]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-    fields[name].insertAdjacentHTML('beforeend', values.map(value => `<option value="${e(value)}">${e(value)}</option>`).join(''));
+    fields[name].insertAdjacentHTML('beforeend', values.map(value => `<option value="${e(value)}">${e(name === 'collection' ? collectionLabel(value) : value)}</option>`).join(''));
   }
   function restoreURL() {
     const params = new URL(location.href).searchParams;

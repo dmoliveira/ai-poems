@@ -1,4 +1,5 @@
-import { escapeHtml as e, filterPoems, lineCount, placeCounts, poemCard, readingLanguages } from '../src/catalog.mjs';
+import { associatedPlaces, escapeHtml as e, filterPoems, lineCount, placeCounts, poemCard, readingLanguages } from '../src/catalog.mjs';
+import { groupPoets } from './poets.mjs';
 import { relatedPoems } from './recommendations.mjs';
 
 const SITE = 'https://dmoliveira.github.io/ai-poems/';
@@ -66,11 +67,10 @@ export function renderHome(poems, base) {
   const collections = [
     { label: 'Chinese poetry', eyebrow: 'ORIGINAL LANGUAGE', icon: '月', className: 'quiet', filters: { language: 'Chinese' }, count: poems.filter(p => p.language === 'Chinese').length },
     { label: 'Spanish poetry', eyebrow: 'ORIGINAL LANGUAGE', icon: '✿', className: 'love', filters: { language: 'Spanish' }, count: poems.filter(p => p.language === 'Spanish').length },
-    { label: 'Black American voices', eyebrow: '1922 ANTHOLOGY', icon: '✦', className: 'nature', filters: { collection: 'The Book of American Negro Poetry' }, count: poems.filter(p => p.collection === 'The Book of American Negro Poetry').length },
+    { label: 'American poetry', eyebrow: 'ASSOCIATED PLACE', icon: '✦', className: 'nature', filters: { country: 'United States' }, count: filterPoems(poems, { country: 'United States' }).length },
     { label: 'The sonnet', eyebrow: 'POETIC FORM', icon: '❧', className: 'hope', filters: { form: 'Sonnet' }, count: poems.filter(p => p.form === 'Sonnet').length },
   ];
-  const authors = new Map();
-  for (const poem of poems) if (!authors.has(poem.authorId)) authors.set(poem.authorId, poem);
+  const authors = groupPoets(poems);
   const index = poems.toSorted((a, b) => (a.displayTitle || a.title).localeCompare(b.displayTitle || b.title));
   const places = placeCounts(poems);
   const regions = new Set(['Not established', 'Arabian Peninsula']);
@@ -125,14 +125,37 @@ export function renderHome(poems, base) {
         ${orderedPlaces.length > 8 ? `<details class="more-countries js-required" data-explore-only hidden><summary>More countries &amp; regions (${orderedPlaces.length - 8})</summary><div class="country-grid">${orderedPlaces.slice(8).map(countryCard).join('')}</div></details>` : ''}
         <p class="country-note">Places are associations, not necessarily where a poem was written. Some works appear under more than one place; regions and unknown places have no national flag.</p>
       </section>
-      <section id="poets" class="poets-section"><div><p class="eyebrow"><span>04 /</span> MEET THE VOICES</p><h2>Every poem begins <em>somewhere.</em></h2><p>Explore poets and traditional voices across time, or use the poet filter above.</p></div>
-        <noscript><p>Poet filters need JavaScript; browse the <a href="#complete-index">complete index</a> instead.</p></noscript><details class="poet-directory js-required" data-explore-only hidden><summary>Browse ${authors.size} poets and traditional voices</summary><div class="poet-list">${[...authors.values()].map(p => `<a href="${e(searchLink(base, { author: p.author }))}" data-author="${e(p.author)}"><span class="poet-avatar" aria-hidden="true">${e(p.author.slice(0, 1))}</span><span><strong>${e(p.author)}</strong><small>${e(p.authorYears)} · ${e(p.country)}</small></span><span aria-hidden="true">↗</span></a>`).join('')}</div></details>
+      <section id="poets" class="poets-section"><div><p class="eyebrow"><span>04 /</span> MEET THE VOICES</p><h2>Every poem begins <em>somewhere.</em></h2><p>Explore poets and traditional voices across time. Each page brings their works together.</p></div>
+        <details class="poet-directory"><summary>Browse ${authors.length} poets and traditional voices</summary><div class="poet-list">${authors.map(p => `<a href="${e(base)}poets/${e(p.id)}/" data-author="${e(p.name)}"><span class="poet-avatar" aria-hidden="true">${e(p.name.slice(0, 1))}</span><span><strong>${e(p.name)}</strong><small>${p.poems.length} ${p.poems.length === 1 ? 'poem' : 'poems'}${p.anonymous ? ' · anonymous group' : ''}${p.uniqueName ? '' : ` · catalogue ID: ${e(p.id)}`}</small></span><span aria-hidden="true">↗</span></a>`).join('')}</div></details>
       </section>
       <section id="shelf" class="shelf-section"><div><p class="eyebrow"><span>05 /</span> JUST FOR YOU</p><h2>A shelf of <em>your own.</em></h2><p class="js-required">Keep the poems you love close by. Your saved poems and reading preferences are stored only on this device—no account needed.</p><noscript><p>Saved poems and reading history need JavaScript. Your existing saved data is not changed.</p></noscript><details class="clear-control js-required"><summary>Clear saved poems</summary><p>Remove all saved poems from this device?</p><button type="button" id="clear-shelf" class="text-button" disabled>Yes, clear saved poems</button></details></div>
         <div class="js-required"><h3 class="shelf-heading">Saved poems</h3><div id="shelf-items" class="shelf-items"><p>Your saved poems will appear here. Tap ♡ on a poem to keep it close.</p></div><div class="recent-heading"><h3 class="shelf-heading">Recently read</h3><details class="clear-control"><summary>Clear history</summary><p>Remove your recently read list?</p><button type="button" id="clear-history" class="text-button" disabled>Yes, clear history</button></details></div><div id="recent-items" class="shelf-items"><p>Your recently read poems will appear here.</p></div></div>
       </section>
       <details id="complete-index" class="complete-index"><summary>Browse the complete poetry index (${poems.length})</summary><ul>${index.map(p => `<li><a href="${e(base)}poems/${e(p.id)}/">${e(p.displayTitle || p.title)}${p.disambiguation ? ` (${disambiguation(p)})` : ''} — ${e(p.author)}</a></li>`).join('')}</ul></details>
     </div>
+  </main>${footer(base)}</body></html>`;
+}
+
+export function renderPoet(poet, base) {
+  const path = `poets/${poet.id}/`;
+  const count = `${poet.poems.length.toLocaleString('en-US')} ${poet.poems.length === 1 ? 'poem' : 'poems'}`;
+  const desc = poet.anonymous ? `Explore ${count} grouped under ${poet.name} in the Verso catalogue.` : `Explore ${count} credited to ${poet.name} in the Verso catalogue.`;
+  const schema = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${poet.name} | Verso Poetry Library`, url: absolute(path), description: desc };
+  const values = fn => [...new Set(poet.poems.flatMap(fn).filter(Boolean))].toSorted((a, b) => a.localeCompare(b));
+  const years = values(p => [p.authorYears]);
+  const places = values(associatedPlaces);
+  const languages = values(p => [p.language]);
+  const works = poet.poems.toSorted((a, b) => (a.displayTitle || a.title).localeCompare(b.displayTitle || b.title, undefined, { numeric: true }) || a.id.localeCompare(b.id));
+  const workLink = p => `<li><a href="${e(base)}poems/${e(p.id)}/"><span><strong${p.displayTitle ? '' : ` lang="${e(p.lang)}" dir="${e(p.direction)}"`}>${e(p.displayTitle || p.title)}</strong>${p.displayTitle ? `<small lang="${e(p.lang)}" dir="${e(p.direction)}">${e(p.title)}</small>` : ''}${p.disambiguation ? `<small>Opening line: ${disambiguation(p)}</small>` : ''}<small>${e(p.language)} · ${e(p.yearLabel)}</small></span><span aria-hidden="true">↗</span></a></li>`;
+  const first = works.slice(0, 8).map(workLink).join('');
+  const remaining = works.slice(8);
+  const more = remaining.length ? `<details class="poet-more"><summary>Show ${remaining.length.toLocaleString('en-US')} more ${remaining.length === 1 ? 'poem' : 'poems'}</summary><ul class="poet-works-list">${remaining.map(workLink).join('')}</ul></details>` : '';
+  const filterLink = poet.uniqueName ? `<a class="text-link js-required" href="${e(searchLink(base, { author: poet.name }))}">Filter these poems in the library ↗</a>` : '';
+  return `${head({ title: `${poet.name} | Verso Poetry Library`, description: desc, path, base, schema })}<body class="poet-page" data-poet-id="${e(poet.id)}">${header(base)}
+  <main id="main" class="reader-wrap poet-wrap"><a class="back-link" href="${e(base)}#poets">← Back to poets</a>
+    <header class="poet-intro"><p class="eyebrow">${poet.anonymous ? 'TRADITIONAL &amp; ANONYMOUS VOICES' : 'MEET THE POET'}</p><h1>${e(poet.name)}</h1><p class="poet-intro-count">${count} in the library</p>${poet.uniqueName ? '' : `<p>Catalogue ID: ${e(poet.id)}</p>`}<p>${poet.anonymous ? 'These works are grouped for discovery; they are not necessarily by the same person.' : 'Explore the works credited to this poet in the Verso catalogue.'}</p></header>
+    <div class="poet-layout"><section class="poet-works" aria-labelledby="poet-works-title"><div class="section-heading"><div><p class="eyebrow">READ A LITTLE FURTHER</p><h2 id="poet-works-title">Poems to <em>discover.</em></h2><p>Listed by title. Each poem includes its own source and rights notes.</p></div>${filterLink}</div><ul class="poet-works-list">${first}</ul>${more}</section>
+    <aside class="context-card poet-facts"><p class="eyebrow">FROM THE CATALOGUE</p><h2>At a glance</h2><dl><dt>Date descriptions</dt><dd>${e(years.join(' · ') || 'Not established')}</dd><dt>Associated places</dt><dd>${e(places.join(' · ') || 'Not established')}</dd><dt>Original languages</dt><dd>${e(languages.join(' · ') || 'Not established')}</dd></dl><p>These are catalogue descriptions, not a biography. Associated places do not necessarily identify where a poem was written.</p></aside></div>
   </main>${footer(base)}</body></html>`;
 }
 
@@ -163,7 +186,7 @@ export function renderPoem(poem, poems, base) {
       <h1${poem.displayTitle ? '' : ` lang="${e(poem.lang)}" dir="${e(poem.direction)}"`}>${e(title)}</h1>
       ${poem.displayTitle ? `<p class="reader-original-title" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}
       ${poem.disambiguation ? `<p class="reader-disambiguation">Opening line: ${disambiguation(poem)}</p>` : ''}
-      <p class="reader-byline">by <strong>${e(poem.author)}</strong> <span>·</span> ${e(poem.yearLabel)}</p></div>
+      <p class="reader-byline">${poem.anonymous ? 'Attribution:' : 'by'} <strong><a href="${e(base)}poets/${e(poem.authorId)}/">${e(poem.author)}</a></strong> <span>·</span> ${e(poem.yearLabel)}</p></div>
       <div class="reader-actions"><button type="button" class="button secondary reader-save js-required" data-save="${e(poem.id)}" aria-pressed="false" disabled>♡ &nbsp; Save poem</button><button type="button" id="focus-toggle" class="button secondary focus-toggle" hidden><span aria-hidden="true">◐</span> <span class="focus-label">Focus mode</span></button></div></div>
     <p id="static-reading-note" class="static-reading-note">Saving and display controls need JavaScript. ${translations ? '<a href="#translations">Read the available translations and reading aids ↓</a>' : 'This poem is available in the original only.'}</p>
     <p id="preferred-note" class="preferred-note" aria-live="polite" hidden></p><div class="reading-toolbar js-required" aria-label="Reading controls">${viewSwitch}
