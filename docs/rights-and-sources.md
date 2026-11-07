@@ -47,3 +47,11 @@ Run `python3 scripts/import-tang.py /path/to/tang-52323.txt` and `uv run --no-pr
 ## Editorial standard
 
 Keep author attribution, original text, edition, translator, dates, source, rights and historical evidence distinct. Use unknown or qualified values when facts are uncertain. Documented influence requires a citation; a shared theme or adjacent publication is not influence. Obtain permission before adding protected modern poems or translations. Never bulk-import texts merely to reach a target count.
+
+## Discovery classification checklist
+
+- Use neutral literary, language, time or geographic descriptions rather than categories based on sensitive personal identity. Do not infer sensitive traits from a name, language, anthology or poem.
+- Make each category's label match its actual scope: a broad place category should include all matching recorded associations, while a single anthology should be identified as a selection. An associated place is not necessarily a nationality or the place of composition.
+- Support new place associations with evidence recorded alongside the record or in this document; preserve uncertainty and use “Not established” when evidence is insufficient. An anthology's title or publication location alone does not establish every author's nationality. Existing anthology importers contain broad geographic defaults that require individual source review; do not treat those defaults as evidence for new classifications.
+- Keep original texts, historical edition titles, citations and rights notes accurate, even if a historical title contains language unsuitable for a discovery label. Use a neutral display label without rewriting source records, existing filter values or URLs.
+- Before publishing, check labels and counts against all matching works, including multiple place associations, and verify that source attribution and JavaScript-free reading remain intact.

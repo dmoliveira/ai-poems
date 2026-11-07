@@ -83,6 +83,23 @@ test('search combines text, accents, metadata, translation and dates without gue
   assert.equal(collectionLabel('The Book of American Negro Poetry'), 'American poetry · 1922 anthology');
   assert.equal(collectionLabel('Oku no Hosomichi'), 'Oku no Hosomichi');
 });
+test('discovery classification is neutral while historical source titles and filter values remain intact', () => {
+  const mckay = poems.find(p => p.id === 'american-1922-00659');
+  const page = renderPoem(mckay, poems, '/ai-poems/');
+  assert.match(page, /<dt>Collection<\/dt><dd>American poetry · 1922 anthology<\/dd>/);
+  assert.ok(page.includes(escapeHtml(mckay.sourceTitle)));
+  assert.ok(page.includes(escapeHtml(mckay.text)));
+  assert.equal(mckay.collection, 'The Book of American Negro Poetry');
+  assert.equal(filterPoems(poems, { collection: mckay.collection }).length, 113);
+  const labels = poems.flatMap(p => [collectionLabel(p.collection), p.form, p.language, ...p.themes, ...associatedPlaces(p)]);
+  assert.ok(labels.every(label => !/black american|african[ -]american|american negro/i.test(label)));
+  const count = filterPoems(poems, { country: 'United States' }).length;
+  const home = renderHome(poems, '/ai-poems/');
+  assert.ok(home.includes(`href="/ai-poems/?country=United+States#explore"><span class="collection-icon"`));
+  assert.ok(home.includes(`<strong>American poetry</strong><em>${count} poems</em>`));
+  assert.ok(filterPoems(poems, { country: 'United States' }).some(p => p.author === 'Emily Dickinson'));
+  assert.ok(filterPoems(poems, { country: 'United States' }).some(p => p.author === 'Claude McKay'));
+});
 test('contextual option counts match filtering and count overlapping metadata once per poem', () => {
   const sample = [
     { ...poems[0], id: 'a', title: 'River A', displayTitle: '', author: 'A', language: 'English', country: 'Jamaica / United States / Jamaica', collection: 'First', form: 'Haiku', themes: ['Nature', 'Nature'], translations: [{ language: 'French', title: 'Fleuve', text: 'river' }, { language: 'French', title: 'Rivière', text: 'river' }], text: 'river', year: 1900 },

@@ -92,6 +92,8 @@ def spanish(soup):
         else:
             author = re.sub(r"^(Don|Doña) ", "", source_author.title())
             author = re.sub(r"\b(De|Del|La)\b", lambda m: m.group().lower(), author)
+            # Legacy place associations need individual source review; they are
+            # not evidence of nationality or a poem's place of composition.
             country = ("Venezuela" if "ANDRÉS BELLO" in source_author else
                        "Cuba" if "HEREDIA" in source_author or "AVELLANEDA" in source_author else "Spain")
         stanzas = []
@@ -151,6 +153,8 @@ def black_american(soup):
         # These headings explicitly identify excerpts or a nested section of a longer poem.
         if ident in {"id00382", "id00384", "id00428"}:
             return
+        # Legacy place associations need individual source review; do not infer
+        # a poet's nationality or a poem's creation place from this anthology.
         country = "Jamaica / United States" if poet == "Claude McKay" else "United States / Caribbean" if poet == "George Reginald Margetson" else "United States"
         records.append(common(
             f"american-1922-{ident[2:]}", title, poet, country, "English", "en",
