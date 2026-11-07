@@ -10,7 +10,7 @@ import { renderFeed } from '../scripts/feed.mjs';
 import { groupPoets } from '../scripts/poets.mjs';
 import { relatedPoems } from '../scripts/recommendations.mjs';
 import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
-import { associatedPlaces, collectionLabel, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, surprisePoem } from '../src/catalog.mjs';
+import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, surprisePoem } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
 test('catalogue has distinct, sourced records in all eight original languages', () => {
@@ -82,6 +82,35 @@ test('search combines text, accents, metadata, translation and dates without gue
   assert.equal(filterPoems(poems, { collection: 'The Book of American Negro Poetry' }).length, 113);
   assert.equal(collectionLabel('The Book of American Negro Poetry'), 'American poetry · 1922 anthology');
   assert.equal(collectionLabel('Oku no Hosomichi'), 'Oku no Hosomichi');
+});
+test('contextual option counts match filtering and count overlapping metadata once per poem', () => {
+  const sample = [
+    { ...poems[0], id: 'a', title: 'River A', displayTitle: '', author: 'A', language: 'English', country: 'Jamaica / United States / Jamaica', collection: 'First', form: 'Haiku', themes: ['Nature', 'Nature'], translations: [{ language: 'French', title: 'Fleuve', text: 'river' }, { language: 'French', title: 'Rivière', text: 'river' }], text: 'river', year: 1900 },
+    { ...poems[0], id: 'b', title: 'River B', displayTitle: '', author: 'B', language: 'French', country: 'France / United States', collection: 'Second', form: 'Verse', themes: ['Nature'], translations: [{ language: 'English', title: 'River', text: 'river' }], text: 'river\n2\n3\n4\n5', year: 1950 },
+    { ...poems[0], id: 'c', title: 'A third poem', displayTitle: '', author: 'A', language: 'French', country: 'France', collection: 'First', form: 'Verse', themes: [], translations: [], text: Array(15).fill('line').join('\n'), year: null },
+  ];
+  const all = contextualCounts(sample);
+  assert.equal(all.country.get('Jamaica'), 1);
+  assert.equal(all.country.get('United States'), 2);
+  assert.equal(all.translation.get('French'), 1);
+  assert.equal(all.theme.get('Nature'), 2);
+  assert.deepEqual(['1-4', '5-14', '15-plus'].map(value => all.length.get(value)), [1, 1, 1]);
+  assert.equal(contextualCounts(sample, { country: 'France' }).country.get('United States'), 2);
+  assert.equal(contextualCounts(sample, { country: 'France' }).country.get(''), 3);
+  assert.equal(contextualCounts(sample, { country: 'France' }).language.get('English') || 0, 0);
+
+  function compareToFiltering(records, combinations) {
+    const options = contextualCounts(records);
+    for (const filters of combinations) {
+      const counts = contextualCounts(records, filters);
+      for (const name of countedFilters) for (const value of options[name].keys()) {
+        const expected = filterPoems(records, { ...filters, [name]: value }).length;
+        assert.equal(counts[name].get(value) || 0, expected, `${JSON.stringify(filters)} ${name}=${value}`);
+      }
+    }
+  }
+  compareToFiltering(sample, [{}, { country: 'France', language: 'French' }, { query: 'river', from: '1901', readable: 'English' }, { author: 'A', length: '15-plus', translation: 'French' }, { query: 'no such words' }]);
+  compareToFiltering(poems, [{}, { author: 'William Shakespeare', language: 'English', country: 'United States' }, { query: 'night', readable: 'English', country: 'China', from: '1', to: '1900' }, { collection: 'The Book of American Negro Poetry', theme: 'Love', length: '5-14', translation: 'English' }]);
 });
 test('varied discovery preserves all works and rotates languages and authors', () => {
   const varied = discoveryOrder(poems);

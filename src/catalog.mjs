@@ -52,6 +52,28 @@ export function filterPoems(poems, filters = {}) {
   });
 }
 
+export const countedFilters = ['author', 'language', 'country', 'collection', 'form', 'length', 'theme', 'translation'];
+
+// Each option is counted against all other active filters, not its own.
+export function contextualCounts(poems, filters = {}) {
+  return Object.fromEntries(countedFilters.map(name => {
+    const matches = filterPoems(poems, { ...filters, [name]: '' });
+    const counts = new Map([['', matches.length]]);
+    for (const poem of matches) {
+      let values;
+      if (name === 'country') values = associatedPlaces(poem);
+      else if (name === 'theme') values = poem.themes;
+      else if (name === 'translation') values = poem.translations.map(translation => translation.language);
+      else if (name === 'length') {
+        const lines = lineCount(poem);
+        values = [lines <= 4 ? '1-4' : lines <= 14 ? '5-14' : '15-plus'];
+      } else values = [poem[name]];
+      for (const value of new Set(values.filter(Boolean))) counts.set(value, (counts.get(value) || 0) + 1);
+    }
+    return [name, counts];
+  }));
+}
+
 // Rotate through languages and then through poets, so a large single-author
 // collection does not crowd the first page. Preserve order within each poet.
 export function discoveryOrder(poems) {

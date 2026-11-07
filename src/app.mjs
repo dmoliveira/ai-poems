@@ -1,4 +1,4 @@
-import { associatedPlaces, collectionLabel, discoveryOrder, escapeHtml as e, filterPoems, poemCard, readingLanguages, surprisePoem } from './catalog.mjs';
+import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml as e, filterPoems, poemCard, readingLanguages, surprisePoem } from './catalog.mjs';
 
 const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
@@ -329,6 +329,8 @@ function setupExplore() {
     const values = [...new Set(poems.flatMap(p => name === 'theme' ? p.themes : name === 'translation' ? p.translations.map(t => t.language) : name === 'country' ? associatedPlaces(p) : [p[name]]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
     fields[name].insertAdjacentHTML('beforeend', values.map(value => `<option value="${e(value)}">${e(name === 'collection' ? collectionLabel(value) : value)}</option>`).join(''));
   }
+  for (const name of countedFilters) for (const option of fields[name].options) option.dataset.label = option.textContent;
+  let countedSignature;
   function restoreURL() {
     const params = new URL(location.href).searchParams;
     search.value = params.get('q') || '';
@@ -351,6 +353,14 @@ function setupExplore() {
     const filters = Object.fromEntries(Object.entries(fields).map(([name, input]) => [name, input.value]));
     filters.query = search.value;
     filtered = filterPoems(poems, filters);
+    const signature = JSON.stringify(filters);
+    if (signature !== countedSignature) {
+      const counts = contextualCounts(poems, filters);
+      for (const name of countedFilters) for (const option of fields[name].options) {
+        option.textContent = `${option.dataset.label} (${(counts[name].get(option.value) || 0).toLocaleString('en-US')})`;
+      }
+      countedSignature = signature;
+    }
     if (sort.value === 'title') filtered = filtered.toSorted((a, b) => (a.displayTitle || a.title).localeCompare(b.displayTitle || b.title));
     if (sort.value === 'author') filtered = filtered.toSorted((a, b) => a.author.localeCompare(b.author) || a.title.localeCompare(b.title));
     if (sort.value === 'year') filtered = filtered.toSorted((a, b) => (a.year ?? Infinity) - (b.year ?? Infinity));
@@ -360,7 +370,7 @@ function setupExplore() {
     summary.textContent = active ? `Filters (${active} active)` : 'Filters';
     chips.hidden = active === 0;
     chips.innerHTML = Object.entries(fields).filter(([, input]) => input.value).map(([name, input]) => {
-      const label = input.tagName === 'SELECT' ? input.selectedOptions[0].textContent : input.value;
+      const label = input.tagName === 'SELECT' ? input.selectedOptions[0].dataset.label : input.value;
       return `<button type="button" data-clear-filter="${e(name)}" aria-label="Remove ${e(filterLabels[name])}: ${e(label)} filter">${e(filterLabels[name])}: ${e(label)} <span aria-hidden="true">×</span></button>`;
     }).join('');
     surprise.disabled = !filtered.length;

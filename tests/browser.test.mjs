@@ -168,6 +168,56 @@ test('country flags and counts link to the matching country results', async () =
   await context.close();
 });
 
+test('filter option counts follow the other filters without changing values or accessible chips', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?country=Jamaica&language=English#explore`);
+  await page.getByText(`${filterPoems(poems, { country: 'Jamaica', language: 'English' }).length} poems found`).waitFor();
+  await page.locator('#filter-summary').click();
+  await page.locator('#advanced-filters summary').click();
+  const option = (name, value) => page.locator(`#filter-${name}`).evaluate((select, selected) => [...select.options].find(item => item.value === selected)?.textContent, value);
+  const expected = filters => filterPoems(poems, filters).length.toLocaleString('en-US');
+  assert.equal(await option('country', ''), `All places (${expected({ language: 'English' })})`);
+  assert.equal(await option('country', 'United States'), `United States (${expected({ language: 'English', country: 'United States' })})`);
+  assert.equal(await option('country', 'Jamaica'), `Jamaica (${expected({ language: 'English', country: 'Jamaica' })})`);
+  assert.equal(await option('language', 'French'), `French (${expected({ country: 'Jamaica', language: 'French' })})`);
+  assert.equal(await option('length', '5-14'), `5–14 lines (${expected({ country: 'Jamaica', language: 'English', length: '5-14' })})`);
+  assert.equal(await option('translation', ''), `All poems (${expected({ country: 'Jamaica', language: 'English' })})`);
+  assert.equal(await page.locator('#filter-country').getAttribute('aria-describedby'), 'filter-count-note');
+  assert.equal(await page.getByRole('button', { name: 'Remove Country or region: Jamaica filter' }).count(), 1);
+  assert.equal(new URL(page.url()).searchParams.get('country'), 'Jamaica');
+  await page.getByLabel('Search the poetry library').fill('nothing-matches-this-phrase');
+  await page.getByText('0 poems found').waitFor();
+  assert.equal(await option('country', 'United States'), 'United States (0)');
+  assert.equal(await option('language', 'English'), 'English (0)');
+  assert.equal(await page.locator('#filter-country').inputValue(), 'Jamaica');
+  await page.reload();
+  await page.getByText('0 poems found').waitFor();
+  assert.equal(await page.locator('#filter-country').inputValue(), 'Jamaica');
+  assert.equal(await option('country', 'Jamaica'), 'Jamaica (0)');
+  await page.locator('#filter-summary').click();
+  await page.locator('#advanced-filters summary').click();
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px`);
+  }
+  const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${base}?readable=Arabic#explore`);
+  await page.getByText(`${filterPoems(poems, { readable: 'Arabic' }).length} poems found`).waitFor();
+  assert.equal(await option('language', 'Chinese'), `Chinese (${expected({ readable: 'Arabic', language: 'Chinese' })})`);
+  await page.locator('#filter-summary').click();
+  const language = page.locator('#filter-language');
+  await language.focus();
+  await language.selectOption('Chinese');
+  assert.equal(await language.inputValue(), 'Chinese');
+  assert.equal(await language.evaluate(element => document.activeElement === element), true);
+  await page.keyboard.press('Tab');
+  assert.equal(await page.locator('#filter-country').evaluate(element => document.activeElement === element), true);
+  await context.close();
+});
+
 test('length filters and search journeys work on mobile', async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -978,7 +1028,7 @@ test('homepage uses progressive discovery without breaking filters or poet links
   await page.goto(`${base}?collection=${encodeURIComponent('The Book of American Negro Poetry')}#explore`);
   await page.getByText('113 poems found').waitFor();
   assert.equal(await page.locator('#filter-collection').inputValue(), 'The Book of American Negro Poetry');
-  assert.equal(await page.locator('#filter-collection option:checked').textContent(), 'American poetry · 1922 anthology');
+  assert.equal(await page.locator('#filter-collection option:checked').textContent(), 'American poetry · 1922 anthology (113)');
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await context.close();
 });
