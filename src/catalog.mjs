@@ -1,6 +1,8 @@
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 export const normalize = value => String(value ?? '').normalize('NFKD').replace(/\p{M}/gu, '').toLocaleLowerCase();
 export const readingLanguages = ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'Chinese', 'Japanese', 'Arabic'];
+// Discovery labels can be welcoming without rewriting historical source titles.
+export const collectionLabel = value => value === 'The Book of American Negro Poetry' ? 'American poetry · 1922 anthology' : value;
 
 // Catalogue records are immutable after loading. Index each record only when
 // a text query first needs it, rather than normalizing every poem on each key.

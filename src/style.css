@@ -991,10 +991,6 @@ h2 em {
 .poet-directory .poet-list {
   margin-top: 12px;
 }
-.poets-section .poet-directory noscript p {
-  margin-top: 12px;
-}
-.poet-directory noscript a,
 .results-area noscript a {
   color: var(--olive-dark);
   text-decoration: underline;
@@ -1052,6 +1048,84 @@ h2 em {
     Georgia,
     serif;
   color: var(--olive);
+}
+.poet-intro {
+  max-width: 780px;
+  margin: 45px 0 40px;
+  padding-left: 22px;
+  border-left: 3px solid var(--olive);
+  overflow-wrap: anywhere;
+}
+.poet-intro h1 {
+  font-size: clamp(44px, 5.5vw, 70px);
+  margin-bottom: 12px;
+}
+.poet-intro p:not(.eyebrow) {
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.poet-intro .poet-intro-count {
+  color: var(--olive-dark);
+  font-weight: 700;
+}
+.poet-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(230px, 1fr);
+  align-items: start;
+  gap: 28px;
+}
+.poet-works .text-link {
+  white-space: normal;
+}
+.poet-works-list {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.poet-works-list a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 15px 18px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  overflow-wrap: anywhere;
+}
+.poet-works-list a:hover {
+  border-color: var(--olive);
+}
+.poet-works-list strong {
+  display: block;
+  font: 600 22px/1.15 Cormorant, Georgia, serif;
+}
+.poet-works-list small {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.poet-more {
+  margin-top: 15px;
+}
+.poet-more summary {
+  cursor: pointer;
+  color: var(--olive-dark);
+  font-weight: 700;
+}
+.poet-more .poet-works-list {
+  margin-top: 12px;
+}
+.poet-facts {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  overflow-wrap: anywhere;
+}
+.poet-facts p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 0;
 }
 .shelf-section {
   background: var(--paper);
@@ -1235,6 +1309,10 @@ h2 em {
 }
 .reader-byline strong {
   color: var(--ink);
+}
+.reader-byline a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .reader-byline span {
   padding: 0 7px;
@@ -1821,6 +1899,12 @@ h2 em {
   }
   .reader-layout {
     grid-template-columns: 1fr;
+  }
+  .poet-layout {
+    grid-template-columns: 1fr;
+  }
+  .poet-intro {
+    margin: 32px 0;
   }
   .reading-journey {
     grid-template-columns: 1fr;

@@ -763,8 +763,8 @@ test('mobile layout fits and static poems remain readable without JavaScript', a
   assert.equal(await page.getByRole('link', { name: 'RSS updates ↗' }).getAttribute('href'), '/ai-poems/feed.xml');
   assert.equal(await page.getByText(`Browse the complete poetry index (${poems.length})`).count(), 1);
   assert.equal(await page.getByRole('link', { name: 'complete index' }).first().getAttribute('href'), '#complete-index');
-  assert.equal(await page.locator('.poet-directory').isVisible(), false);
-  assert.equal(await page.locator('#poets').getByText(/Poet filters need JavaScript/).isVisible(), true);
+  assert.equal(await page.locator('.poet-directory').isVisible(), true);
+  assert.equal(await page.locator('#poets').getByText(/Poet filters need JavaScript/).count(), 0);
   await context.close();
 });
 
@@ -855,7 +855,7 @@ test('without JavaScript, the home page offers the static index instead of inert
   assert.equal(await page.locator('#shelf').getByText(/existing saved data is not changed/).isVisible(), true);
   assert.equal(await page.locator('#collections .collection-card').first().isVisible(), false);
   assert.equal(await page.locator('#countries .country-card').first().isVisible(), false);
-  assert.equal(await page.locator('#poets').getByText(/Poet filters need JavaScript/).isVisible(), true);
+  assert.equal(await page.locator('.poet-directory').isVisible(), true);
   const indexLink = page.locator('#explore').getByRole('link', { name: 'complete index' });
   await indexLink.focus();
   await page.keyboard.press('Enter');
@@ -921,6 +921,7 @@ test('if the application module fails to load, interactive controls stay disable
   assert.equal(await page.getByText(/Search is unavailable until the library loads/).isVisible(), true);
   assert.equal(await page.locator('#collections .collection-card').first().isVisible(), false);
   assert.equal(await page.locator('#countries .country-card').first().isVisible(), false);
+  assert.equal(await page.locator('.poet-directory').isVisible(), true);
   await context.close();
 });
 
@@ -962,14 +963,75 @@ test('homepage uses progressive discovery without breaking filters or poet links
   const directoryA11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   assert.deepEqual(directoryA11y.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
   await directory.locator('[data-author="Giacomo Leopardi"]').click();
+  assert.equal(new URL(page.url()).pathname, '/ai-poems/poets/giacomo-leopardi/');
+  await page.getByRole('link', { name: 'Filter these poems in the library ↗' }).click();
   const leopardi = filterPoems(poems, { author: 'Giacomo Leopardi' }).length;
   await page.getByText(`${leopardi} poems found`).waitFor();
   assert.equal(new URL(page.url()).searchParams.get('author'), 'Giacomo Leopardi');
   await page.goto(base);
-  await page.getByRole('link', { name: /Black American voices/ }).click();
-  const anthology = filterPoems(poems, { collection: 'The Book of American Negro Poetry' }).length;
-  await page.getByText(`${anthology} poems found`).waitFor();
-  assert.equal(await page.locator('#advanced-filters').getAttribute('open'), '');
+  await page.getByRole('link', { name: /American poetry/ }).click();
+  const american = filterPoems(poems, { country: 'United States' }).length;
+  await page.getByText(`${american} poems found`).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('country'), 'United States');
+  assert.ok(filterPoems(poems, { country: 'United States' }).some(p => p.author === 'Emily Dickinson'));
+  assert.ok(filterPoems(poems, { country: 'United States' }).some(p => p.author === 'Claude McKay'));
+  await page.goto(`${base}?collection=${encodeURIComponent('The Book of American Negro Poetry')}#explore`);
+  await page.getByText('113 poems found').waitFor();
+  assert.equal(await page.locator('#filter-collection').inputValue(), 'The Book of American Negro Poetry');
+  assert.equal(await page.locator('#filter-collection option:checked').textContent(), 'American poetry · 1922 anthology');
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+});
+
+test('poet pages are shareable, responsive and do not fetch the full catalogue', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  let catalogueRequests = 0;
+  await page.route('**/data/catalog.json', route => { catalogueRequests++; return route.abort(); });
+  const response = await page.goto(`${base}poets/william-shakespeare/`);
+  assert.equal(response.status(), 200);
+  const stored = JSON.stringify({ saved: ['old-pond-basho'], recent: ['old-pond-basho'], theme: 'sepia', extra: { keep: true } });
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', value), stored);
+  await page.reload();
+  assert.equal(await page.locator('html').getAttribute('data-theme'), 'sepia');
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), stored);
+  assert.equal(await page.locator('[data-shelf-count]').first().textContent(), '1');
+  assert.equal(await page.getByRole('heading', { level: 1 }).textContent(), 'William Shakespeare');
+  assert.equal(await page.locator('.poet-works-list a').count(), 154);
+  assert.equal(await page.locator('.poet-more').getAttribute('open'), null);
+  await page.locator('.poet-more summary').focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('.poet-more').getAttribute('open'), '');
+  assert.equal(await page.locator('.poet-works-list').getByRole('link', { name: /Sonnet 154/ }).isVisible(), true);
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px`);
+  }
+  for (const theme of ['light', 'sepia', 'dark']) {
+    await page.getByLabel('Reading theme').selectOption(theme);
+    const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], theme);
+  }
+  assert.equal(catalogueRequests, 0);
+  await context.close();
+});
+
+test('the poet directory and every linked work remain available without JavaScript', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: false, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.locator('.poet-directory summary').focus();
+  await page.keyboard.press('Enter');
+  await page.locator('.poet-directory [data-author="Matsuo Bashō"]').click();
+  assert.equal(new URL(page.url()).pathname, '/ai-poems/poets/matsuo-basho/');
+  assert.equal(await page.locator('.poet-works-list a').count(), 3);
+  assert.equal(await page.getByRole('link', { name: /Filter these poems/ }).count(), 0);
+  await page.locator('.poet-works-list').getByRole('link', { name: /The Old Pond/ }).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), '古池や蛙とびこむ水の音');
+  assert.equal(await page.locator('.reader-byline a').getAttribute('href'), '/ai-poems/poets/matsuo-basho/');
+  await page.goto(`${base}poets/traditional-anonymous-romances-viejos/`);
+  assert.equal(await page.getByText(/not necessarily by the same person/).isVisible(), true);
+  assert.equal(await page.locator('.poet-works-list a').count(), 8);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await context.close();
 });

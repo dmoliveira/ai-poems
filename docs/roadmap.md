@@ -6,8 +6,8 @@ The launch has 161 sourced works, eight original languages, static poem pages, s
 
 ## Beyond 1,000 works
 
-The catalogue has grown to 1,022 works from over 150 named or traditional author groups. English and Chinese still predominate, and coverage in Italian, Japanese and Arabic remains minimal. Continue expanding and independently checking batches by language, era, author and geography. Prioritize diverse public-domain or permission-cleared editions, evidence for dates and textual variants, and separate rights checks for each translation. Add documented influence and response edges with sources, and replace unreviewed reading aids with attributed, rights-cleared or independently reviewed translations. Grow the catalogue based on editorial quality rather than generating placeholder entries.
+The catalogue has grown to 1,026 works from over 150 named or traditional author groups. English and Chinese still predominate, and coverage in Italian, Japanese and Arabic remains minimal. Continue expanding and independently checking batches by language, era, author and geography. Prioritize diverse public-domain or permission-cleared editions, evidence for dates and textual variants, and separate rights checks for each translation. Add documented influence and response edges with sources, and replace unreviewed reading aids with attributed, rights-cleared or independently reviewed translations. Grow the catalogue based on editorial quality rather than generating placeholder entries.
 
 ## Enrich the experience
 
-Consider dedicated author profiles, more curated collections, accessible interface localization, better scalable indexing and pagination, a timeline and map, import/export of the local shelf, and optional audio where rights permit. These are future enhancements, not features claimed for the MVP.
+Shareable poet and traditional-voice pages now collect works using existing catalogue metadata; they do not invent biographies. Consider more curated collections, accessible interface localization, better scalable indexing and pagination, a timeline and map, import/export of the local shelf, and optional audio where rights permit.
