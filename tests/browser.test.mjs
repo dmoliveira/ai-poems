@@ -818,6 +818,19 @@ test('mobile layout fits and static poems remain readable without JavaScript', a
   await context.close();
 });
 
+test('the collection label is neutral without changing historical attribution or text', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, javaScriptEnabled: false });
+  const page = await context.newPage();
+  const poem = poems.find(p => p.id === 'american-1922-00659');
+  await page.goto(`${base}poems/${poem.id}/`);
+  const collection = await page.locator('.context-card dt').evaluateAll(items => items.find(item => item.textContent === 'Collection')?.nextElementSibling?.textContent);
+  assert.equal(collection, 'American poetry · 1922 anthology');
+  assert.equal(await page.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+});
+
 test('Japanese additions are searchable and readable on mobile with and without JavaScript', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
