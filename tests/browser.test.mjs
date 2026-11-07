@@ -1405,6 +1405,39 @@ async function holdReadingStateLock(page) {
   await page.waitForFunction(() => window.testLockHeld);
 }
 
+async function pendingReadingStateLocks(page, count) {
+  // A visible saving message precedes the asynchronous lock-manager enqueue.
+  try {
+    await page.waitForFunction(async expected => {
+      const snapshot = await navigator.locks.query();
+      return snapshot.held.some(lock => lock.name === 'verso-library-v1')
+        && snapshot.pending.filter(lock => lock.name === 'verso-library-v1').length === expected;
+    }, count);
+  } catch (error) {
+    throw new Error(`Expected ${count} pending shelf locks: ${JSON.stringify(await readingStateDiagnostics(page))}`, { cause: error });
+  }
+  return page.evaluate(async () => (await navigator.locks.query()).pending.filter(lock => lock.name === 'verso-library-v1'));
+}
+
+async function readingStateDiagnostics(holder) {
+  const pages = await Promise.all(holder.context().pages().map(async page => {
+    try {
+      return await page.evaluate(() => ({
+        path: location.pathname,
+        stored: localStorage.getItem('verso-library-v1'),
+        notice: document.querySelector('[role="status"]')?.textContent,
+        warning: document.querySelector('main > .storage-warning')?.textContent,
+        warningHidden: document.querySelector('main > .storage-warning')?.hidden,
+        conflict: document.querySelector('.clear-conflict')?.textContent,
+      }));
+    } catch (error) { return { error: String(error) }; }
+  }));
+  let locks;
+  try { locks = await holder.evaluate(() => navigator.locks.query()); }
+  catch (error) { locks = { error: String(error) }; }
+  return { pages, locks };
+}
+
 test('simultaneous saves in open tabs preserve both poems and synchronize their controls', async () => {
   const context = await browser.newContext();
   const first = await context.newPage();
@@ -1455,6 +1488,7 @@ test('queued writes cancel a stale shelf clear rather than discard a concurrent 
   try {
     await reader.getByRole('button', { name: /Save poem/ }).click();
     await reader.getByRole('status').getByText('Saving changes…').waitFor();
+    const [saveRequest] = await pendingReadingStateLocks(holder, 1);
     assert.equal(await reader.evaluate(() => {
       const event = new Event('beforeunload', { cancelable: true });
       window.dispatchEvent(event);
@@ -1467,11 +1501,19 @@ test('queued writes cancel a stale shelf clear rather than discard a concurrent 
     await dialog.dismiss();
     await navigation;
     assert.match(reader.url(), /old-pond-basho/);
+    assert.equal((await pendingReadingStateLocks(holder, 1))[0].clientId, saveRequest.clientId);
     await home.getByText('Clear saved poems', { exact: true }).click();
     await home.getByRole('button', { name: 'Yes, clear saved poems' }).click();
     await home.getByRole('status').getByText('Saving changes…').waitFor();
+    const queued = await pendingReadingStateLocks(holder, 2);
+    assert.equal(queued[0].clientId, saveRequest.clientId);
+    assert.notEqual(queued[1].clientId, saveRequest.clientId);
     await holder.evaluate(() => window.releaseTestLock());
-    await home.locator('.clear-conflict').getByText(/Review your shelf and confirm again/).waitFor();
+    try {
+      await home.locator('.clear-conflict').getByText(/Review your shelf and confirm again/).waitFor();
+    } catch (error) {
+      throw new Error(`Missing shelf conflict: ${JSON.stringify(await readingStateDiagnostics(holder))}`, { cause: error });
+    }
     await home.waitForFunction(() => {
       const saved = JSON.parse(localStorage.getItem('verso-library-v1')).saved;
       return saved.length === 2 && saved.includes('old-pond-basho') && saved.includes('shakespeare-sonnet-18');
@@ -1485,6 +1527,44 @@ test('queued writes cancel a stale shelf clear rather than discard a concurrent 
     await home.getByRole('button', { name: 'Yes, clear saved poems' }).click();
     await home.getByRole('status').getByText('Saved poems present at confirmation were cleared.').waitFor();
     assert.deepEqual(await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), []);
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
+});
+
+test('a clear queued before a new save removes only the confirmed poems', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const home = await context.newPage();
+  await home.goto(base);
+  await home.getByText(totalText).waitFor();
+  await home.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
+  await home.reload();
+  await home.locator('#shelf-items').getByText('Sonnet 18').waitFor();
+  const reader = await context.newPage();
+  await reader.goto(`${base}poems/old-pond-basho/`);
+  await home.locator('#recent-items').getByText('The Old Pond').waitFor();
+  const holder = await context.newPage();
+  await holder.goto(base);
+  await pausePageTime(reader);
+  await pausePageTime(home);
+  await holdReadingStateLock(holder);
+  try {
+    await home.getByText('Clear saved poems', { exact: true }).click();
+    await home.getByRole('button', { name: 'Yes, clear saved poems' }).click();
+    await home.getByRole('status').getByText('Saving changes…').waitFor();
+    const [clearRequest] = await pendingReadingStateLocks(holder, 1);
+    await reader.getByRole('button', { name: /Save poem/ }).click();
+    await reader.getByRole('status').getByText('Saving changes…').waitFor();
+    const queued = await pendingReadingStateLocks(holder, 2);
+    assert.equal(queued[0].clientId, clearRequest.clientId);
+    assert.notEqual(queued[1].clientId, clearRequest.clientId);
+    await holder.evaluate(() => window.releaseTestLock());
+    await reader.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    const stored = await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')));
+    assert.deepEqual(stored.saved, ['old-pond-basho']);
+    assert.deepEqual(stored.extra, { keep: true });
+    assert.equal(await home.locator('.clear-conflict').count(), 0);
   } finally {
     await holder.evaluate(() => window.releaseTestLock?.());
     await context.close();
