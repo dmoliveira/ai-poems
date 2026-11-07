@@ -549,6 +549,10 @@ test('typeface choice persists, scales and remains available in focus mode acros
   assert.ok(await verse.evaluate(element => parseFloat(getComputedStyle(element).fontSize)) > size);
   await page.getByRole('button', { name: 'Focus mode' }).click();
   assert.equal(await typeface.isVisible(), true);
+  await page.waitForFunction(() => {
+    const state = JSON.parse(localStorage.getItem('verso-library-v1') || '{}');
+    return state.focus === true && state.typeface === 'clear' && state.font === 1;
+  });
   await page.reload();
   await page.getByRole('button', { name: 'Exit focus mode' }).waitFor();
   assert.equal(await typeface.inputValue(), 'clear');
@@ -571,6 +575,41 @@ test('typeface choice persists, scales and remains available in focus mode acros
     }), `typeface controls fit at ${width}px`);
   }
   await context.close();
+});
+
+test('focus mode is saved before a reload is treated as durable', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('shakespeare-sonnet-18'));
+  const holder = await context.newPage();
+  await holder.goto(base);
+  await pausePageTime(page);
+  await holdReadingStateLock(holder);
+  try {
+    await page.getByRole('button', { name: 'Focus mode' }).click();
+    assert.equal(await page.getByRole('button', { name: 'Exit focus mode' }).isVisible(), true);
+    assert.notEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).focus), true);
+    await page.getByRole('status').getByText('Saving changes…').waitFor();
+    assert.equal(await page.evaluate(() => {
+      const event = new Event('beforeunload', { cancelable: true });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    }), true);
+    await holder.evaluate(() => window.releaseTestLock());
+    await page.getByRole('status').getByText('Focus mode on.').waitFor();
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).focus), true);
+    assert.equal(await page.evaluate(() => {
+      const event = new Event('beforeunload', { cancelable: true });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    }), false);
+    await page.reload();
+    await page.getByRole('button', { name: 'Exit focus mode' }).waitFor();
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
 });
 
 test('mobile navigation has clear, keyboard-accessible targets', async () => {
@@ -660,9 +699,14 @@ test('mobile focus mode keeps reading controls and provenance, persists, and is 
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   for (const theme of ['light', 'sepia', 'dark']) {
     await page.getByLabel('Focus theme').selectOption(theme);
+    await page.getByRole('status').getByText('Theme saved.').waitFor();
     const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
     assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], `focus / ${theme}`);
   }
+  await page.waitForFunction(() => {
+    const state = JSON.parse(localStorage.getItem('verso-library-v1') || '{}');
+    return state.focus === true && state.theme === 'dark' && state.preferredLanguage === 'Arabic';
+  });
   await page.reload();
   await page.getByRole('button', { name: 'Exit focus mode' }).waitFor();
   assert.equal(await page.locator('.site-header').isVisible(), false);
@@ -754,6 +798,10 @@ test('focus mode can choose a translation without changing the preferred languag
       return document.documentElement.scrollWidth <= innerWidth + 1 && options.right <= toolbar.right + 1;
     }), `focus controls fit at ${width}px`);
   }
+  await page.waitForFunction(() => {
+    const state = JSON.parse(localStorage.getItem('verso-library-v1') || '{}');
+    return state.focus === true && state.language === 'Arabic';
+  });
   await page.reload();
   await page.getByRole('button', { name: 'Exit focus mode' }).waitFor();
   assert.equal(await page.getByLabel('Preferred reading language in focus mode').inputValue(), '');
