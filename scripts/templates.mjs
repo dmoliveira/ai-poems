@@ -100,17 +100,17 @@ export function renderHome(poems, base) {
       <section id="explore" class="explore-section"><div class="section-heading"><div><p class="eyebrow"><span>02 /</span> WANDER A LITTLE</p><h2>Explore the <em>library.</em></h2><p>Search by poet, poem, language, place, or a line you remember.</p></div><span class="catalogue-count">${total} to discover <span aria-hidden="true">✳</span></span></div>
         <form class="search-bar js-required" id="search-form" role="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label class="sr-only" for="search">Search the poetry library</label><input id="search" type="search" placeholder="Search poems, poets, a line..." autocomplete="off" disabled><button class="button primary" type="submit" disabled>Search <span aria-hidden="true">↗</span></button></form>
         <div class="explore-layout"><details id="filter-drawer" class="filter-drawer js-required" open><summary id="filter-summary">Filters</summary><aside class="filters" aria-label="Filter poems">
-          <div class="filter-head"><h3>Narrow by</h3><button type="button" id="clear-filters" disabled>Clear all</button></div>
+          <div class="filter-head"><h3>Narrow by</h3><button type="button" id="clear-filters" disabled>Clear all</button></div><p id="filter-count-note" class="filter-note">Numbers show poems matching your search and other filters.</p>
           <input id="filter-readable" type="hidden">
-          <label>Poet<select id="filter-author" disabled><option value="">All poets</option></select></label>
-          <label>Original language<select id="filter-language" disabled><option value="">All languages</option></select></label>
-          <label>Country or region<select id="filter-country" disabled><option value="">All places</option></select></label>
+          <label>Poet<select id="filter-author" aria-describedby="filter-count-note" disabled><option value="">All poets</option></select></label>
+          <label>Original language<select id="filter-language" aria-describedby="filter-count-note" disabled><option value="">All languages</option></select></label>
+          <label>Country or region<select id="filter-country" aria-describedby="filter-count-note" disabled><option value="">All places</option></select></label>
           <details id="advanced-filters" class="advanced-filters"><summary>More filters</summary><div class="advanced-filter-fields">
-            <label>Collection<select id="filter-collection" disabled><option value="">All collections</option></select></label>
-            <label>Form &amp; style<select id="filter-form" disabled><option value="">All forms</option></select></label>
-            <label>Poem length<select id="filter-length" disabled><option value="">Any length</option><option value="1-4">1–4 lines</option><option value="5-14">5–14 lines</option><option value="15-plus">15 or more lines</option></select></label>
-            <label>Theme<select id="filter-theme" disabled><option value="">All themes</option></select></label>
-            <label>Translation language<select id="filter-translation" disabled><option value="">Any translation</option></select></label>
+            <label>Collection<select id="filter-collection" aria-describedby="filter-count-note" disabled><option value="">All collections</option></select></label>
+            <label>Form &amp; style<select id="filter-form" aria-describedby="filter-count-note" disabled><option value="">All forms</option></select></label>
+            <label>Poem length<select id="filter-length" aria-describedby="filter-count-note" disabled><option value="">Any length</option><option value="1-4">1–4 lines</option><option value="5-14">5–14 lines</option><option value="15-plus">15 or more lines</option></select></label>
+            <label>Theme<select id="filter-theme" aria-describedby="filter-count-note" disabled><option value="">All themes</option></select></label>
+            <label>Translation language<select id="filter-translation" aria-describedby="filter-count-note" disabled><option value="">All poems</option></select></label>
             <div class="year-inputs"><label>From year<input id="filter-from" type="number" placeholder="e.g. 1600" disabled></label><label>To year<input id="filter-to" type="number" placeholder="e.g. 1900" disabled></label></div>
             <p class="filter-note">Line counts follow the original's transcribed line breaks. Year filters use the shown publication or composition date and exclude undated works. Theme tags cover a small part of the catalogue.</p>
           </div></details>
