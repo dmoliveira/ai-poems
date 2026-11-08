@@ -1444,6 +1444,80 @@ test('the poet directory and every linked work remain available without JavaScri
   await context.close();
 });
 
+test('featured reading is sourced, responsive, accessible and keyboard navigable', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const poem = poems.find(item => item.id === 'old-pond-basho');
+  const translation = poem.translations.find(item => item.translator === 'Lafcadio Hearn, 1898');
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const feature = page.locator('.featured-reading');
+  const link = feature.getByRole('link', { name: 'Read poem & sources' });
+  assert.equal(await feature.getByRole('heading', { name: 'The Old Pond' }).count(), 1);
+  assert.equal(await feature.locator('.featured-reading-byline').textContent(), 'Matsuo Bashō · Japanese');
+  assert.equal(await feature.locator('.featured-reading-original[lang="ja"][dir="ltr"]').textContent(), '古池や蛙とびこむ水の音');
+  assert.equal(await feature.locator('.featured-reading-translation[lang="en"][dir="ltr"]').textContent(), 'Old pond—frogs jumping in—sound of water.');
+  assert.match(await feature.locator('.featured-reading-footer p').textContent(), /Wikisource · Bashō Haiku Collection \(1903\).*Lafcadio Hearn, 1898/);
+  assert.equal(await link.getAttribute('href'), `/ai-poems/poems/${poem.id}/`);
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px`);
+    const box = await link.boundingBox();
+    assert.ok(box && box.width >= 44 && box.height >= 44, `touch target at ${width}px`);
+    assert.ok(await feature.evaluate(element => element.scrollWidth <= element.clientWidth + 1), `feature fits at ${width}px`);
+  }
+  await page.setViewportSize({ width: 320, height: 844 });
+  for (const theme of ['light', 'sepia', 'dark']) {
+    await page.getByLabel('Reading theme').selectOption(theme);
+    assert.equal(await page.locator('html').getAttribute('data-theme'), theme);
+    const accessibility = await new AxeBuilder({ page }).include('.featured-reading').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], theme);
+  }
+  await page.locator('.collection-card').last().focus();
+  await page.keyboard.press('Tab');
+  assert.equal(await link.evaluate(element => document.activeElement === element), true);
+  await page.keyboard.press('Enter');
+  await page.waitForURL(`**/poems/${poem.id}/`);
+  assert.equal(new URL(page.url()).pathname, `/ai-poems/poems/${poem.id}/`);
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  assert.equal(await page.locator('.source-note a').getAttribute('href'), poem.source);
+  assert.equal(await page.locator('#translations .verse').textContent(), translation.text);
+  assert.equal(await page.locator('#translations a').getAttribute('href'), translation.source);
+  await context.close();
+});
+
+test('featured reading and its sources remain available with no JavaScript, a failed catalogue or a failed module', async () => {
+  const poem = poems.find(item => item.id === 'old-pond-basho');
+  const translation = poem.translations.find(item => item.translator === 'Lafcadio Hearn, 1898');
+  for (const mode of ['no JavaScript', 'catalogue failure', 'module failure']) {
+    const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: mode !== 'no JavaScript', reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    if (mode === 'catalogue failure') await page.route('**/data/catalog.json', route => route.abort());
+    if (mode === 'module failure') await page.route('**/app.mjs', route => route.abort());
+    await page.goto(base);
+    if (mode === 'catalogue failure') await page.getByText(/The library could not load/).waitFor();
+    const seed = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } });
+    await page.evaluate(value => localStorage.setItem('verso-library-v1', value), seed);
+    const feature = page.locator('.featured-reading');
+    assert.equal(await feature.locator('.featured-reading-original').textContent(), poem.text, mode);
+    assert.equal(await feature.locator('.featured-reading-translation').textContent(), translation.text, mode);
+    assert.match(await feature.textContent(), /Lafcadio Hearn, 1898/, mode);
+    assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), seed, mode);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), mode);
+    const link = feature.getByRole('link', { name: 'Read poem & sources' });
+    await link.focus();
+    await page.keyboard.press('Enter');
+    await page.waitForURL(`**/poems/${poem.id}/`);
+    assert.equal(new URL(page.url()).pathname, `/ai-poems/poems/${poem.id}/`, mode);
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text, mode);
+    assert.equal(await page.locator('.source-note a').getAttribute('href'), poem.source, mode);
+    assert.equal(await page.locator('#translations .verse').textContent(), translation.text, mode);
+    assert.equal(await page.locator('#translations a').getAttribute('href'), translation.source, mode);
+    if (mode !== 'catalogue failure') assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), seed, mode);
+    await context.close();
+  }
+});
+
 test('editorial paths lead to short poems and the sourced edition sequence', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -2070,6 +2144,7 @@ test('an unavailable catalogue keeps saved and recent IDs usable and recovers af
   assert.equal(await home.evaluate(() => localStorage.getItem('verso-library-v1')), seed);
   await home.locator('.hero').getByRole('link', { name: /Find a poem/ }).focus();
   await home.keyboard.press('Enter');
+  await home.waitForURL('**/#explore');
   assert.equal(new URL(home.url()).hash, '#explore');
   assert.equal(await home.locator('#search').isDisabled(), true);
   assert.equal(await home.getByText(/The library could not load/).isVisible(), true);

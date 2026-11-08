@@ -462,6 +462,38 @@ test('editorial paths match the catalogue and require the sourced edition sequen
   const long = poems.find(p => lineCount(p) > 4);
   assert.doesNotMatch(renderHome([long], '/ai-poems/'), /A path into poetry/);
 });
+test('featured reading uses sourced catalogue text and degrades safely when records change', () => {
+  const poem = poems.find(item => item.id === 'old-pond-basho');
+  const translation = poem.translations.find(item => item.translator === 'Lafcadio Hearn, 1898');
+  const feature = items => renderHome(items, '/ai-poems/').match(/<article class="featured-reading"[\s\S]*?<\/article>/)?.[0] || '';
+  const html = feature([poem]);
+  assert.match(html, /FEATURED READING/);
+  assert.ok(html.includes(`<p class="featured-reading-original" lang="ja" dir="ltr">${escapeHtml(poem.text)}</p>`));
+  assert.ok(html.includes(`<p class="featured-reading-translation" lang="en" dir="ltr">${escapeHtml(translation.text)}</p>`));
+  assert.ok(html.includes(escapeHtml(poem.sourceTitle)));
+  assert.ok(html.includes(escapeHtml(translation.translator)));
+  assert.match(html, /href="\/ai-poems\/poems\/old-pond-basho\/">Read poem &amp; sources/);
+  assert.doesNotMatch(html, /today|daily|weekly/i);
+  for (const change of [{ source: '' }, { source: 'http://example.com' }, { sourceTitle: '' }, { rights: '' }, { direction: 'invalid' }]) {
+    assert.equal(feature([{ ...poem, ...change }]), '');
+  }
+  assert.equal(feature(poems.filter(item => item.id !== poem.id)), '');
+  for (const translations of [[], [null], [{ ...translation, source: '' }], [{ ...translation, rights: '' }], [{ ...translation, translator: 'Unreviewed reading aid' }]]) {
+    const originalOnly = feature([{ ...poem, translations }]);
+    assert.match(originalOnly, /featured-reading-original/);
+    assert.doesNotMatch(originalOnly, /featured-reading-translation|Lafcadio Hearn/);
+  }
+  const changed = { ...poem, displayTitle: '<Title & more>', author: 'Author <test>', language: 'Arabic', lang: 'ar', direction: 'rtl', text: 'أول <سطر>\nSECOND ORIGINAL LINE', sourceTitle: 'Source <edition>', translations: [{ ...translation, text: 'First <line>\nSECOND TRANSLATION LINE' }] };
+  const escaped = feature([changed]);
+  assert.match(escaped, /&lt;Title &amp; more&gt;/);
+  assert.match(escaped, /Author &lt;test&gt;/);
+  assert.match(escaped, /Opening line · Arabic original/);
+  assert.match(escaped, /lang="ar" dir="rtl">أول &lt;سطر&gt;/);
+  assert.match(escaped, /Opening line · English translation/);
+  assert.match(escaped, /First &lt;line&gt;/);
+  assert.match(escaped, /Source &lt;edition&gt;/);
+  assert.doesNotMatch(escaped, /SECOND ORIGINAL LINE|SECOND TRANSLATION LINE/);
+});
 test('build creates crawlable pages, valid schema and a complete sitemap', async () => {
   execFileSync('node', ['scripts/build.mjs'], { stdio: 'pipe' });
   const home = await readFile('_site/index.html', 'utf8');

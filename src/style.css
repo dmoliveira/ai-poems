@@ -563,6 +563,89 @@ h2 em {
   font-size: 30px;
   margin: 0;
 }
+.reading-path-content {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.featured-reading {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.8fr) minmax(0, 1.5fr);
+  gap: 16px 22px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.featured-reading-heading,
+.featured-reading-verses {
+  min-width: 0;
+}
+.featured-reading-kicker,
+.featured-reading-label {
+  margin: 0 0 6px;
+  color: var(--olive-dark);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.featured-reading h4 {
+  margin: 0 0 4px;
+  font: 600 29px/1.1 Cormorant, Georgia, serif;
+  overflow-wrap: anywhere;
+}
+.featured-reading-byline {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.featured-reading-verses {
+  border-left: 1px solid var(--line);
+  padding-left: 20px;
+}
+.featured-reading-original,
+.featured-reading-translation {
+  margin: 0 0 12px;
+  color: var(--ink);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.featured-reading-original {
+  font-family: Georgia, "Hiragino Mincho ProN", "Noto Serif CJK JP", serif;
+  font-size: 20px;
+}
+.featured-reading-translation {
+  font-family: Cormorant, Georgia, serif;
+  font-size: 19px;
+  font-weight: 600;
+}
+.featured-reading-footer {
+  grid-column: 1/-1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 20px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.featured-reading-footer p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.featured-reading-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--olive-dark);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .reading-path-links {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1874,6 +1957,15 @@ h2 em {
   .reading-paths {
     grid-template-columns: 1fr;
     gap: 16px;
+  }
+  .featured-reading {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .featured-reading-verses {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding: 12px 0 0;
   }
   .country-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
