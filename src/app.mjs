@@ -1,4 +1,4 @@
-import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml as e, filterPoems, poemCard, readingLanguages, surprisePoem } from './catalog.mjs';
+import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml as e, filterPoems, normalize, poemCard, readingLanguages, surprisePoem } from './catalog.mjs';
 
 const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
@@ -285,6 +285,38 @@ window.addEventListener('storage', event => {
     storageFailure = 'read'; pendingChanges = []; showStorageWarning(); announce(temporaryNotice());
   }
 });
+
+// The pre-rendered directory remains usable even if the catalogue cannot load.
+function setupPoetDirectory() {
+  const finder = document.querySelector('#poet-finder');
+  if (!finder) return;
+  const input = finder.querySelector('#poet-query');
+  const clear = finder.querySelector('#clear-poet-query');
+  const status = finder.querySelector('#poet-count');
+  const list = document.querySelector('#poet-list');
+  const entries = [...list.querySelectorAll('[data-author]')].map(link => ({
+    link,
+    names: normalize([link.dataset.author, ...[...link.querySelectorAll('[data-poet-original]')].map(name => name.textContent)].join(' ')),
+  }));
+  function render(resetScroll = false) {
+    const query = normalize(input.value).trim();
+    let count = 0;
+    for (const entry of entries) {
+      const matches = !query || entry.names.includes(query);
+      entry.link.hidden = !matches;
+      if (matches) count++;
+    }
+    clear.disabled = !input.value;
+    status.textContent = query ? `${count} ${count === 1 ? 'match' : 'matches'}${count ? '.' : '. Try another name.'}` : 'Showing all names and voices.';
+    if (resetScroll) list.scrollTop = 0;
+  }
+  input.addEventListener('input', () => render(true));
+  clear.addEventListener('click', () => { input.value = ''; render(true); input.focus(); });
+  window.addEventListener('pageshow', () => render());
+  render();
+  finder.hidden = false;
+}
+setupPoetDirectory();
 
 try {
   if (document.body.dataset.poemId) {

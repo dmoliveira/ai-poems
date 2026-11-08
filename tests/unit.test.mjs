@@ -365,6 +365,24 @@ test('poet pages group by validated IDs, not names or assumed anonymous authorsh
   assert.ok(!page.includes('</script><script>alert(1)</script>'));
   assert.match(page, /&lt;\/script&gt;/);
 });
+test('poet directory shows sourced original names once per identity and escapes them', () => {
+  const japanese = renderHome(poems.filter(p => p.authorId === 'matsuo-basho'), '/ai-poems/');
+  assert.match(japanese, /data-poet-original lang="ja" dir="ltr">松尾芭蕉<\/span>/);
+  assert.equal((japanese.match(/data-poet-original/g) || []).length, 1);
+  const sample = { ...poems[0], author: 'Shared Name', authorId: 'shared-a', authorOriginal: '原名 <script>', lang: 'zh-Hant', direction: 'ltr', anonymous: false };
+  const home = renderHome([
+    { ...sample, id: 'sample-a' }, { ...sample, id: 'sample-b' },
+    { ...sample, id: 'sample-c', authorId: 'shared-b' },
+    { ...sample, id: 'sample-d', authorId: 'same-name', author: 'Same Name', authorOriginal: 'same name' },
+  ], '/ai-poems/');
+  const directory = home.match(/<details class="poet-directory">[\s\S]*?<\/details>/)[0];
+  assert.equal((directory.match(/data-author="Shared Name"/g) || []).length, 2);
+  assert.equal((directory.match(/data-poet-original/g) || []).length, 2);
+  assert.equal((directory.match(/原名 &lt;script&gt;/g) || []).length, 2);
+  assert.doesNotMatch(directory, /原名 <script>/);
+  assert.match(directory, /catalogue ID: shared-a/);
+  assert.match(directory, /catalogue ID: shared-b/);
+});
 test('historical English translations are individually credited and complete', () => {
   for (const id of ['baudelaire-la-muse-venale', 'baudelaire-la-vie-anterieure', 'baudelaire-don-juan-aux-enfers', 'baudelaire-remords-posthume']) {
     const poem = poems.find(p => p.id === id);
