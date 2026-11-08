@@ -442,6 +442,9 @@ test('homepage totals follow catalogue growth and use singular for one poem', ()
   assert.ok(home.includes(`Discover <strong>${total}</strong> across languages`));
   assert.ok(home.includes(`class="catalogue-count">${total} to discover`));
   assert.match(home, /Some works appear under more than one place/);
+  assert.match(home, /<option value="">No preference<\/option>/);
+  assert.match(home, /<noscript><a class="button primary" href="#complete-index">Browse poem index/);
+  assert.doesNotMatch(home, /class="announcement"/);
 });
 test('editorial paths match the catalogue and require the sourced edition sequence', () => {
   const short = filterPoems(poems, { length: '1-4' }).length;

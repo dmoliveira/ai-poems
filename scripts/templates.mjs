@@ -7,7 +7,7 @@ const description = 'Read classic poetry in its original language, discover poet
 const absolute = path => new URL(path, SITE).href;
 const jsonForHtml = object => JSON.stringify(object).replaceAll('<', '\\u003c');
 const themeOptions = '<option value="light">☼ Light</option><option value="sepia">◐ Sepia</option><option value="dark">☾ Dark</option>';
-const languageOptions = `<option value="">Any language</option>${readingLanguages.map(language => `<option value="${e(language)}">${e(language)}</option>`).join('')}`;
+const languageOptions = `<option value="">No preference</option>${readingLanguages.map(language => `<option value="${e(language)}">${e(language)}</option>`).join('')}`;
 
 function head({ title, description: desc = description, path = '', base, schema }) {
   const url = absolute(path);
@@ -26,7 +26,6 @@ function head({ title, description: desc = description, path = '', base, schema 
 
 function header(base) {
   return `<a class="skip-link" href="#main">Skip to content</a>
-  <div class="announcement">A little more poetry, a little more often <span aria-hidden="true">✳</span> <a href="${e(base)}#explore">Find your next read <span aria-hidden="true">↗</span></a></div>
   <header class="site-header"><div class="nav-inner">
     <a class="brand" href="${e(base)}" aria-label="Verso home"><span class="brand-mark" aria-hidden="true">❦</span>verso<span class="brand-dot">.</span></a>
     <nav class="main-nav" aria-label="Main navigation"><a href="${e(base)}#explore">Explore</a><a href="${e(base)}#collections">Collections</a><a href="${e(base)}#countries">Countries</a><a href="${e(base)}#poets">Poets</a><a href="${e(base)}#shelf">My shelf <span class="shelf-count" data-shelf-count></span></a></nav>
@@ -98,10 +97,10 @@ export function renderHome(poems, base) {
     <section class="hero"><div class="hero-image" role="img" aria-label="An open book and tea in a sunlit garden reading nook"></div>
       <div class="hero-content"><p class="eyebrow hero-eyebrow"><span aria-hidden="true">✳</span> A LITTLE SPACE FOR POETRY</p>
         <h1>Words to<br><em>come home to.</em></h1><p class="hero-copy">Discover <strong>${total}</strong> across languages, places, and time.</p>
-        <div class="hero-actions"><a class="button primary" href="#explore">Find a poem <span aria-hidden="true">↗</span></a><a class="hero-text-link" href="#collections">Explore collections <span aria-hidden="true">→</span></a></div>
+        <div class="hero-actions"><a class="button primary js-required" href="#explore">Find a poem <span aria-hidden="true">↗</span></a><noscript><a class="button primary" href="#complete-index">Browse poem index <span aria-hidden="true">↗</span></a></noscript><a class="hero-text-link" href="#collections">Explore collections <span aria-hidden="true">→</span></a></div>
       </div>
     </section>
-    <div class="trust-strip"><span><b aria-hidden="true">♡</b> ALWAYS FREE TO READ</span><span><b aria-hidden="true">✧</b> NO ACCOUNT NEEDED</span></div>
+    <div class="trust-strip"><span><b aria-hidden="true">♡</b> Free to read</span><span><b aria-hidden="true">✧</b> No account needed</span></div>
     <div class="page-wrap">
       <section class="intro-section" id="collections"><div class="section-heading"><div><p class="eyebrow"><span>01 /</span> FIND YOUR WAY IN</p><h2>Where will you <em>begin?</em></h2><p>Explore a language, a collection, or a form.</p></div><a class="text-link" href="#explore">Explore all poems <span aria-hidden="true">↗</span></a></div>
         <noscript><p>Collection filters need JavaScript; browse the <a href="#complete-index">complete index</a> instead.</p></noscript><div class="collection-grid js-required" data-explore-only hidden>${collections.map(c => `<a class="collection-card collection-${c.className}" href="${e(searchLink(base, c.filters))}"><span class="collection-icon" aria-hidden="true">${c.icon}</span><span><small>${e(c.eyebrow)}</small><strong>${e(c.label)}</strong><em>${c.count} poems</em></span><b aria-hidden="true">↗</b></a>`).join('')}</div>

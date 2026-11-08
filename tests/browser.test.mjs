@@ -695,6 +695,68 @@ test('mobile navigation has clear, keyboard-accessible targets', async () => {
   await context.close();
 });
 
+test('homepage entry and reading preference remain clear and usable at small widths', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(() => document.fonts.ready);
+  const preferred = page.getByLabel('Preferred reading language', { exact: true });
+  assert.equal(await preferred.inputValue(), '');
+  assert.equal(await preferred.locator('option:checked').textContent(), 'No preference');
+  assert.equal(await page.locator('.announcement').count(), 0);
+  assert.equal(await page.locator('.hero').getByRole('link', { name: /Find a poem/ }).getAttribute('href'), '#explore');
+  assert.equal(await page.locator('.trust-strip').textContent(), '♡ Free to read✧ No account needed');
+  for (const width of [320, 390, 401, 440, 441, 768, 900, 1050, 1051, 1100, 1200, 1201, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    const layout = await page.evaluate(() => {
+      const select = document.querySelector('[data-preferred-language]');
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      context.font = getComputedStyle(select).font;
+      return { viewport: innerWidth, documentWidth: document.documentElement.scrollWidth, selectWidth: select.clientWidth, textWidth: context.measureText(select.selectedOptions[0].textContent).width };
+    });
+    assert.ok(layout.documentWidth <= layout.viewport + 1, `${width}px ${JSON.stringify(layout)}`);
+    assert.ok(layout.selectWidth >= layout.textWidth + 16, `preference label should fit at ${width}px ${JSON.stringify(layout)}`);
+    const controls = await page.locator('.nav-actions select:visible').evaluateAll(elements => elements.map(element => {
+      const box = element.getBoundingClientRect();
+      return { width: box.width, height: box.height };
+    }));
+    assert.equal(controls.length, 2);
+    assert.ok(controls.every(box => box.width >= 44 && box.height >= 44), `${width}px ${JSON.stringify(controls)}`);
+    const targets = await page.locator('.site-header a:visible, .hero-actions a:visible').evaluateAll(elements => elements.map(element => {
+      const box = element.getBoundingClientRect();
+      return { label: element.getAttribute('aria-label') || element.textContent.trim(), width: box.width, height: box.height };
+    }));
+    assert.ok(targets.every(box => box.width >= 44 && box.height >= 44), `${width}px ${JSON.stringify(targets)}`);
+  }
+  await page.setViewportSize({ width: 320, height: 844 });
+  const wideFallback = await page.addStyleTag({ content: '.site-header, .site-header * { font-family: monospace !important; }' });
+  const wideLayout = await page.evaluate(() => {
+    const select = document.querySelector('[data-preferred-language]');
+    const context = document.createElement('canvas').getContext('2d');
+    context.font = getComputedStyle(select).font;
+    return { viewport: innerWidth, documentWidth: document.documentElement.scrollWidth, selectWidth: select.clientWidth, textWidth: context.measureText(select.selectedOptions[0].textContent).width };
+  });
+  assert.ok(wideLayout.documentWidth <= wideLayout.viewport + 1, JSON.stringify(wideLayout));
+  assert.ok(wideLayout.selectWidth >= wideLayout.textWidth + 16, JSON.stringify(wideLayout));
+  await wideFallback.evaluate(element => element.remove());
+  await preferred.selectOption('Portuguese');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.reload();
+  assert.equal(await preferred.inputValue(), 'Portuguese');
+  await preferred.selectOption('');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.reload();
+  assert.equal(await preferred.inputValue(), '');
+  assert.equal(await preferred.locator('option:checked').textContent(), 'No preference');
+  await page.locator('.hero').getByRole('link', { name: /Find a poem/ }).focus();
+  await page.keyboard.press('Enter');
+  assert.equal(new URL(page.url()).hash, '#explore');
+  assert.equal(await page.locator('#search').isEnabled(), true);
+  await context.close();
+});
+
 test('interaction motion is subtle and stops for reduced-motion preferences', async () => {
   for (const reducedMotion of ['reduce', 'no-preference']) {
     const context = await browser.newContext({ viewport: { width: 1440, height: 844 }, reducedMotion });
@@ -716,6 +778,62 @@ test('interaction motion is subtle and stops for reduced-motion preferences', as
     }
     await context.close();
   }
+});
+
+test('hero text remains legible over the artwork at mobile and tablet widths', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 900 }, reducedMotion: 'reduce' });
+  await context.addInitScript(() => localStorage.setItem('verso-library-v1', JSON.stringify({ theme: 'dark', saved: [], recent: [] })));
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.evaluate(() => document.fonts.ready);
+  await page.locator('.hero-eyebrow span').evaluate(element => { element.style.visibility = 'hidden'; });
+  for (const width of [320, 401, 701, 730]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const [selector, minimum] of [['.hero-eyebrow', 4.5], ['.hero h1 em', 3], ['.hero-copy', 4.5]]) {
+      const text = page.locator(selector);
+      const info = await text.evaluate(element => ({ color: getComputedStyle(element).color, rect: element.getBoundingClientRect().toJSON() }));
+      const visible = (await page.screenshot()).toString('base64');
+      await text.evaluate(element => { element.style.visibility = 'hidden'; });
+      const backdrop = (await page.screenshot()).toString('base64');
+      await text.evaluate(element => { element.style.visibility = ''; });
+      const contrast = await page.evaluate(async ({ visible, backdrop, info }) => {
+        const pixels = async data => {
+          const image = new Image();
+          image.src = `data:image/png;base64,${data}`;
+          await image.decode();
+          const canvas = document.createElement('canvas');
+          canvas.width = image.width; canvas.height = image.height;
+          const context = canvas.getContext('2d');
+          context.drawImage(image, 0, 0);
+          return context;
+        };
+        const first = await pixels(visible), second = await pixels(backdrop);
+        const left = Math.max(0, Math.ceil(info.rect.left)), top = Math.max(0, Math.ceil(info.rect.top));
+        const right = Math.min(innerWidth, Math.floor(info.rect.right)), bottom = Math.min(innerHeight, Math.floor(info.rect.bottom));
+        const visiblePixels = first.getImageData(left, top, right - left, bottom - top).data;
+        const backgroundPixels = second.getImageData(left, top, right - left, bottom - top).data;
+        const luminance = color => {
+          const channels = color.map(value => {
+            const channel = value / 255;
+            return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+          });
+          return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+        };
+        const foreground = luminance(info.color.match(/[\d.]+/g).map(Number).slice(0, 3));
+        let samples = 0, lowest = Infinity;
+        for (let index = 0; index < visiblePixels.length; index += 4) {
+          const difference = [0, 1, 2].reduce((sum, offset) => sum + Math.abs(visiblePixels[index + offset] - backgroundPixels[index + offset]), 0);
+          if (difference <= 40) continue;
+          const background = luminance([...backgroundPixels.slice(index, index + 3)]);
+          lowest = Math.min(lowest, (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05));
+          samples++;
+        }
+        return { samples, lowest };
+      }, { visible, backdrop, info });
+      assert.ok(contrast.samples > 20 && contrast.lowest >= minimum, `${width}px ${selector}: ${JSON.stringify(contrast)}`);
+    }
+  }
+  await context.close();
 });
 
 test('mobile focus mode keeps reading controls and provenance, persists, and is easy to exit', async () => {
@@ -1014,6 +1132,12 @@ test('without JavaScript, the home page offers the static index instead of inert
   assert.equal(await page.locator('#collections .collection-card').first().isVisible(), false);
   assert.equal(await page.locator('#countries .country-card').first().isVisible(), false);
   assert.equal(await page.locator('.poet-directory').isVisible(), true);
+  const heroIndex = page.locator('.hero').getByRole('link', { name: /Browse poem index/ });
+  assert.equal(await heroIndex.getAttribute('href'), '#complete-index');
+  assert.equal(await page.locator('.hero').getByRole('link', { name: /Find a poem/ }).count(), 0);
+  await heroIndex.focus();
+  await page.keyboard.press('Enter');
+  assert.equal(new URL(page.url()).hash, '#complete-index');
   const indexLink = page.locator('#explore').getByRole('link', { name: 'complete index' });
   await indexLink.focus();
   await page.keyboard.press('Enter');
@@ -1077,6 +1201,7 @@ test('if the application module fails to load, interactive controls stay disable
   assert.equal(await page.locator('#sort').isDisabled(), true);
   assert.equal(await page.locator('#clear-shelf').isDisabled(), true);
   assert.equal(await page.getByText(/Search is unavailable until the library loads/).isVisible(), true);
+  assert.equal(await page.locator('.hero').getByRole('link', { name: /Find a poem/ }).getAttribute('href'), '#explore');
   assert.equal(await page.locator('#collections .collection-card').first().isVisible(), false);
   assert.equal(await page.locator('#countries .country-card').first().isVisible(), false);
   assert.equal(await page.locator('.poet-directory').isVisible(), true);
@@ -1943,6 +2068,11 @@ test('an unavailable catalogue keeps saved and recent IDs usable and recovers af
   await home.reload();
   await home.getByText(/The library could not load/).waitFor();
   assert.equal(await home.evaluate(() => localStorage.getItem('verso-library-v1')), seed);
+  await home.locator('.hero').getByRole('link', { name: /Find a poem/ }).focus();
+  await home.keyboard.press('Enter');
+  assert.equal(new URL(home.url()).hash, '#explore');
+  assert.equal(await home.locator('#search').isDisabled(), true);
+  assert.equal(await home.getByText(/The library could not load/).isVisible(), true);
   const shelf = home.locator('#shelf-items');
   assert.equal(await shelf.getByText(/Saved poems could not be loaded/).isVisible(), true);
   assert.equal(await shelf.getByText(/Your saved poems will appear here/).count(), 0);
@@ -2101,11 +2231,34 @@ test('blocked session storage keeps the reader and filtered return link usable',
 test('home and reader pass automated WCAG checks in each theme', async () => {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
+  const heroLinkContrast = link => link.evaluate(element => {
+    const style = getComputedStyle(element);
+    const parse = value => value.match(/[\d.]+/g).map(Number);
+    const foreground = parse(style.color), background = parse(style.backgroundColor);
+    if ((foreground[3] ?? 1) !== 1 || (background[3] ?? 1) !== 1) return 0;
+    const luminance = color => {
+      const channels = color.slice(0, 3).map(value => {
+        const channel = value / 255;
+        return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+      });
+      return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+    };
+    const first = luminance(foreground), second = luminance(background);
+    return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+  });
   for (const path of ['', 'poems/quiet-night-thought-li-bai/']) {
     await page.goto(`${base}${path}`);
     if (!path) await page.getByText(totalText).waitFor();
     for (const theme of ['light', 'sepia', 'dark']) {
       await page.getByLabel('Reading theme').selectOption(theme);
+      if (!path) {
+        const heroLink = page.locator('.hero-text-link');
+        assert.ok(await heroLinkContrast(heroLink) >= 4.5, `${theme} hero link`);
+        await heroLink.hover();
+        assert.ok(await heroLinkContrast(heroLink) >= 4.5, `${theme} hero link hover`);
+        await heroLink.focus();
+        assert.ok(await heroLinkContrast(heroLink) >= 4.5, `${theme} hero link focus`);
+      }
       const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
       assert.deepEqual(result.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], `${path || 'home'} / ${theme}`);
     }
