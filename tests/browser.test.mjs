@@ -2144,6 +2144,7 @@ test('an unavailable catalogue keeps saved and recent IDs usable and recovers af
   assert.equal(await home.evaluate(() => localStorage.getItem('verso-library-v1')), seed);
   await home.locator('.hero').getByRole('link', { name: /Find a poem/ }).focus();
   await home.keyboard.press('Enter');
+  await home.waitForURL('**/#explore');
   assert.equal(new URL(home.url()).hash, '#explore');
   assert.equal(await home.locator('#search').isDisabled(), true);
   assert.equal(await home.getByText(/The library could not load/).isVisible(), true);
