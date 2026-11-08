@@ -1282,6 +1282,12 @@ test('poet directory search handles native names, accents, empty results and cat
     assert.ok(layout.documentWidth <= layout.viewportWidth + 1, `${width}px ${JSON.stringify(layout)}`);
     assert.ok(await input.evaluate(element => parseFloat(getComputedStyle(element).fontSize) >= 16), `${width}px search text`);
   }
+  await page.setViewportSize({ width: 320, height: 844 });
+  const wideFallback = await page.addStyleTag({ content: '.poet-directory, .poet-directory * { font-family: monospace !important; }' });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'directory must fit with a wide fallback font');
+  assert.equal(await input.inputValue(), '杜甫');
+  assert.equal(await visible.count(), 1);
+  await wideFallback.evaluate(element => element.remove());
   for (const theme of ['light', 'sepia', 'dark']) {
     await page.getByLabel('Reading theme', { exact: true }).selectOption(theme);
     const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();

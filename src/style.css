@@ -979,6 +979,9 @@ h2 em {
 .shelf-section > div:first-child {
   max-width: 420px;
 }
+.poet-directory {
+  min-width: 0;
+}
 .poet-directory > summary {
   background: var(--paper);
   border: 1px solid var(--line);
