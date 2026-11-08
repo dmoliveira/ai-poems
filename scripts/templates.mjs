@@ -87,11 +87,15 @@ export function renderHome(poems, base) {
   const schema = { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Verso Poetry Library', url: SITE, description, inLanguage: 'en' };
   const total = `${poems.length.toLocaleString('en-US')} ${poems.length === 1 ? 'poem' : 'poems'}`;
   const collections = [
-    { label: 'Chinese poetry', eyebrow: 'ORIGINAL LANGUAGE', icon: '月', className: 'quiet', filters: { language: 'Chinese' }, count: poems.filter(p => p.language === 'Chinese').length },
-    { label: 'Spanish poetry', eyebrow: 'ORIGINAL LANGUAGE', icon: '✿', className: 'love', filters: { language: 'Spanish' }, count: poems.filter(p => p.language === 'Spanish').length },
-    { label: 'American poetry', eyebrow: 'ASSOCIATED PLACE', icon: '✦', className: 'nature', filters: { country: 'United States' }, count: filterPoems(poems, { country: 'United States' }).length },
-    { label: 'The sonnet', eyebrow: 'POETIC FORM', icon: '❧', className: 'hope', filters: { form: 'Sonnet' }, count: poems.filter(p => p.form === 'Sonnet').length },
-  ];
+    { label: 'Chinese poetry', eyebrow: 'ORIGINAL LANGUAGE', icon: '月', className: 'quiet', filters: { language: 'Chinese' }, examples: ['li-bai', 'du-fu'] },
+    { label: 'Spanish poetry', eyebrow: 'ORIGINAL LANGUAGE', icon: '✿', className: 'love', filters: { language: 'Spanish' }, examples: ['jose-marti', 'andres-bello'] },
+    { label: 'American poetry', eyebrow: 'ASSOCIATED PLACE', icon: '✦', className: 'nature', filters: { country: 'United States' }, examples: ['emily-dickinson', 'claude-mckay'] },
+    { label: 'The sonnet', eyebrow: 'POETIC FORM', icon: '❧', className: 'hope', filters: { form: 'Sonnet' }, examples: ['william-shakespeare', 'florbela-espanca'] },
+  ].map(collection => {
+    const matches = filterPoems(poems, collection.filters);
+    const examples = collection.examples.map(id => matches.find(poem => poem.authorId === id)?.author).filter(Boolean);
+    return { ...collection, count: matches.length, examples };
+  }).filter(collection => collection.count);
   const authors = groupPoets(poems);
   const index = poems.toSorted((a, b) => (a.displayTitle || a.title).localeCompare(b.displayTitle || b.title));
   const places = placeCounts(poems);
@@ -116,8 +120,8 @@ export function renderHome(poems, base) {
     </section>
     <div class="trust-strip"><span><b aria-hidden="true">♡</b> Free to read</span><span><b aria-hidden="true">✧</b> No account needed</span></div>
     <div class="page-wrap">
-      <section class="intro-section" id="collections"><div class="section-heading"><div><p class="eyebrow"><span>01 /</span> FIND YOUR WAY IN</p><h2>Where will you <em>begin?</em></h2><p>Explore a language, a collection, or a form.</p></div><a class="text-link" href="#explore">Explore all poems <span aria-hidden="true">↗</span></a></div>
-        <noscript><p>Collection filters need JavaScript; browse the <a href="#complete-index">complete index</a> instead.</p></noscript><div class="collection-grid js-required" data-explore-only hidden>${collections.map(c => `<a class="collection-card collection-${c.className}" href="${e(searchLink(base, c.filters))}"><span class="collection-icon" aria-hidden="true">${c.icon}</span><span><small>${e(c.eyebrow)}</small><strong>${e(c.label)}</strong><em>${c.count} poems</em></span><b aria-hidden="true">↗</b></a>`).join('')}</div>
+      <section class="intro-section" id="collections"><div class="section-heading"><div><p class="eyebrow"><span>01 /</span> FIND YOUR WAY IN</p><h2>Where will you <em>begin?</em></h2><p>Browse by original language, associated place or form. A poem may appear in more than one path.</p></div><a class="text-link" href="#explore">Explore all poems <span aria-hidden="true">↗</span></a></div>
+        <noscript><p>Collection filters need JavaScript; browse the <a href="#complete-index">complete index</a> instead.</p></noscript><div class="collection-grid js-required" data-explore-only hidden>${collections.map(c => `<a class="collection-card collection-${c.className}" href="${e(searchLink(base, c.filters))}"><span class="collection-icon" aria-hidden="true">${c.icon}</span><span class="collection-copy"><small>${e(c.eyebrow)}</small><strong>${e(c.label)}</strong><em>${c.count.toLocaleString('en-US')} ${c.count === 1 ? 'poem' : 'poems'}</em>${c.examples.length ? `<span class="collection-examples">Featuring ${c.examples.map((name, index) => `<span${index ? ' class="collection-example-secondary"' : ''}>${index ? ' · ' : ''}${e(name)}</span>`).join('')}</span>` : ''}</span><b aria-hidden="true">↗</b></a>`).join('')}</div>
         ${featured || paths ? `<aside class="reading-paths" aria-labelledby="reading-paths-title"><div><p class="eyebrow">A GENTLE START</p><h3 id="reading-paths-title">A path into poetry.</h3></div><div class="reading-path-content">${featured}${paths ? `<div>${shortCount ? '<noscript><p>Short-poem filtering needs JavaScript; browse the <a href="#complete-index">complete index</a> to read without it.</p></noscript>' : ''}<nav class="reading-path-links" aria-label="Suggested reading paths">${paths}</nav></div>` : ''}</div></aside>` : ''}
       </section>
       <section id="explore" class="explore-section"><div class="section-heading"><div><p class="eyebrow"><span>02 /</span> WANDER A LITTLE</p><h2>Explore the <em>library.</em></h2><p>Search by poet, poem, language, place, or a line you remember.</p></div><span class="catalogue-count">${total} to discover <span aria-hidden="true">✳</span></span></div>

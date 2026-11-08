@@ -478,7 +478,7 @@ h2 em {
   gap: 16px;
 }
 .collection-card {
-  min-height: 159px;
+  min-height: 178px;
   border: 1px solid #e6e3d5;
   text-align: left;
   padding: 20px;
@@ -495,7 +495,8 @@ h2 em {
   transform: translateY(-3px);
   box-shadow: var(--shadow);
 }
-.collection-card span:nth-child(2) {
+.collection-copy {
+  min-width: 0;
   z-index: 1;
 }
 .collection-card small {
@@ -518,6 +519,14 @@ h2 em {
     italic 14px Cormorant,
     Georgia,
     serif;
+}
+.collection-examples {
+  display: block;
+  margin: 7px 14px 0 0;
+  color: #424b38;
+  font-size: 11px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 .collection-card b {
   position: absolute;
@@ -1975,7 +1984,7 @@ h2 em {
     gap: 8px;
   }
   .collection-card {
-    min-height: 145px;
+    min-height: 172px;
     padding: 14px;
   }
   .collection-card strong {
@@ -2172,6 +2181,13 @@ h2 em {
 @media (max-width: 440px) {
   .nav-actions .icon-link {
     display: none;
+  }
+  .collection-example-secondary {
+    display: none;
+  }
+  .collection-icon {
+    right: -4px;
+    opacity: 0.18;
   }
 }
 @media (max-width: 340px) {

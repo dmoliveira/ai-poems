@@ -1444,6 +1444,84 @@ test('the poet directory and every linked work remain available without JavaScri
   await context.close();
 });
 
+test('discovery cards show matching poets and counts and lead to the same filters', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const paths = [
+    ['Chinese poetry', { language: 'Chinese' }, ['li-bai', 'du-fu']],
+    ['Spanish poetry', { language: 'Spanish' }, ['jose-marti', 'andres-bello']],
+    ['American poetry', { country: 'United States' }, ['emily-dickinson', 'claude-mckay']],
+    ['The sonnet', { form: 'Sonnet' }, ['william-shakespeare', 'florbela-espanca']],
+  ];
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const grid = page.locator('.collection-grid');
+  assert.equal(await grid.locator('.collection-card').count(), paths.length);
+  assert.match(await page.locator('#collections .section-heading').textContent(), /associated place.*more than one path/);
+  for (const [label, filters, ids] of paths) {
+    const matches = filterPoems(poems, filters);
+    const card = grid.getByRole('link', { name: new RegExp(label) });
+    assert.equal(await card.locator('em').textContent(), `${matches.length.toLocaleString('en-US')} poems`);
+    assert.equal(await card.locator('.collection-examples').textContent(), `Featuring ${ids.map(id => matches.find(poem => poem.authorId === id).author).join(' · ')}`);
+    assert.equal(await card.getAttribute('href'), `/ai-poems/?${new URLSearchParams(filters)}#explore`);
+  }
+  for (const width of [320, 390, 440, 441, 700, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px`);
+    for (const card of await grid.locator('.collection-card').all()) {
+      const box = await card.boundingBox();
+      const copy = await card.locator('.collection-copy').boundingBox();
+      assert.ok(box && copy && box.width >= 44 && box.height >= 44, `touch target at ${width}px`);
+      assert.ok(copy.x >= box.x && copy.x + copy.width <= box.x + box.width + 1 && copy.y >= box.y && copy.y + copy.height <= box.y + box.height + 1, `card content fits at ${width}px`);
+      assert.equal(await card.locator('.collection-example-secondary').isVisible(), width > 440, `secondary example at ${width}px`);
+    }
+  }
+  await page.setViewportSize({ width: 320, height: 844 });
+  for (const theme of ['light', 'sepia', 'dark']) {
+    await page.getByLabel('Reading theme').selectOption(theme);
+    const accessibility = await new AxeBuilder({ page }).include('.collection-grid').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], theme);
+  }
+  await page.locator('#collections .text-link').focus();
+  await page.keyboard.press('Tab');
+  assert.equal(await grid.locator('.collection-card').first().evaluate(element => document.activeElement === element), true);
+  await page.keyboard.press('Enter');
+  await page.getByText(`${filterPoems(poems, paths[0][1]).length} poems found`, { exact: true }).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('language'), 'Chinese');
+  for (const [label, filters] of paths.slice(1)) {
+    await page.goto(base);
+    await page.getByText(totalText).waitFor();
+    await grid.getByRole('link', { name: new RegExp(label) }).click();
+    const count = filterPoems(poems, filters).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    const [name, value] = Object.entries(filters)[0];
+    assert.equal(new URL(page.url()).searchParams.get(name), value);
+    assert.equal(await page.locator(`#filter-${name}`).inputValue(), value);
+  }
+  await context.close();
+});
+
+test('discovery falls back to the static index when JavaScript or the catalogue is unavailable', async () => {
+  for (const mode of ['no JavaScript', 'catalogue failure', 'module failure']) {
+    const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: mode !== 'no JavaScript', reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    if (mode === 'catalogue failure') await page.route('**/data/catalog.json', route => route.abort());
+    if (mode === 'module failure') await page.route('**/app.mjs', route => route.abort());
+    await page.goto(base);
+    if (mode === 'catalogue failure') await page.getByText(/The library could not load/).waitFor();
+    const seed = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } });
+    await page.evaluate(value => localStorage.setItem('verso-library-v1', value), seed);
+    assert.equal(await page.locator('.collection-grid').isVisible(), false, mode);
+    assert.equal(await page.locator('.featured-reading').isVisible(), true, mode);
+    await page.locator('#complete-index summary').click();
+    assert.equal(await page.locator('#complete-index').getAttribute('open'), '', mode);
+    assert.equal(await page.locator('#complete-index').getByRole('link', { name: /The Old Pond — Matsuo Bashō/ }).count(), 1, mode);
+    assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), seed, mode);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), mode);
+    await context.close();
+  }
+});
+
 test('featured reading is sourced, responsive, accessible and keyboard navigable', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();

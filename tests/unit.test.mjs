@@ -446,6 +446,39 @@ test('homepage totals follow catalogue growth and use singular for one poem', ()
   assert.match(home, /<noscript><a class="button primary" href="#complete-index">Browse poem index/);
   assert.doesNotMatch(home, /class="announcement"/);
 });
+test('discovery cards match their filters and omit unavailable paths or examples', () => {
+  const card = (html, filters) => {
+    const href = escapeHtml(`/ai-poems/?${new URLSearchParams(filters)}#explore`);
+    return [...html.matchAll(/<a class="collection-card [\s\S]*?<\/a>/g)].map(match => match[0]).find(markup => markup.includes(`href="${href}"`)) || '';
+  };
+  const paths = [
+    [{ language: 'Chinese' }, ['li-bai', 'du-fu']],
+    [{ language: 'Spanish' }, ['jose-marti', 'andres-bello']],
+    [{ country: 'United States' }, ['emily-dickinson', 'claude-mckay']],
+    [{ form: 'Sonnet' }, ['william-shakespeare', 'florbela-espanca']],
+  ];
+  const home = renderHome(poems, '/ai-poems/');
+  assert.match(home, /A poem may appear in more than one path/);
+  for (const [filters, ids] of paths) {
+    const matches = filterPoems(poems, filters);
+    const markup = card(home, filters);
+    assert.ok(markup, JSON.stringify(filters));
+    assert.ok(markup.includes(`<em>${matches.length.toLocaleString('en-US')} poems</em>`));
+    for (const id of ids) assert.ok(markup.includes(escapeHtml(matches.find(poem => poem.authorId === id).author)), id);
+  }
+  const li = { ...poems.find(poem => poem.authorId === 'li-bai'), author: 'Li <Bai>', country: 'Japan / United States / United States', form: 'Sonnet' };
+  const emily = { ...poems.find(poem => poem.authorId === 'emily-dickinson'), country: 'Canada', form: 'Verse' };
+  const sparse = renderHome([li, emily], '/ai-poems/');
+  assert.equal(card(sparse, { language: 'Spanish' }), '');
+  assert.match(card(sparse, { language: 'Chinese' }), /<em>1 poem<\/em><span class="collection-examples">Featuring <span>Li &lt;Bai&gt;<\/span>/);
+  assert.match(card(sparse, { country: 'United States' }), /<em>1 poem<\/em>/);
+  assert.match(card(sparse, { form: 'Sonnet' }), /<em>1 poem<\/em>/);
+  assert.doesNotMatch(card(sparse, { country: 'United States' }), /Emily Dickinson|collection-examples/);
+  const large = Array.from({ length: 1000 }, (_, index) => ({ ...li, id: `sample-${index}` }));
+  assert.match(card(renderHome(large, '/ai-poems/'), { language: 'Chinese' }), /<em>1,000 poems<\/em>/);
+  const noPaths = renderHome([{ ...li, country: 'Canada', form: 'Verse', language: 'English' }], '/ai-poems/');
+  assert.doesNotMatch(noPaths, /<a class="collection-card /);
+});
 test('editorial paths match the catalogue and require the sourced edition sequence', () => {
   const short = filterPoems(poems, { length: '1-4' }).length;
   const home = renderHome(poems, '/ai-poems/');
