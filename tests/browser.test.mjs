@@ -780,6 +780,62 @@ test('interaction motion is subtle and stops for reduced-motion preferences', as
   }
 });
 
+test('hero text remains legible over the artwork at mobile and tablet widths', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 900 }, reducedMotion: 'reduce' });
+  await context.addInitScript(() => localStorage.setItem('verso-library-v1', JSON.stringify({ theme: 'dark', saved: [], recent: [] })));
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.evaluate(() => document.fonts.ready);
+  await page.locator('.hero-eyebrow span').evaluate(element => { element.style.visibility = 'hidden'; });
+  for (const width of [320, 401, 701, 730]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const [selector, minimum] of [['.hero-eyebrow', 4.5], ['.hero h1 em', 3], ['.hero-copy', 4.5]]) {
+      const text = page.locator(selector);
+      const info = await text.evaluate(element => ({ color: getComputedStyle(element).color, rect: element.getBoundingClientRect().toJSON() }));
+      const visible = (await page.screenshot()).toString('base64');
+      await text.evaluate(element => { element.style.visibility = 'hidden'; });
+      const backdrop = (await page.screenshot()).toString('base64');
+      await text.evaluate(element => { element.style.visibility = ''; });
+      const contrast = await page.evaluate(async ({ visible, backdrop, info }) => {
+        const pixels = async data => {
+          const image = new Image();
+          image.src = `data:image/png;base64,${data}`;
+          await image.decode();
+          const canvas = document.createElement('canvas');
+          canvas.width = image.width; canvas.height = image.height;
+          const context = canvas.getContext('2d');
+          context.drawImage(image, 0, 0);
+          return context;
+        };
+        const first = await pixels(visible), second = await pixels(backdrop);
+        const left = Math.max(0, Math.ceil(info.rect.left)), top = Math.max(0, Math.ceil(info.rect.top));
+        const right = Math.min(innerWidth, Math.floor(info.rect.right)), bottom = Math.min(innerHeight, Math.floor(info.rect.bottom));
+        const visiblePixels = first.getImageData(left, top, right - left, bottom - top).data;
+        const backgroundPixels = second.getImageData(left, top, right - left, bottom - top).data;
+        const luminance = color => {
+          const channels = color.map(value => {
+            const channel = value / 255;
+            return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+          });
+          return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+        };
+        const foreground = luminance(info.color.match(/[\d.]+/g).map(Number).slice(0, 3));
+        let samples = 0, lowest = Infinity;
+        for (let index = 0; index < visiblePixels.length; index += 4) {
+          const difference = [0, 1, 2].reduce((sum, offset) => sum + Math.abs(visiblePixels[index + offset] - backgroundPixels[index + offset]), 0);
+          if (difference <= 40) continue;
+          const background = luminance([...backgroundPixels.slice(index, index + 3)]);
+          lowest = Math.min(lowest, (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05));
+          samples++;
+        }
+        return { samples, lowest };
+      }, { visible, backdrop, info });
+      assert.ok(contrast.samples > 20 && contrast.lowest >= minimum, `${width}px ${selector}: ${JSON.stringify(contrast)}`);
+    }
+  }
+  await context.close();
+});
+
 test('mobile focus mode keeps reading controls and provenance, persists, and is easy to exit', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -2175,11 +2231,34 @@ test('blocked session storage keeps the reader and filtered return link usable',
 test('home and reader pass automated WCAG checks in each theme', async () => {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
+  const heroLinkContrast = link => link.evaluate(element => {
+    const style = getComputedStyle(element);
+    const parse = value => value.match(/[\d.]+/g).map(Number);
+    const foreground = parse(style.color), background = parse(style.backgroundColor);
+    if ((foreground[3] ?? 1) !== 1 || (background[3] ?? 1) !== 1) return 0;
+    const luminance = color => {
+      const channels = color.slice(0, 3).map(value => {
+        const channel = value / 255;
+        return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+      });
+      return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+    };
+    const first = luminance(foreground), second = luminance(background);
+    return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+  });
   for (const path of ['', 'poems/quiet-night-thought-li-bai/']) {
     await page.goto(`${base}${path}`);
     if (!path) await page.getByText(totalText).waitFor();
     for (const theme of ['light', 'sepia', 'dark']) {
       await page.getByLabel('Reading theme').selectOption(theme);
+      if (!path) {
+        const heroLink = page.locator('.hero-text-link');
+        assert.ok(await heroLinkContrast(heroLink) >= 4.5, `${theme} hero link`);
+        await heroLink.hover();
+        assert.ok(await heroLinkContrast(heroLink) >= 4.5, `${theme} hero link hover`);
+        await heroLink.focus();
+        assert.ok(await heroLinkContrast(heroLink) >= 4.5, `${theme} hero link focus`);
+      }
       const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
       assert.deepEqual(result.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], `${path || 'home'} / ${theme}`);
     }
