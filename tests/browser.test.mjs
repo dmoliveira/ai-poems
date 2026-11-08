@@ -1270,7 +1270,16 @@ test('poet directory search handles native names, accents, empty results and cat
   await input.fill('杜甫');
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 844 });
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px`);
+    const layout = await page.evaluate(() => {
+      const documentWidth = document.documentElement.scrollWidth;
+      const overflow = documentWidth <= innerWidth + 1 ? [] : [...document.querySelectorAll('body *')].flatMap(element => {
+        const rect = element.getBoundingClientRect();
+        if (!rect.width || rect.right + scrollX <= innerWidth + 1) return [];
+        return [{ tag: element.tagName, id: element.id, class: element.getAttribute('class'), right: Math.round(rect.right + scrollX), width: Math.round(rect.width), clientWidth: element.clientWidth, scrollWidth: element.scrollWidth }];
+      }).sort((a, b) => b.right - a.right).slice(0, 20);
+      return { viewportWidth: innerWidth, documentWidth, scrollX, overflow };
+    });
+    assert.ok(layout.documentWidth <= layout.viewportWidth + 1, `${width}px ${JSON.stringify(layout)}`);
     assert.ok(await input.evaluate(element => parseFloat(getComputedStyle(element).fontSize) >= 16), `${width}px search text`);
   }
   for (const theme of ['light', 'sepia', 'dark']) {
