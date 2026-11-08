@@ -695,6 +695,68 @@ test('mobile navigation has clear, keyboard-accessible targets', async () => {
   await context.close();
 });
 
+test('homepage entry and reading preference remain clear and usable at small widths', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(() => document.fonts.ready);
+  const preferred = page.getByLabel('Preferred reading language', { exact: true });
+  assert.equal(await preferred.inputValue(), '');
+  assert.equal(await preferred.locator('option:checked').textContent(), 'No preference');
+  assert.equal(await page.locator('.announcement').count(), 0);
+  assert.equal(await page.locator('.hero').getByRole('link', { name: /Find a poem/ }).getAttribute('href'), '#explore');
+  assert.equal(await page.locator('.trust-strip').textContent(), '♡ Free to read✧ No account needed');
+  for (const width of [320, 390, 401, 440, 441, 768, 900, 1050, 1051, 1100, 1200, 1201, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    const layout = await page.evaluate(() => {
+      const select = document.querySelector('[data-preferred-language]');
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      context.font = getComputedStyle(select).font;
+      return { viewport: innerWidth, documentWidth: document.documentElement.scrollWidth, selectWidth: select.clientWidth, textWidth: context.measureText(select.selectedOptions[0].textContent).width };
+    });
+    assert.ok(layout.documentWidth <= layout.viewport + 1, `${width}px ${JSON.stringify(layout)}`);
+    assert.ok(layout.selectWidth >= layout.textWidth + 16, `preference label should fit at ${width}px ${JSON.stringify(layout)}`);
+    const controls = await page.locator('.nav-actions select:visible').evaluateAll(elements => elements.map(element => {
+      const box = element.getBoundingClientRect();
+      return { width: box.width, height: box.height };
+    }));
+    assert.equal(controls.length, 2);
+    assert.ok(controls.every(box => box.width >= 44 && box.height >= 44), `${width}px ${JSON.stringify(controls)}`);
+    const targets = await page.locator('.site-header a:visible, .hero-actions a:visible').evaluateAll(elements => elements.map(element => {
+      const box = element.getBoundingClientRect();
+      return { label: element.getAttribute('aria-label') || element.textContent.trim(), width: box.width, height: box.height };
+    }));
+    assert.ok(targets.every(box => box.width >= 44 && box.height >= 44), `${width}px ${JSON.stringify(targets)}`);
+  }
+  await page.setViewportSize({ width: 320, height: 844 });
+  const wideFallback = await page.addStyleTag({ content: '.site-header, .site-header * { font-family: monospace !important; }' });
+  const wideLayout = await page.evaluate(() => {
+    const select = document.querySelector('[data-preferred-language]');
+    const context = document.createElement('canvas').getContext('2d');
+    context.font = getComputedStyle(select).font;
+    return { viewport: innerWidth, documentWidth: document.documentElement.scrollWidth, selectWidth: select.clientWidth, textWidth: context.measureText(select.selectedOptions[0].textContent).width };
+  });
+  assert.ok(wideLayout.documentWidth <= wideLayout.viewport + 1, JSON.stringify(wideLayout));
+  assert.ok(wideLayout.selectWidth >= wideLayout.textWidth + 16, JSON.stringify(wideLayout));
+  await wideFallback.evaluate(element => element.remove());
+  await preferred.selectOption('Portuguese');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.reload();
+  assert.equal(await preferred.inputValue(), 'Portuguese');
+  await preferred.selectOption('');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.reload();
+  assert.equal(await preferred.inputValue(), '');
+  assert.equal(await preferred.locator('option:checked').textContent(), 'No preference');
+  await page.locator('.hero').getByRole('link', { name: /Find a poem/ }).focus();
+  await page.keyboard.press('Enter');
+  assert.equal(new URL(page.url()).hash, '#explore');
+  assert.equal(await page.locator('#search').isEnabled(), true);
+  await context.close();
+});
+
 test('interaction motion is subtle and stops for reduced-motion preferences', async () => {
   for (const reducedMotion of ['reduce', 'no-preference']) {
     const context = await browser.newContext({ viewport: { width: 1440, height: 844 }, reducedMotion });
@@ -1014,6 +1076,12 @@ test('without JavaScript, the home page offers the static index instead of inert
   assert.equal(await page.locator('#collections .collection-card').first().isVisible(), false);
   assert.equal(await page.locator('#countries .country-card').first().isVisible(), false);
   assert.equal(await page.locator('.poet-directory').isVisible(), true);
+  const heroIndex = page.locator('.hero').getByRole('link', { name: /Browse poem index/ });
+  assert.equal(await heroIndex.getAttribute('href'), '#complete-index');
+  assert.equal(await page.locator('.hero').getByRole('link', { name: /Find a poem/ }).count(), 0);
+  await heroIndex.focus();
+  await page.keyboard.press('Enter');
+  assert.equal(new URL(page.url()).hash, '#complete-index');
   const indexLink = page.locator('#explore').getByRole('link', { name: 'complete index' });
   await indexLink.focus();
   await page.keyboard.press('Enter');
@@ -1077,6 +1145,7 @@ test('if the application module fails to load, interactive controls stay disable
   assert.equal(await page.locator('#sort').isDisabled(), true);
   assert.equal(await page.locator('#clear-shelf').isDisabled(), true);
   assert.equal(await page.getByText(/Search is unavailable until the library loads/).isVisible(), true);
+  assert.equal(await page.locator('.hero').getByRole('link', { name: /Find a poem/ }).getAttribute('href'), '#explore');
   assert.equal(await page.locator('#collections .collection-card').first().isVisible(), false);
   assert.equal(await page.locator('#countries .country-card').first().isVisible(), false);
   assert.equal(await page.locator('.poet-directory').isVisible(), true);
@@ -1943,6 +2012,11 @@ test('an unavailable catalogue keeps saved and recent IDs usable and recovers af
   await home.reload();
   await home.getByText(/The library could not load/).waitFor();
   assert.equal(await home.evaluate(() => localStorage.getItem('verso-library-v1')), seed);
+  await home.locator('.hero').getByRole('link', { name: /Find a poem/ }).focus();
+  await home.keyboard.press('Enter');
+  assert.equal(new URL(home.url()).hash, '#explore');
+  assert.equal(await home.locator('#search').isDisabled(), true);
+  assert.equal(await home.getByText(/The library could not load/).isVisible(), true);
   const shelf = home.locator('#shelf-items');
   assert.equal(await shelf.getByText(/Saved poems could not be loaded/).isVisible(), true);
   assert.equal(await shelf.getByText(/Your saved poems will appear here/).count(), 0);
