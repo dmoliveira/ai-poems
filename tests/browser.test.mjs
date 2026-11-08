@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
+import { groupPoets } from '../scripts/poets.mjs';
 import { associatedPlaces, filterPoems, placeCounts } from '../src/catalog.mjs';
 
 const port = 43817;
@@ -1079,6 +1080,8 @@ test('if the application module fails to load, interactive controls stay disable
   assert.equal(await page.locator('#collections .collection-card').first().isVisible(), false);
   assert.equal(await page.locator('#countries .country-card').first().isVisible(), false);
   assert.equal(await page.locator('.poet-directory').isVisible(), true);
+  assert.equal(await page.locator('#poet-finder').isVisible(), false);
+  assert.equal(await page.locator('#poet-list a').count(), groupPoets(poems).length);
   await context.close();
 });
 
@@ -1173,12 +1176,120 @@ test('poet pages are shareable, responsive and do not fetch the full catalogue',
   await context.close();
 });
 
+test('poet directory search is usable while the catalogue request is pending', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  await page.route('**/data/catalog.json', async route => { await gate; await route.abort(); });
+  try {
+    const request = page.waitForRequest('**/data/catalog.json');
+    await page.goto(base, { waitUntil: 'domcontentloaded' });
+    await request;
+    await page.locator('.poet-directory summary').click();
+    const input = page.getByRole('searchbox', { name: 'Find a poet or voice' });
+    await input.fill('杜甫');
+    assert.equal(await page.locator('#poet-count').textContent(), '1 match.');
+    assert.equal(await page.locator('.poet-list a:not([hidden])').getAttribute('data-author'), 'Du Fu');
+    assert.equal(await page.locator('#search').isDisabled(), true);
+    release();
+    await page.getByText(/The library could not load/).waitFor();
+    assert.equal(await input.inputValue(), '杜甫');
+  } finally {
+    release();
+    await context.close();
+  }
+});
+
+test('poet directory search handles native names, accents, empty results and catalogue failure', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route('**/data/catalog.json', route => route.abort());
+  await page.goto(`${base}?country=Japan#poets`);
+  await page.getByText(/The library could not load/).waitFor();
+  const seed = JSON.stringify({ saved: ['old-pond-basho'], recent: [], extra: { keep: true } });
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', value), seed);
+  const directory = page.locator('.poet-directory');
+  await directory.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  const input = page.getByRole('searchbox', { name: 'Find a poet or voice' });
+  const clear = page.getByRole('button', { name: 'Clear', exact: true });
+  const count = page.locator('#poet-count');
+  const visible = directory.locator('.poet-list a:not([hidden])');
+  assert.equal(await input.isVisible(), true);
+  assert.equal(await input.getAttribute('aria-controls'), 'poet-list');
+  assert.equal(await input.getAttribute('aria-describedby'), 'poet-count');
+  assert.equal(await count.getAttribute('aria-live'), 'polite');
+  assert.equal(await count.textContent(), 'Showing all names and voices.');
+  assert.equal(await visible.count(), groupPoets(poems).length);
+  assert.equal(await clear.isDisabled(), true);
+  await input.fill('BASHO');
+  assert.equal(await count.textContent(), '1 match.');
+  assert.equal(await visible.count(), 1);
+  assert.match(await visible.first().textContent(), /Matsuo Bashō.*松尾芭蕉/);
+  await input.fill('松尾芭蕉');
+  assert.equal(await visible.count(), 1);
+  assert.equal(await visible.first().getAttribute('data-author'), 'Matsuo Bashō');
+  await input.fill('杜甫');
+  assert.equal(await visible.count(), 1);
+  assert.equal(await visible.first().getAttribute('data-author'), 'Du Fu');
+  await input.fill('jose marti');
+  assert.equal(await visible.count(), 1);
+  assert.equal(await visible.first().getAttribute('data-author'), 'José Martí');
+  await input.fill('no-poet-matches-this');
+  assert.equal(await visible.count(), 0);
+  assert.equal(await count.textContent(), '0 matches. Try another name.');
+  assert.equal(new URL(page.url()).searchParams.get('country'), 'Japan');
+  assert.equal(await page.locator('#search').inputValue(), '');
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), seed);
+  await clear.click();
+  assert.equal(await input.inputValue(), '');
+  assert.equal(await input.evaluate(element => document.activeElement === element), true);
+  assert.equal(await clear.isDisabled(), true);
+  assert.equal(await count.textContent(), 'Showing all names and voices.');
+  assert.equal(await visible.count(), groupPoets(poems).length);
+  await input.fill('BASHO');
+  await visible.first().focus();
+  const navigation = page.waitForURL(url => url.pathname === '/ai-poems/poets/matsuo-basho/');
+  await page.keyboard.press('Enter');
+  await navigation;
+  assert.equal(new URL(page.url()).pathname, '/ai-poems/poets/matsuo-basho/');
+  await page.goBack();
+  await directory.locator('summary').waitFor();
+  if (!(await directory.evaluate(element => element.open))) await directory.locator('summary').click();
+  const restored = await input.inputValue();
+  assert.ok(restored === '' || restored === 'BASHO');
+  assert.equal(await visible.count(), restored ? 1 : groupPoets(poems).length);
+  await input.fill('杜甫');
+  await page.reload();
+  await page.getByText(/The library could not load/).waitFor();
+  if (!(await directory.evaluate(element => element.open))) await directory.locator('summary').click();
+  const reloaded = await input.inputValue();
+  assert.ok(reloaded === '' || reloaded === '杜甫');
+  assert.equal(await visible.count(), reloaded ? 1 : groupPoets(poems).length);
+  await input.fill('杜甫');
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px`);
+    assert.ok(await input.evaluate(element => parseFloat(getComputedStyle(element).fontSize) >= 16), `${width}px search text`);
+  }
+  for (const theme of ['light', 'sepia', 'dark']) {
+    await page.getByLabel('Reading theme', { exact: true }).selectOption(theme);
+    const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], theme);
+  }
+  await context.close();
+});
+
 test('the poet directory and every linked work remain available without JavaScript', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: false, reducedMotion: 'reduce' });
   const page = await context.newPage();
   await page.goto(base);
   await page.locator('.poet-directory summary').focus();
   await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#poet-finder').isVisible(), false);
+  assert.equal(await page.locator('#poet-list a').count(), groupPoets(poems).length);
+  assert.equal(await page.locator('.poet-directory [data-author="Matsuo Bashō"] [lang="ja"]').textContent(), '松尾芭蕉');
   await page.locator('.poet-directory [data-author="Matsuo Bashō"]').click();
   assert.equal(new URL(page.url()).pathname, '/ai-poems/poets/matsuo-basho/');
   assert.equal(await page.locator('.poet-works-list a').count(), 3);

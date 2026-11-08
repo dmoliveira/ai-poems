@@ -988,6 +988,59 @@ h2 em {
   font-weight: 700;
   padding: 14px 16px;
 }
+.poet-finder {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.poet-finder label {
+  display: block;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.poet-finder-row {
+  display: flex;
+  gap: 8px;
+}
+.poet-finder input {
+  min-width: 0;
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 16px;
+}
+.poet-finder input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.poet-finder button {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--olive-dark);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0 14px;
+}
+.poet-finder button:not(:disabled):hover {
+  border-color: var(--olive);
+}
+.poet-finder button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.poets-section p.poet-count {
+  margin: 7px 0 0;
+  font-size: 12px;
+}
 .poet-directory .poet-list {
   margin-top: 12px;
 }
@@ -1013,6 +1066,9 @@ h2 em {
   background: var(--paper);
   padding: 12px;
 }
+.poet-list a[hidden] {
+  display: none;
+}
 .poet-list a:hover,
 .shelf-items a:hover {
   border-color: var(--olive);
@@ -1020,6 +1076,10 @@ h2 em {
 .poet-list a > span:nth-child(2),
 .shelf-items a > span:nth-child(2) {
   flex: 1;
+}
+.poet-list a > span:nth-child(2) {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .poet-list strong,
 .shelf-items strong {
@@ -1034,6 +1094,14 @@ h2 em {
   display: block;
   font-size: 10px;
   color: var(--muted);
+}
+.poet-original {
+  color: var(--muted);
+  font-family: system-ui, sans-serif;
+  font-size: 0.8em;
+  font-weight: 400;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .poet-avatar {
   display: grid;

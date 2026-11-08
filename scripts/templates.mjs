@@ -1,4 +1,4 @@
-import { associatedPlaces, collectionLabel, escapeHtml as e, filterPoems, lineCount, placeCounts, poemCard, readingLanguages } from '../src/catalog.mjs';
+import { associatedPlaces, collectionLabel, escapeHtml as e, filterPoems, lineCount, normalize, placeCounts, poemCard, readingLanguages } from '../src/catalog.mjs';
 import { groupPoets } from './poets.mjs';
 import { relatedPoems } from './recommendations.mjs';
 
@@ -59,6 +59,16 @@ const flags = new Map([['China', 'cn'], ['Spain', 'es'], ['United States', 'us']
 function flag(place, base) {
   const code = flags.get(place);
   return code ? `<img src="${e(base)}assets/flags/${code}.svg" alt="" width="32" height="32" loading="lazy">` : '⌁';
+}
+
+function poetDirectoryCard(poet, base) {
+  const originals = new Map();
+  for (const poem of poet.poems) {
+    const name = typeof poem.authorOriginal === 'string' ? poem.authorOriginal.trim() : '';
+    if (name && normalize(name) !== normalize(poet.name) && !originals.has(name)) originals.set(name, poem);
+  }
+  const originalNames = [...originals].map(([name, poem]) => ` <span class="poet-original" data-poet-original lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(name)}</span>`).join('');
+  return `<a href="${e(base)}poets/${e(poet.id)}/" data-author="${e(poet.name)}"><span class="poet-avatar" aria-hidden="true">${e(poet.name.slice(0, 1))}</span><span><strong>${e(poet.name)}${originalNames}</strong><small>${poet.poems.length} ${poet.poems.length === 1 ? 'poem' : 'poems'}${poet.anonymous ? ' · anonymous group' : ''}${poet.uniqueName ? '' : ` · catalogue ID: ${e(poet.id)}`}</small></span><span aria-hidden="true">↗</span></a>`;
 }
 
 export function renderHome(poems, base) {
@@ -126,7 +136,7 @@ export function renderHome(poems, base) {
         <p class="country-note">Places are associations, not necessarily where a poem was written. Some works appear under more than one place; regions and unknown places have no national flag.</p>
       </section>
       <section id="poets" class="poets-section"><div><p class="eyebrow"><span>04 /</span> MEET THE VOICES</p><h2>Every poem begins <em>somewhere.</em></h2><p>Explore poets and traditional voices across time. Each page brings their works together.</p></div>
-        <details class="poet-directory"><summary>Browse ${authors.length} poets and traditional voices</summary><div class="poet-list">${authors.map(p => `<a href="${e(base)}poets/${e(p.id)}/" data-author="${e(p.name)}"><span class="poet-avatar" aria-hidden="true">${e(p.name.slice(0, 1))}</span><span><strong>${e(p.name)}</strong><small>${p.poems.length} ${p.poems.length === 1 ? 'poem' : 'poems'}${p.anonymous ? ' · anonymous group' : ''}${p.uniqueName ? '' : ` · catalogue ID: ${e(p.id)}`}</small></span><span aria-hidden="true">↗</span></a>`).join('')}</div></details>
+        <details class="poet-directory"><summary>Browse ${authors.length} poets and traditional voices</summary><div id="poet-finder" class="poet-finder" hidden><label for="poet-query">Find a poet or voice</label><div class="poet-finder-row"><input id="poet-query" type="search" placeholder="Name or original script" autocomplete="off" aria-controls="poet-list" aria-describedby="poet-count"><button type="button" id="clear-poet-query" disabled>Clear</button></div><p id="poet-count" class="poet-count" role="status" aria-live="polite" aria-atomic="true"></p></div><div id="poet-list" class="poet-list">${authors.map(p => poetDirectoryCard(p, base)).join('')}</div></details>
       </section>
       <section id="shelf" class="shelf-section"><div><p class="eyebrow"><span>05 /</span> JUST FOR YOU</p><h2>A shelf of <em>your own.</em></h2><p class="js-required">Keep the poems you love close by. Your saved poems and reading preferences are stored only on this device—no account needed.</p><noscript><p>Saved poems and reading history need JavaScript. Your existing saved data is not changed.</p></noscript><details class="clear-control js-required"><summary>Clear saved poems</summary><p>Remove all saved poems from this device?</p><button type="button" id="clear-shelf" class="text-button" disabled>Yes, clear saved poems</button></details></div>
         <div class="js-required"><h3 class="shelf-heading">Saved poems</h3><div id="shelf-items" class="shelf-items"><p>Your saved poems will appear here. Tap ♡ on a poem to keep it close.</p></div><div class="recent-heading"><h3 class="shelf-heading">Recently read</h3><details class="clear-control"><summary>Clear history</summary><p>Remove your recently read list?</p><button type="button" id="clear-history" class="text-button" disabled>Yes, clear history</button></details></div><div id="recent-items" class="shelf-items"><p>Your recently read poems will appear here.</p></div></div>
