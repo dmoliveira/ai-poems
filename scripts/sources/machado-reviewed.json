@@ -1,0 +1,632 @@
+[
+  {
+    "slug": "circulo-vicioso",
+    "title": "Circulo vicioso",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Circulo_vicioso&oldid=566267",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "630fd7f7db76e8e470bce3694f25c15de033782b6c014c9b03d5df0c7b236793",
+    "sourceBreaks": [
+      4,
+      8,
+      11
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "CIRCULO_VICIOSO",
+    "comparisonUrl": "",
+    "comparisonSha256": "bcd105cf69244bb3bf8629bdca7c9d0887b32afa11e70e735c590efad8a359d8",
+    "comparisonDifferences": [],
+    "lines": 14,
+    "sha256": "630fd7f7db76e8e470bce3694f25c15de033782b6c014c9b03d5df0c7b236793"
+  },
+  {
+    "slug": "uma-creatura",
+    "title": "Uma creatura",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Uma_creatura&oldid=421198",
+    "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+    "sourceSha256": "9769092ba33a84bb18541aeced52aadeb9e873b424af4d4f37e9bf6807f5f5ca",
+    "sourceBreaks": [
+      3,
+      6,
+      9,
+      15,
+      18,
+      21
+    ],
+    "restoredBreaks": [
+      12
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "UMA_CREATURA",
+    "comparisonUrl": "",
+    "comparisonSha256": "6752381836bdc2f8c151577122e0fd62484fd30b781bcb6406ba44d4e11df424",
+    "comparisonDifferences": [],
+    "lines": 25,
+    "sha256": "c1f2f72ab485a0d682cbadb56293c04bc932a05804e4d188df7eedbd7e32e7dd"
+  },
+  {
+    "slug": "arthur-oliveira",
+    "title": "A Arthur de Oliveira, enfermo",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=A_Arthur_de_Oliveira,_enfermo&oldid=421255",
+    "quality": "0 página validada, 3 páginas só revistas e 0 página não revista",
+    "sourceSha256": "675f8b1606f4bf842e29332f6fe532f077ee4a19516b2535bd6720385e785c0b",
+    "sourceBreaks": [
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      28,
+      32,
+      36,
+      44,
+      48,
+      52,
+      56
+    ],
+    "restoredBreaks": [
+      40
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "A_ARTHUR_DE_OLIVEIRA_Enfermo",
+    "comparisonUrl": "",
+    "comparisonSha256": "6013d5d67a904754794066d8b3635c820a447d477b04af343725968f86d2325b",
+    "comparisonDifferences": [],
+    "lines": 60,
+    "sha256": "5654c0684919643262d89b42df0cebe51d2fe1082422d7902036129af825272f"
+  },
+  {
+    "slug": "mundo-interior",
+    "title": "Mundo interior",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Mundo_Interior&oldid=421257",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "ee8e423433caa70461ecc2f1291f703e94744a182c2ee26052ad0ed07328f4ca",
+    "sourceBreaks": [
+      4,
+      8,
+      11
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "MUNDO_INTERIOR",
+    "comparisonUrl": "",
+    "comparisonSha256": "d49d3416118b1ffa7cbf2cad19a6da737f1c9ced39bc702bbd49e89779b6044d",
+    "comparisonDifferences": [],
+    "lines": 14,
+    "sha256": "ee8e423433caa70461ecc2f1291f703e94744a182c2ee26052ad0ed07328f4ca"
+  },
+  {
+    "slug": "lindoya",
+    "title": "Lindoya",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Lindoya&oldid=421262",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "8519a792e86bc0b52883e85b00e9f03bcff61822479c4751a8eed24de6f8131c",
+    "sourceBreaks": [
+      4,
+      8,
+      11
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "The closing line adapts a line from Basílio da Gama’s O Uraguai; the source prints it in italics, rendered here as plain text.",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "LINDOYA",
+    "comparisonUrl": "",
+    "comparisonSha256": "151ce63677d5ee19f9ee8aad822574260de444529cee0367199ec18e71b71979",
+    "comparisonDifferences": [],
+    "lines": 14,
+    "sha256": "8519a792e86bc0b52883e85b00e9f03bcff61822479c4751a8eed24de6f8131c"
+  },
+  {
+    "slug": "suave-mari-magno",
+    "title": "Suave mari magno",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Suave_Mari_Magno&oldid=421263",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "c1964f4904d290869396d8299c4cd810e8d62dff7786d4b1b3ec0ba5ea5132d2",
+    "sourceBreaks": [
+      4,
+      8,
+      11
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "SUAVE_MARI_MAGNO",
+    "comparisonUrl": "",
+    "comparisonSha256": "0691dd8f10171742eabbf52e0b7232b9a5e9557f3b8dc39cc2014e3ea4ffa799",
+    "comparisonDifferences": [],
+    "lines": 14,
+    "sha256": "c1964f4904d290869396d8299c4cd810e8d62dff7786d4b1b3ec0ba5ea5132d2"
+  },
+  {
+    "slug": "mosca-azul",
+    "title": "A mosca azul",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=A_Mosca_Azul&oldid=521039",
+    "quality": "0 página validada, 3 páginas só revistas e 0 página não revista",
+    "sourceSha256": "c38d98c81a2800220f6e3ec1d93d95587ab5e8eb11cb64cda5d7845b88b057a2",
+    "sourceBreaks": [
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      28,
+      32,
+      36,
+      40,
+      44,
+      48,
+      52,
+      56,
+      60
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "A_MOSCA_AZUL",
+    "comparisonUrl": "",
+    "comparisonSha256": "482bf9b8955654c19dd0fd79b0094e920b83456110ca55264195ed5aa058dc1f",
+    "comparisonDifferences": [],
+    "lines": 64,
+    "sha256": "c38d98c81a2800220f6e3ec1d93d95587ab5e8eb11cb64cda5d7845b88b057a2"
+  },
+  {
+    "slug": "antonio-jose",
+    "title": "Antonio José",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Antonio_Jos%C3%A9&oldid=421265",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "3145a48c8fa28a655fafdc06e4f598b072bded9e3f967f7360753f456ca61c1c",
+    "sourceBreaks": [],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "The printed subtitle refers to 21 October 1739; it is not treated as a composition date.",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "ANTONIO_JOSE",
+    "comparisonUrl": "",
+    "comparisonSha256": "3145a48c8fa28a655fafdc06e4f598b072bded9e3f967f7360753f456ca61c1c",
+    "comparisonDifferences": [],
+    "lines": 6,
+    "sha256": "3145a48c8fa28a655fafdc06e4f598b072bded9e3f967f7360753f456ca61c1c"
+  },
+  {
+    "slug": "spinoza",
+    "title": "Spinoza",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Spinoza&oldid=421267",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "2501151942f4a472ea01871ee5a6dd18b0cad047c4a73a2d64cb08a003a380c6",
+    "sourceBreaks": [
+      4,
+      8,
+      11
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "SPINOZA",
+    "comparisonUrl": "",
+    "comparisonSha256": "64ec3c75221ca853436021ff91b403bfce1ef246eb5e12e88c13ad0db54359cd",
+    "comparisonDifferences": [],
+    "lines": 14,
+    "sha256": "2501151942f4a472ea01871ee5a6dd18b0cad047c4a73a2d64cb08a003a380c6"
+  },
+  {
+    "slug": "goncalves-crespo",
+    "title": "Gonçalves Crespo",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Gon%C3%A7alves_Crespo&oldid=421268",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "80976b1cf5adb3ead521a31adac27a9b15fcf30a46fb3c8dfb02c77a34e3a059",
+    "sourceBreaks": [
+      4,
+      8,
+      11
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "GONCALVES_CRESPO",
+    "comparisonUrl": "",
+    "comparisonSha256": "a83c346322d52145546993eacc35b5a4bdc57202448eab1cc5a01f365d37b040",
+    "comparisonDifferences": [],
+    "lines": 14,
+    "sha256": "80976b1cf5adb3ead521a31adac27a9b15fcf30a46fb3c8dfb02c77a34e3a059"
+  },
+  {
+    "slug": "alencar",
+    "title": "Alencar",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Alencar&oldid=421269",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "3be493da4a75d002165fb5e098b452f5fb61cbd1ac50962004d49122b64b0810",
+    "sourceBreaks": [
+      4,
+      8,
+      11
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "ALENCAR",
+    "comparisonUrl": "",
+    "comparisonSha256": "53e908e29d7c5a905dc8fc5dd41bf1c693d5e773a328c67a3fdc49359855deac",
+    "comparisonDifferences": [],
+    "lines": 14,
+    "sha256": "3be493da4a75d002165fb5e098b452f5fb61cbd1ac50962004d49122b64b0810"
+  },
+  {
+    "slug": "jose-anchieta",
+    "title": "José de Anchieta",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Jos%C3%A9_de_Anchieta&oldid=421272",
+    "quality": "0 página validada, 3 páginas só revistas e 0 página não revista",
+    "sourceSha256": "9ab844734f10ec3c9f76304954647a6e788118c5a103331752a3f1574f35b7af",
+    "sourceBreaks": [
+      3,
+      6,
+      9,
+      15,
+      18,
+      21,
+      24,
+      27,
+      30,
+      33
+    ],
+    "restoredBreaks": [
+      12,
+      36
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "JOSE_DE_ANCHIETA",
+    "comparisonUrl": "",
+    "comparisonSha256": "2e4e3be21e1db23c6faf19790caf4c116b5ce6f1ac9d09228a4e1bc6314bab9f",
+    "comparisonDifferences": [],
+    "lines": 40,
+    "sha256": "ed2f2d07714b36b70957e95b62e092574c5cddec4fa55966ef64f286593977d6"
+  },
+  {
+    "slug": "soneto-natal",
+    "title": "Soneto de Natal",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Soneto_de_Natal&oldid=421273",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "5c0a475a782a1d64f953afb55cfc14ebefaa98743d41885f5c98f371b50221b6",
+    "sourceBreaks": [
+      4,
+      8,
+      11
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "SONETO_DE_NATAL",
+    "comparisonUrl": "",
+    "comparisonSha256": "ddbfa8a0f0a16198ec5e7bcb575320bc64b96b8d26a9da091724c69528987cf3",
+    "comparisonDifferences": [],
+    "lines": 14,
+    "sha256": "5c0a475a782a1d64f953afb55cfc14ebefaa98743d41885f5c98f371b50221b6"
+  },
+  {
+    "slug": "felicio-santos",
+    "title": "A Felicio dos Santos",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=A_Felicio_dos_Santos&oldid=421278",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "e9cd77287510d74f4bb3b1789d7aa956ffb32ed42f97d733d57e54d43c179168",
+    "sourceBreaks": [
+      4,
+      8,
+      11
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "A_FELICIO_DOS_SANTOS",
+    "comparisonUrl": "",
+    "comparisonSha256": "d6dd3d6d55c85caa041451f15bee871d8df0d6afe17c11d5369241726d4b45ac",
+    "comparisonDifferences": [],
+    "lines": 14,
+    "sha256": "e9cd77287510d74f4bb3b1789d7aa956ffb32ed42f97d733d57e54d43c179168"
+  },
+  {
+    "slug": "maria",
+    "title": "Maria",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=Maria_(Machado_de_Assis)&oldid=421279",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "4ffb4569909a9ac6bd2fbfa00651f1b623be3d0950b1ddafb63efb368c89d9e3",
+    "sourceBreaks": [
+      4,
+      8,
+      11
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "MARIA",
+    "comparisonUrl": "",
+    "comparisonSha256": "27642a1feccfe7f06117b5916d0db30343f2ea3ad322f949b04254629ae82e88",
+    "comparisonDifferences": [],
+    "lines": 14,
+    "sha256": "4ffb4569909a9ac6bd2fbfa00651f1b623be3d0950b1ddafb63efb368c89d9e3"
+  },
+  {
+    "slug": "no-alto",
+    "title": "No alto",
+    "edition": 1902,
+    "source": "https://pt.wikisource.org/w/index.php?title=No_Alto&oldid=421283",
+    "quality": "0 página validada, 1 página só revista e 0 página não revista",
+    "sourceSha256": "65107db8e139ade9f5c02825eaf865aace4c66506f1ff90a10019e9d1fb315a3",
+    "sourceBreaks": [
+      4,
+      8,
+      11
+    ],
+    "restoredBreaks": [],
+    "corrections": [],
+    "contextNote": "",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "NO_ALTO",
+    "comparisonUrl": "",
+    "comparisonSha256": "65eef4cdb9494f7ccb865239865f2ba0e332b70e6d38257a795d5455bffadd3d",
+    "comparisonDifferences": [],
+    "lines": 14,
+    "sha256": "65107db8e139ade9f5c02825eaf865aace4c66506f1ff90a10019e9d1fb315a3"
+  },
+  {
+    "slug": "musa-consolatrix",
+    "title": "Musa consolatrix",
+    "edition": 1864,
+    "source": "https://pt.wikisource.org/w/index.php?title=Musa_consolatrix_(1864)&oldid=215552",
+    "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+    "sourceSha256": "ff7d21198261534de19dcf317efcbf28876940dce20ef4ec4f94a7f9d40b36ce",
+    "sourceBreaks": [
+      5,
+      18
+    ],
+    "restoredBreaks": [
+      10
+    ],
+    "corrections": [],
+    "contextNote": "The 1864 reading differs from the 1901 transcription, including “terá” rather than “haverá”; a stanza break at the scan-page boundary is restored.",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "MUSA_CONSOLATRIX",
+    "comparisonUrl": "",
+    "comparisonSha256": "545450ee8a2e8dd4156b105cf0c73fc0800312bbe3cb91d830ba85cf67cdaebc",
+    "comparisonDifferences": [
+      21,
+      25
+    ],
+    "lines": 27,
+    "sha256": "57de0e590a4c34937b2df3691d283f7083f26049a17316245cb31605c2e10d6e"
+  },
+  {
+    "slug": "visio",
+    "title": "Visio",
+    "edition": 1864,
+    "source": "https://pt.wikisource.org/w/index.php?title=Visio_(1864)&oldid=215539",
+    "quality": "4 páginas validadas, 0 página só revista e 0 página não revista",
+    "sourceSha256": "8fcdff88b0c15d22c38e394ca6d509a97432bde8ee74841d1b7c016486b6ca8d",
+    "sourceBreaks": [
+      9,
+      18,
+      27,
+      36,
+      45
+    ],
+    "restoredBreaks": [
+      54
+    ],
+    "corrections": [
+      {
+        "line": 6,
+        "before": "Entro lagrimas luziam...",
+        "after": "Entre lagrimas luziam...",
+        "scanPage": 37
+      },
+      {
+        "line": 41,
+        "before": "Como olhar indifferente,",
+        "after": "Com o olhar indifferente,",
+        "scanPage": 39
+      }
+    ],
+    "contextNote": "Two transcription errors are corrected against the 1864 scan; the later edition uses different spelling. A stanza break at a scan-page boundary is restored.",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "VISIO",
+    "comparisonUrl": "",
+    "comparisonSha256": "a91cd17d02309a7f29cc445dea24d2a783d7083b3ca17689e5ee96f63cd43cdc",
+    "comparisonDifferences": [
+      3,
+      17
+    ],
+    "lines": 63,
+    "sha256": "d62c4acebf4fb6d25fd17fcbcd775235fd393cc764aea98b85c31de6ad936162"
+  },
+  {
+    "slug": "stella",
+    "title": "Stella",
+    "edition": 1864,
+    "source": "https://pt.wikisource.org/w/index.php?title=Stella_(1864)&oldid=215556",
+    "quality": "3 páginas validadas, 0 página só revista e 0 página não revista",
+    "sourceSha256": "6648c2a6e0466ea280d5de7b8d06070954dd6915d74978d34d7130cab29dab0d",
+    "sourceBreaks": [
+      4,
+      12,
+      16,
+      20,
+      24,
+      32,
+      36
+    ],
+    "restoredBreaks": [
+      8,
+      28
+    ],
+    "corrections": [],
+    "contextNote": "The separately printed French epigraph attributed to Théophile Gautier is omitted. The 1864 spelling and scan-reviewed stanza breaks are retained.",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "STELLA",
+    "comparisonUrl": "",
+    "comparisonSha256": "190bc617a32469aecbda700bf2036d93c1f750df6f95cf20eca3b5abdbb2334d",
+    "comparisonDifferences": [
+      6
+    ],
+    "lines": 40,
+    "sha256": "dc6c10b493ad75af13fb0824f0b55fe6991ad12d6857e1232cfd7ea20992c713"
+  },
+  {
+    "slug": "erro",
+    "title": "Erro",
+    "edition": 1864,
+    "source": "https://pt.wikisource.org/w/index.php?title=Erro_(1864)&oldid=215567",
+    "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+    "sourceSha256": "ab5679ee30bcdef8465c9dd786e7c47b00e58077fedf3410a3c632ebb9d05952",
+    "sourceBreaks": [
+      15
+    ],
+    "restoredBreaks": [],
+    "corrections": [
+      {
+        "line": 21,
+        "before": "Quo chamavas coração,",
+        "after": "Que chamavas coração,",
+        "scanPage": 60
+      }
+    ],
+    "contextNote": "The separately printed French epigraph attributed to George Sand is omitted. A transcription error is corrected against the 1864 scan; the later edition reads “Morto” where this edition has “Nullo.”",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "ERRO",
+    "comparisonUrl": "",
+    "comparisonSha256": "c81ccbb02616cb33a06256d64e007d899b947fb0f021e1baef9e886771176484",
+    "comparisonDifferences": [
+      9,
+      26
+    ],
+    "lines": 31,
+    "sha256": "832d4bd6bc2017046d28f9676e56888fe903ce316dc12e71dd00ecdd2fa620fb"
+  },
+  {
+    "slug": "horas-vivas",
+    "title": "Horas vivas",
+    "edition": 1864,
+    "source": "https://pt.wikisource.org/w/index.php?title=Horas_vivas_(1864)&oldid=278216",
+    "quality": "3 páginas validadas, 0 página só revista e 0 página não revista",
+    "sourceSha256": "c962bd7f9e8d5c720ff149a1fd7216b2a1ba5f9845859182236ac06b7ca96bc6",
+    "sourceBreaks": [
+      16,
+      24,
+      32
+    ],
+    "restoredBreaks": [
+      8
+    ],
+    "corrections": [],
+    "contextNote": "The 1864 scan prints “explendores,” unlike the 1901 transcription. The separately printed dedication is omitted; a stanza break at a scan-page boundary is restored.",
+    "comparisonKind": "gutenberg",
+    "comparisonKey": "HORAS_VIVAS",
+    "comparisonUrl": "",
+    "comparisonSha256": "9cff59a936216cf62757194c35ea2e75070e3112796a584ddd454b470298fbff",
+    "comparisonDifferences": [
+      2
+    ],
+    "lines": 40,
+    "sha256": "982f055ca6ce0330a4633c56c34365dad4e293e4d6bbfc7a5fe51957cd737262"
+  },
+  {
+    "slug": "fe",
+    "title": "Fé",
+    "edition": 1864,
+    "source": "https://pt.wikisource.org/w/index.php?title=F%C3%A9_(1864)&oldid=215562",
+    "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+    "sourceSha256": "8e3b3c124c47a137f232e7176ec625fbc187e70366eb1bb770612853c566893f",
+    "sourceBreaks": [
+      12,
+      16,
+      20
+    ],
+    "restoredBreaks": [
+      4,
+      8
+    ],
+    "corrections": [],
+    "contextNote": "The separately printed Spanish epigraph, attributed in this edition to Santa Thereza de Jesus, is omitted; its authorship is disputed. The source scan restores missing stanza breaks.",
+    "comparisonKind": "citador",
+    "comparisonKey": "",
+    "comparisonUrl": "https://www.citador.pt/poemas/fe-joaquim-maria-machado-de-assis",
+    "comparisonSha256": "89082810f66cad1300cfbcee62d643d3a7f764ef5aace0f987ada9162615259c",
+    "comparisonDifferences": [
+      23
+    ],
+    "lines": 24,
+    "sha256": "e521c740527e6e9d3c3c821f2ef32b4fe32cbee35c3f1f63ae9e1043ba0fccc7"
+  },
+  {
+    "slug": "caridade",
+    "title": "A Caridade",
+    "edition": 1864,
+    "source": "https://pt.wikisource.org/w/index.php?title=A_Caridade_(Machado_de_Assis,_1864)&oldid=215563",
+    "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+    "sourceSha256": "5a34198ee967acb7f7e48fb4d59927b7c4323c3949567581125e67728a71a9da",
+    "sourceBreaks": [
+      7,
+      8,
+      14
+    ],
+    "restoredBreaks": [],
+    "corrections": [
+      {
+        "line": 18,
+        "before": "Dando-lhes pão, guarida, amparo, leito e amor.",
+        "after": "Dando-lhes leito e pão, guarida e amor.",
+        "scanPage": 44
+      }
+    ],
+    "contextNote": "The final verse is corrected to the 1864 scan. The stanza continuing across a page boundary is not split.",
+    "comparisonKind": "citador",
+    "comparisonKey": "",
+    "comparisonUrl": "https://www.citador.pt/poemas/a-caridade-joaquim-maria-machado-de-assis",
+    "comparisonSha256": "ad13efcd9e81654d97ebade053c779a7ce8e7850e36a6a3a1e81d4b9c7407bb3",
+    "comparisonDifferences": [
+      1,
+      2,
+      6,
+      7,
+      8,
+      10,
+      16,
+      17
+    ],
+    "lines": 18,
+    "sha256": "9a6763f3cbb982b1e47f6ecd3155a909180df73f72b4f2ec71d0e8ba652f2d12"
+  }
+]
