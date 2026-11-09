@@ -408,6 +408,51 @@ test('Bashō travel verses support Japanese search, credits and static reading',
   await staticContext.close();
 });
 
+test('Bashō Nozarashi verses support search, credits and static reading', async () => {
+  const selected = poems.filter(p => p.id.startsWith('basho-nozarashi-'));
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Japanese&country=Japan#explore`);
+  const count = filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length;
+  await page.getByText(`${count} poems found`, { exact: true }).waitFor();
+  const seed = { saved: ['old-pond-basho'], recent: [], extra: { keep: true } };
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('山路來て何やらゆかし');
+  const matches = filterPoems(poems, { language: 'Japanese', country: 'Japan', query: '山路來て何やらゆかし' });
+  await page.getByText(`${matches.length} ${matches.length === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+  const poem = selected.find(p => p.id === 'basho-nozarashi-35');
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'ja');
+  assert.equal(await page.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+  assert.equal(await page.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+  assert.match(await page.locator('.source-note').textContent(), /CC BY-SA 4\.0/);
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.deepEqual(stored.saved, seed.saved);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-Japanese a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const id of ['basho-nozarashi-15', 'basho-nozarashi-31', 'basho-nozarashi-35', 'basho-oku-22', 'old-pond-basho']) {
+    const item = poems.find(p => p.id === id);
+    await staticPage.goto(`${base}poems/${id}/`);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), item.text);
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.getByRole('link', { name: 'Matsuo Bashō', exact: true }).click();
+  assert.equal(new URL(staticPage.url()).pathname, '/ai-poems/poets/matsuo-basho/');
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('reviewed poet places have matching counts, sources and static reader pages', async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -1452,7 +1497,7 @@ test('Japanese additions are searchable and readable on mobile with and without 
   await page.goto(`${base}?language=Japanese&country=Japan#explore`);
   const japanese = filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length;
   await page.getByText(`${japanese} poems found`).waitFor();
-  assert.equal(japanese, 5 + poems.filter(p => p.id.startsWith('basho-oku-')).length);
+  assert.equal(japanese, 5 + poems.filter(p => p.id.startsWith('basho-oku-') || p.id.startsWith('basho-nozarashi-')).length);
   await page.getByLabel('Search the poetry library').fill('のたりのたり');
   await page.getByText('1 poem found').waitFor();
   const result = page.locator('#results .poem-card-link');
