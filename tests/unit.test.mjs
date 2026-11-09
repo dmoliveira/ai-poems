@@ -525,6 +525,32 @@ test('editorial paths match the catalogue and require the sourced edition sequen
   const long = poems.find(p => lineCount(p) > 4);
   assert.doesNotMatch(renderHome([long], '/ai-poems/'), /A path into poetry/);
 });
+test('the sonnet discovery path requires both works and a sourced sequence connection', () => {
+  const first = poems.find(poem => poem.id === 'shakespeare-sonnet-18');
+  const next = poems.find(poem => poem.id === 'shakespeare-sonnet-19');
+  const connection = first.connections[0];
+  const card = records => renderHome(records, '/ai-poems/').match(/<section class="sequence-path"[\s\S]*?<\/section>/)?.[0] || '';
+  const markup = card([first, next]);
+  assert.match(markup, /Two sonnets by William Shakespeare/);
+  assert.ok(markup.includes(`href="/ai-poems/poems/${first.id}/"`));
+  assert.ok(markup.includes(`href="/ai-poems/poems/${next.id}/"`));
+  assert.ok(markup.includes(`href="${escapeHtml(connection.source)}"`));
+  assert.ok(markup.includes(escapeHtml(connection.note)));
+  assert.equal(card([first]), '');
+  assert.equal(card([next]), '');
+  assert.equal(card([{ ...first, connections: [] }, next]), '');
+  assert.equal(card([{ ...first, connections: [null, { ...connection, type: 'influenced_by' }] }, next]), '');
+  assert.equal(card([{ ...first, connections: [{ ...connection, targetId: 'shakespeare-sonnet-20' }] }, next]), '');
+  assert.equal(card([{ ...first, connections: [{ ...connection, source: 'javascript:alert(1)' }] }, next]), '');
+  assert.equal(card([{ ...first, connections: [{ ...connection, source: 'http://example.org/' }] }, next]), '');
+  assert.equal(card([{ ...first, connections: [{ ...connection, note: ' ' }] }, next]), '');
+  assert.equal(card([first, { ...next, authorId: 'another-author' }]), '');
+  const multi = { ...first, title: 'Sonnet <18>', connections: [{ ...connection, type: 'response_to' }, { ...connection, note: 'Sequence <note>' }] };
+  const escaped = card([multi, next]);
+  assert.match(escaped, /Read Sonnet &lt;18&gt;/);
+  assert.match(escaped, /Sequence &lt;note&gt;/);
+  assert.doesNotMatch(escaped, /<18>|<note>/);
+});
 test('featured reading uses sourced catalogue text and degrades safely when records change', () => {
   const poem = poems.find(item => item.id === 'old-pond-basho');
   const translation = poem.translations.find(item => item.translator === 'Lafcadio Hearn, 1898');
