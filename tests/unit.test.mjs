@@ -148,6 +148,52 @@ test('French classics retain their proofread texts, edition credits and complete
   for (const id of ids) assert.ok(poet.poems.some(p => p.id === id), id);
   assert.ok(poet.poems.some(p => p.id === 'demain-des-laube-hugo'));
 });
+test('Italian classics retain reviewed texts, edition caveats and complete discovery', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/leopardi-1917.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.length, 32);
+  const ids = manifest.map(item => `leopardi-canti-${String(item.number).padStart(2, '0')}`);
+  assert.equal(new Set(ids).size, ids.length);
+  const selected = ids.map(id => poems.find(p => p.id === id));
+  for (const [index, item] of manifest.entries()) {
+    const poem = selected[index];
+    assert.ok(poem, ids[index]);
+    assert.equal(poem.authorId, 'giacomo-leopardi');
+    assert.equal(poem.author, 'Giacomo Leopardi');
+    assert.equal(poem.language, 'Italian');
+    assert.equal(poem.lang, 'it');
+    assert.deepEqual(associatedPlaces(poem), ['Italy']);
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.match(poem.sourceTitle, /Donati edition 1917/);
+    assert.match(poem.rights, /Wikisource contributors under CC BY-SA 4\.0/);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(lineCount(poem), item.lines);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Italian', author: 'Giacomo Leopardi' }).includes(poem));
+    for (const review of item.scanReviews) assert.ok(review.line > 0 && review.line <= item.lines && review.page > 0);
+  }
+  for (const excluded of [12, 13, 14, 35]) assert.ok(!ids.includes(`leopardi-canti-${excluded}`));
+  const byNumber = number => poems.find(p => p.id === `leopardi-canti-${String(number).padStart(2, '0')}`);
+  const line = (number, index) => byNumber(number).text.split('\n').filter(Boolean)[index - 1];
+  assert.equal(line(20, 41), 'Qual fui! quanto dissimile');
+  assert.equal(line(20, 143), 'e d’un celeste foco');
+  assert.equal(line(32, 7), 'l’uomo, o si può. Fra meraviglia e sdegno,');
+  assert.equal(line(32, 38), 'Aureo secolo omai volgono, o Gino,');
+  assert.equal(line(33, 63), 'Ma la vita mortal, poi che la bella');
+  assert.equal(line(34, 75), 'dalla barbarie in parte, e per cui solo');
+  assert.equal(line(34, 169), 'e sono immense in guisa');
+  assert.match(byNumber(33).context, /1917 print.*immortal.*mortal.*Ranieri/);
+  assert.match(byNumber(34).context, /John 3:19.*317-line.*three lines/);
+  assert.deepEqual(byNumber(10).text.split('\n\n').map(stanza => stanza.split('\n').length), [...Array(34).fill(3), 1]);
+  assert.ok(filterPoems(poems, { query: 'rimembri ancora' }).includes(byNumber(21)));
+  assert.ok(filterPoems(poems, { query: 'sabato del villaggio' }).includes(byNumber(25)));
+  const poet = groupPoets(poems).find(p => p.id === 'giacomo-leopardi');
+  for (const id of [...ids, 'linfinito-leopardi', 'leopardi-ricordanza', 'leopardi-sera-giorno-festivo']) {
+    assert.ok(poet.poems.some(p => p.id === id), id);
+  }
+});
 test('reviewed poet associations preserve sources, texts and legacy place filters', () => {
   const cases = [
     { id: 'castellana-072', authorId: 'andres-bello', years: '1781–1865', places: ['Venezuela', 'England', 'Chile'], source: 'https://www.gutenberg.org/files/65880/65880-h/65880-h.htm#P072', sourceTitle: 'Project Gutenberg · Las cien mejores poesías, 1910, no. 72', contextSource: 'https://uchile.cl/presentacion/historia/rectores-de-la-u-de-chile/andres-bello-lopez-1843-1865', digest: '17497bcd8cbbb154613010d62bb98115e0a8045ba32327bab819cca81565ce68' },
