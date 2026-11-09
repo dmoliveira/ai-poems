@@ -341,6 +341,43 @@ test('Buson verses preserve the reviewed 1926 scans and existing poet identity',
   const poet = groupPoets(poems).find(p => p.id === 'yosa-buson');
   for (const id of [...selected.map(p => p.id), 'rapeseed-flowers-buson', 'spring-sea-buson']) assert.ok(poet.poems.some(p => p.id === id), id);
 });
+test('al-Mutanabbī poems retain their reviewed scan readings, comparison notes and RTL identity', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/mutanabbi-1890-reviewed.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.poems.length, 10);
+  assert.equal(manifest.scanSha256, '16a2cae7fc3a9747346122652b8780a518a03c1e9973b693dcc5045258efadd8');
+  const selected = manifest.poems.map((item, index) => {
+    const id = `mutanabbi-1890-${String(index + 1).padStart(2, '0')}`;
+    const poem = poems.find(p => p.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.authorId, 'al-mutanabbi');
+    assert.equal(poem.authorOriginal, 'المتنبي');
+    assert.equal(poem.authorYears, 'c. 915–965');
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.deepEqual(associatedPlaces(poem), ['Not established']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.source, `https://odyssee.univ-amu.fr/files/original/1/15/Mutanabbi-Vol1.pdf#page=${482 - item.pages[0]}`);
+    assert.equal(poem.contextSource, `https://shamela.ws/book/754/${item.comparisonPage}`);
+    assert.match(poem.context, /Vowel marks are omitted.*composition date and place are not established/);
+    if (item.note) assert.ok(poem.context.includes(item.note));
+    assert.match(poem.rights, /public domain in the United States.*Check local law/);
+    assert.equal(poem.text, item.text);
+    assert.equal(lineCount(poem), item.anchors.length * 2);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Arabic', author: 'al-Mutanabbī', query: poem.title }).includes(poem));
+    return poem;
+  });
+  assert.equal(createHash('sha256').update(selected.map(p => p.text).join('\n')).digest('hex'), '76e5400719a9d168020429b4de2199f74239f6b0df54eadf9269e1d34657b6c6');
+  assert.match(selected[3].context, /وصوت الغناء.*وحسن الغناء/);
+  assert.match(selected[7].context, /مناخا.*مناخنا/);
+  const poet = groupPoets(poems).find(p => p.id === 'al-mutanabbi');
+  assert.equal(poet.poems.length, selected.length);
+  for (const poem of selected) assert.ok(poet.poems.some(p => p.id === poem.id));
+  const existing = poems.find(p => p.id === 'let-the-days-do-as-they-will');
+  assert.equal(createHash('sha256').update(existing.text).digest('hex'), 'a03835cb05af40ff28c11f5887acf29c18fda7cfe0272774b0826aa8c74d7809');
+});
 test('reviewed poet associations preserve sources, texts and legacy place filters', () => {
   const cases = [
     { id: 'castellana-072', authorId: 'andres-bello', years: '1781–1865', places: ['Venezuela', 'England', 'Chile'], source: 'https://www.gutenberg.org/files/65880/65880-h/65880-h.htm#P072', sourceTitle: 'Project Gutenberg · Las cien mejores poesías, 1910, no. 72', contextSource: 'https://uchile.cl/presentacion/historia/rectores-de-la-u-de-chile/andres-bello-lopez-1843-1865', digest: '17497bcd8cbbb154613010d62bb98115e0a8045ba32327bab819cca81565ce68' },
