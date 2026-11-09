@@ -1307,6 +1307,145 @@ test('without JavaScript, the home page offers the static index instead of inert
   await context.close();
 });
 
+test('the complete index groups every poem once and supports keyboard browsing without JavaScript', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: false, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  const seed = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } });
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', value), seed);
+  const index = page.locator('#complete-index');
+  await index.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await index.getAttribute('open'), '');
+  assert.match(await index.locator('.index-intro').textContent(), /original language.*Translations and reading aids, when available/);
+  const items = await index.locator('.index-group li a').evaluateAll(links => links.map(link => new URL(link.href).pathname.split('/').filter(Boolean).at(-1)));
+  assert.equal(items.length, poems.length);
+  assert.deepEqual(items.toSorted(), poems.map(poem => poem.id).toSorted());
+  const languages = [...new Set(poems.map(poem => poem.language))];
+  assert.equal(await index.locator('.index-group').count(), languages.length);
+  for (const language of languages) {
+    const count = poems.filter(poem => poem.language === language).length;
+    const group = page.locator(`#index-original-${language}`);
+    assert.equal(await group.locator('li a').count(), count, language);
+    assert.equal(await index.getByRole('link', { name: `${language} ${count.toLocaleString('en-US')} ${count === 1 ? 'poem' : 'poems'}`, exact: true }).count(), 1, language);
+  }
+  assert.ok(await page.locator('#index-original-Chinese [lang|="zh"]').count() > 0);
+  const navigation = index.getByRole('navigation', { name: 'Index by language of the original' });
+  await navigation.getByRole('link', { name: 'Arabic 1 poem', exact: true }).focus();
+  await page.keyboard.press('Tab');
+  const chinese = navigation.getByRole('link', { name: `Chinese ${poems.filter(poem => poem.language === 'Chinese').length} poems`, exact: true });
+  assert.equal(await chinese.evaluate(element => document.activeElement === element), true);
+  await page.keyboard.press('Enter');
+  await page.waitForURL('**/#index-original-Chinese');
+  assert.equal(await page.locator('#index-original-Chinese').isVisible(), true);
+  await navigation.getByRole('link', { name: `Japanese ${poems.filter(poem => poem.language === 'Japanese').length} poems`, exact: true }).click();
+  await page.waitForURL('**/#index-original-Japanese');
+  await page.locator('#index-original-Japanese').getByRole('link', { name: /The Old Pond — Matsuo Bashō/ }).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poems.find(poem => poem.id === 'old-pond-basho').text);
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), seed);
+  await context.close();
+});
+
+test('index language fragments survive direct visits, reload and browser history', async () => {
+  for (const js of [false, true]) {
+    const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: js, reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    const verify = async (requireInView = true) => {
+      if (js) await page.getByText(totalText).waitFor();
+      const group = page.locator('#index-original-Japanese');
+      await group.waitFor({ state: 'visible' });
+      assert.equal(await page.locator('#complete-index').getAttribute('open'), '');
+      if (requireInView) assert.ok(await group.evaluate(element => {
+        const top = element.getBoundingClientRect().top;
+        return top >= 0 && top < innerHeight;
+      }), `Japanese group in viewport, JavaScript ${js}`);
+    };
+    await page.goto(`${base}#index-original-Japanese`);
+    await verify();
+    await page.reload();
+    await verify();
+    await page.locator('.index-jumps').getByRole('link', { name: /Chinese/ }).click();
+    await page.waitForURL('**/#index-original-Chinese');
+    await page.goBack();
+    await page.waitForURL('**/#index-original-Japanese');
+    await verify(false);
+    await context.close();
+  }
+});
+
+test('index navigation remains accessible and fits across themes and screen widths', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.locator('#complete-index summary').click();
+  const index = page.locator('#complete-index');
+  for (const width of [320, 390, 700, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px`);
+    for (const link of await index.locator('.index-jumps a').all()) {
+      const box = await link.boundingBox();
+      assert.ok(box && box.width >= 44 && box.height >= 44, `index target at ${width}px`);
+    }
+  }
+  await page.setViewportSize({ width: 320, height: 844 });
+  for (const theme of ['light', 'sepia', 'dark']) {
+    await page.getByLabel('Reading theme').selectOption(theme);
+    await page.getByRole('status').getByText('Theme saved.').waitFor();
+    const accessibility = await new AxeBuilder({ page }).include('.index-jumps').include('#index-original-Japanese').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], theme);
+  }
+  await context.close();
+});
+
+test('unusual original-language names have distinct safe index links', async () => {
+  const sample = [
+    { ...poems[0], id: 'index-sample-a', language: 'A & <B>' },
+    { ...poems[0], id: 'index-sample-b', language: 'A%20& <B>' },
+  ];
+  for (const js of [false, true]) {
+    const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: js, reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    await page.route('**/ai-poems/', route => route.fulfill({ contentType: 'text/html; charset=utf-8', body: renderHome(sample, '/ai-poems/') }));
+    await page.route('**/data/catalog.json', route => route.fulfill({ contentType: 'application/json; charset=utf-8', body: JSON.stringify(sample) }));
+    await page.goto(base);
+    if (js) await page.getByText('2 poems found', { exact: true }).waitFor();
+    await page.locator('#complete-index summary').click();
+    for (const poem of sample) {
+      const id = `index-original-${encodeURIComponent(poem.language)}`;
+      const link = page.locator('.index-jumps').getByRole('link', { name: `${poem.language} 1 poem`, exact: true });
+      assert.equal(await link.getAttribute('href'), `#${encodeURIComponent(id)}`);
+      await link.click();
+      assert.equal(decodeURIComponent(new URL(page.url()).hash.slice(1)), id);
+      assert.equal(await page.evaluate(groupId => document.getElementById(groupId)?.querySelectorAll('li a').length, id), 1);
+      await page.reload();
+      if (js) await page.getByText('2 poems found', { exact: true }).waitFor();
+      assert.equal(await page.locator('#complete-index').getAttribute('open'), '');
+      assert.equal(await page.evaluate(groupId => document.getElementById(groupId)?.querySelectorAll('li a').length, id), 1);
+    }
+    await context.close();
+  }
+});
+
+test('index groups remain usable when the catalogue or app module fails', async () => {
+  for (const mode of ['catalogue failure', 'module failure']) {
+    const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    if (mode === 'catalogue failure') await page.route('**/data/catalog.json', route => route.abort());
+    else await page.route('**/app.mjs', route => route.abort());
+    await page.goto(base);
+    if (mode === 'catalogue failure') await page.getByText(/The library could not load/).waitFor();
+    const seed = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } });
+    await page.evaluate(value => localStorage.setItem('verso-library-v1', value), seed);
+    await page.locator('#complete-index summary').click();
+    await page.locator('.index-jumps').getByRole('link', { name: /Japanese/ }).click();
+    await page.waitForURL('**/#index-original-Japanese');
+    assert.equal(await page.locator('#index-original-Japanese').getByRole('link', { name: /The Old Pond — Matsuo Bashō/ }).count(), 1, mode);
+    assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), seed, mode);
+    await context.close();
+  }
+});
+
 test('static fallback markup passes automated WCAG checks when the app module is blocked', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();

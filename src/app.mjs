@@ -476,6 +476,16 @@ function setupExplore() {
   function restoreYearFragment() {
     if (location.hash === '#year-ranges') revealYearRanges({ scroll: true });
   }
+  function restoreIndexFragment() {
+    if (!location.hash.startsWith('#index-original-')) return;
+    try {
+      const group = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      const index = document.querySelector('#complete-index');
+      if (!group?.classList.contains('index-group') || !index?.contains(group)) return;
+      index.open = true;
+      group.scrollIntoView({ behavior: 'instant', block: 'start' });
+    } catch { /* An invalid fragment leaves normal browsing intact. */ }
+  }
   document.querySelector('.year-range-entry')?.addEventListener('click', () => revealYearRanges({ focus: true }));
   yearButtons.forEach(button => button.addEventListener('click', () => {
     const range = recordedYearRanges[Number(button.dataset.yearRange)];
@@ -535,6 +545,7 @@ function setupExplore() {
   updateURL();
   render();
   restoreYearFragment();
+  restoreIndexFragment();
   restoreJourney(performance.getEntriesByType('navigation')[0]?.type === 'back_forward');
   window.addEventListener('pageshow', event => { if (event.persisted) restoreJourney(true); });
 }
