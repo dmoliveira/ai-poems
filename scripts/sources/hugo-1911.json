@@ -1,0 +1,442 @@
+[
+  {
+    "book": 1,
+    "number": 1,
+    "title": "À ma fille",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C3%80_ma_fille&oldid=12863374",
+    "lines": 44,
+    "sha256": "cb963783bf18a4043c61bd609b9f851bfc991165af6cade1e5d0c4b1f89342ce"
+  },
+  {
+    "book": 1,
+    "number": 2,
+    "title": "« Le poëte s’en va dans les champs… »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Le_po%C3%ABte_s%E2%80%99en_va_dans_les_champs%E2%80%A6_%C2%BB&oldid=15129921",
+    "lines": 20,
+    "sha256": "c71d67048b21a46abd84d5708afd0868aec9316801741ba76738e9ee5bfba833"
+  },
+  {
+    "book": 1,
+    "number": 3,
+    "title": "Mes deux filles",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Mes_deux_filles&oldid=9023945",
+    "lines": 10,
+    "sha256": "7e8bafc54b985a205bd9ff589549945f607992e52874afdc67126686f7c56d4b"
+  },
+  {
+    "book": 1,
+    "number": 5,
+    "title": "À André Chénier",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C3%80_Andr%C3%A9_Ch%C3%A9nier&oldid=9023954",
+    "lines": 24,
+    "sha256": "00463f0a96139e41748907298daf33439b5f405f48414594eeda37de8748b646"
+  },
+  {
+    "book": 1,
+    "number": 9,
+    "title": "« Le poëme éploré se lamente ; le drame »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Le_po%C3%A8me_%C3%A9plor%C3%A9_se_lamente_%C2%BB&oldid=9023974",
+    "lines": 38,
+    "sha256": "83fac2888492322bc9eb6a7a3cf24279fd14dddad24ccf8e63e2860bf228f814"
+  },
+  {
+    "book": 1,
+    "number": 15,
+    "title": "La coccinelle",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/La_Coccinelle&oldid=9023995",
+    "lines": 20,
+    "sha256": "8900161ef15e17a35cab9d37d2b16c9127221ebacc3eab3f49937ca799e7884c"
+  },
+  {
+    "book": 1,
+    "number": 16,
+    "title": "Vers 1820",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Vers_1820&oldid=9023998",
+    "lines": 16,
+    "sha256": "f6b3e2e4b4978cd35354ef236e626dcd2c6f0f7a410b8ddb160b19f16e6a5537"
+  },
+  {
+    "book": 1,
+    "number": 17,
+    "title": "À M. Froment-Meurice",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C3%80_M._Froment_Meurice&oldid=9024002",
+    "lines": 32,
+    "sha256": "7ce7c7f74835ae3e8a2ee7c3a2ed58df89482c8a310943bacbbec2411406abac"
+  },
+  {
+    "book": 1,
+    "number": 18,
+    "title": "Les oiseaux",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Les_Oiseaux&oldid=9024008",
+    "lines": 59,
+    "sha256": "ee0a95f2edc4ce25fdbed82947147e68587175e227f4d1b27ca200dc11fe821c"
+  },
+  {
+    "book": 1,
+    "number": 20,
+    "title": "À un poëte aveugle",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C3%80_un_po%C3%ABte_aveugle&oldid=9024021",
+    "lines": 8,
+    "sha256": "c5c7a4c236c59001ba38b261bee1f9a2b5eb2436a27ac4afba9417906a863206"
+  },
+  {
+    "book": 1,
+    "number": 23,
+    "title": "L’enfance",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/L%E2%80%99Enfance&oldid=11929724",
+    "lines": 12,
+    "sha256": "9b37966d3840ae5221f8a7c9dba9f04d3ed8bf47d59d4ad15c33fb00977b6c7a"
+  },
+  {
+    "book": 1,
+    "number": 24,
+    "title": "« Heureux l’homme… »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Heureux_l%E2%80%99homme,_occup%C3%A9_de_l%E2%80%99%C3%A9ternel_destin_%C2%BB&oldid=9024037",
+    "lines": 12,
+    "sha256": "2515786ef4e9a05d9266c30f93c576f2e2034a1e2a09053b686d72426b46bb21"
+  },
+  {
+    "book": 1,
+    "number": 25,
+    "title": "Unité",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Unit%C3%A9&oldid=9024041",
+    "lines": 10,
+    "sha256": "a19844f5e06b8d8747ed55d2991f7fbb7676f5bd54241f55454a2d6b956447ed"
+  },
+  {
+    "book": 1,
+    "number": 27,
+    "title": "« Oui, je suis le rêveur… »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Oui,_je_suis_le_r%C3%AAveur_;_je_suis_le_camarade_%C2%BB&oldid=9024054",
+    "lines": 44,
+    "sha256": "ca09648463335a2945bc529b03088572185a0c9b7a60bc871929d72931f20465"
+  },
+  {
+    "book": 1,
+    "number": 28,
+    "title": "« Il faut que le poëte… »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Il_faut_que_le_po%C3%ABte,_%C3%A9pris_d%E2%80%99ombre_et_d%E2%80%99azur_%C2%BB&oldid=9024060",
+    "lines": 22,
+    "sha256": "ea10f69f4271aa3de39b44223362a48d0bfb451256919d84fef7da6b6855ab65"
+  },
+  {
+    "book": 1,
+    "number": 29,
+    "title": "Halte en marchant",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Halte_en_marchant&oldid=9024064",
+    "lines": 74,
+    "sha256": "0f07b325ad080844daf8ca997bcaa4ff3a9eeee30de83f77ddb66abff163f204"
+  },
+  {
+    "book": 2,
+    "number": 2,
+    "title": "« Mes vers fuiraient, doux et frêles »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Mes_vers_fuiraient,_doux_et_fr%C3%AAles_%C2%BB&oldid=13838843",
+    "lines": 12,
+    "sha256": "5f53cd6d49b5012d64e27d9ce2a588f879baace53254acfa6dfc0d4476c8b28f"
+  },
+  {
+    "book": 2,
+    "number": 3,
+    "title": "Le rouet d’Omphale",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Le_Rouet_d%E2%80%99Omphale&oldid=9024074",
+    "lines": 24,
+    "sha256": "293d811c91678e212689c6310dacf22b0d2f2758e92a84757a565d2ae0389a79"
+  },
+  {
+    "book": 2,
+    "number": 4,
+    "title": "Chanson",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Chanson&oldid=9931914",
+    "lines": 18,
+    "sha256": "1b2737f6a8f398d26fa22ccee5c45860b3d1dd3e6a728b6e70e859ac5a76388d"
+  },
+  {
+    "book": 2,
+    "number": 5,
+    "title": "Hier au soir",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Hier_au_soir&oldid=9024085",
+    "lines": 10,
+    "sha256": "fb0579c334d265882a262fce97a8bcb44f28c353b8f73c2e8fedb60cc28d1178"
+  },
+  {
+    "book": 2,
+    "number": 7,
+    "title": "« Nous allions au verger… »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Nous_allions_au_verger_cueillir_des_bigarreaux_%C2%BB&oldid=9024092",
+    "lines": 14,
+    "sha256": "08fe4a4692bf023a4649f32920c751aadbf16c95b9fd1efe49e3eaeea545c54b"
+  },
+  {
+    "book": 2,
+    "number": 8,
+    "title": "« Tu peux, comme il te plaît… »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Tu_peux,_comme_il_te_pla%C3%AEt,_me_faire_jeune_ou_vieux_%C2%BB&oldid=9024096",
+    "lines": 36,
+    "sha256": "3d770b55596c58f9163da6e9df3590ed93e6153c05d93e17d6467266cb175d62"
+  },
+  {
+    "book": 2,
+    "number": 10,
+    "title": "« Mon bras pressait ta taille frêle »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Mon_bras_pressait_ta_taille_fr%C3%AAle_%C2%BB&oldid=9024106",
+    "lines": 12,
+    "sha256": "5d5985034672da9b94fab4d1b8e65e8b8dd71a9898d7fdc97b49c8d8dcfc0671"
+  },
+  {
+    "book": 2,
+    "number": 11,
+    "title": "« Les femmes sont sur la terre »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Les_femmes_sont_sur_la_terre_%C2%BB&oldid=9024108",
+    "lines": 28,
+    "sha256": "3e13310020ad2073c8ee917675d61716db9e615e05fa590a1f889ba5a173a0e7"
+  },
+  {
+    "book": 2,
+    "number": 12,
+    "title": "Églogue",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C3%89glogue&oldid=9024111",
+    "lines": 24,
+    "sha256": "1a20c0e2fc23b97d1ed86e35a658c748997bbeb2f91fada88a1f0bf18394934e"
+  },
+  {
+    "book": 2,
+    "number": 13,
+    "title": "« Viens ! — une flûte invisible »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Viens_!_%E2%80%93_une_fl%C3%BBte_invisible_%C2%BB&oldid=9024114",
+    "lines": 12,
+    "sha256": "da88ac7c81ef1cb63b6d7ee7370b092fe1b20607ecef2bcda48cb9286b10e1a2"
+  },
+  {
+    "book": 2,
+    "number": 14,
+    "title": "Billet du matin",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Billet_du_matin&oldid=9024077",
+    "lines": 28,
+    "sha256": "1ec22705d1cc4839ab13c4bc41da99f00541ce2b95368a4d77f4c91499331187"
+  },
+  {
+    "book": 2,
+    "number": 15,
+    "title": "Paroles dans l’ombre",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Paroles_dans_l%E2%80%99ombre&oldid=9024080",
+    "lines": 20,
+    "sha256": "bc517a9dbeaafb7647a1763bdf5e23c9d62f32c82d0e4d81cfe41b38bf100308"
+  },
+  {
+    "book": 2,
+    "number": 16,
+    "title": "« L’hirondelle au printemps… »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/L%E2%80%99Hirondelle_au_printemps&oldid=9024183",
+    "lines": 14,
+    "sha256": "03d44e19b0919316c34b87a4239da85b6bab93cd50622c30c016478414b2702f"
+  },
+  {
+    "book": 2,
+    "number": 17,
+    "title": "Sous les arbres",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Sous_les_arbres&oldid=9024120",
+    "lines": 24,
+    "sha256": "b991c5bb3d256235f61e426d47fbf3483d3f7ed8b608e8c0039a4373f3c0f07c"
+  },
+  {
+    "book": 2,
+    "number": 18,
+    "title": "« Je sais bien qu’il est d’usage »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Je_sais_bien_qu%E2%80%99il_est_d%E2%80%99usage_%C2%BB&oldid=9024139",
+    "lines": 64,
+    "sha256": "a83ff3953b2420ee9ad4619991521bfc335a31bbc6701c1c366860b763465bfd"
+  },
+  {
+    "book": 2,
+    "number": 19,
+    "title": "N’envions rien",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/N%E2%80%99envions_rien&oldid=9024141",
+    "lines": 40,
+    "sha256": "a5c153a966a9aaa738f521df937016738e9d1a52f06ad93dacd4203af279fe71"
+  },
+  {
+    "book": 2,
+    "number": 20,
+    "title": "Il fait froid",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Il_fait_froid&oldid=9024144",
+    "lines": 44,
+    "sha256": "a1f22f92681a4d2516c121d59271c29ae4421380d4175d6ff66c43e7e14987b2"
+  },
+  {
+    "book": 2,
+    "number": 21,
+    "title": "« Il lui disait : Vois-tu… »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Il_lui_disait_Vois-tu,_si_tous_deux_nous_pouvions_%C2%BB&oldid=9024146",
+    "lines": 12,
+    "sha256": "5917adcad4323a6a1813c5695be511fa1a74a30604682c6133fa0c5180733628"
+  },
+  {
+    "book": 2,
+    "number": 22,
+    "title": "« Aimons toujours ! aimons encore »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Aimons_toujours_!_aimons_encore_%C2%BB&oldid=9024149",
+    "lines": 64,
+    "sha256": "0ebe4d96efe1de31ae4fb1f7116a1e07317bc852e30b36eb8cf88fd5daf0cb7b"
+  },
+  {
+    "book": 2,
+    "number": 23,
+    "title": "Après l’hiver",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Apr%C3%A8s_l%E2%80%99hiver&oldid=9024151",
+    "lines": 60,
+    "sha256": "059410d886eeb7388c56446ea21d24c0d3902c3ad6ddde46d48ef113a7ad0f8f"
+  },
+  {
+    "book": 2,
+    "number": 24,
+    "title": "« Que le sort, quel qu’il soit… »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_Que_le_sort,_quel_qu%E2%80%99il_soit,_vous_trouve_toujours_grande_%C2%BB&oldid=9024153",
+    "lines": 16,
+    "sha256": "bea333b1882d7941382bb713ddf4ad20b4ee43da87774f8c7537a55877f179ce"
+  },
+  {
+    "book": 2,
+    "number": 26,
+    "title": "Crépuscule",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Cr%C3%A9puscule&oldid=9024157",
+    "lines": 28,
+    "sha256": "4ed184f899034b771500c3b19943179b5956fc2fd7e6b9dddc4a181a22d296d7"
+  },
+  {
+    "book": 2,
+    "number": 27,
+    "title": "La nichée sous le portail",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/La_Nich%C3%A9e_sous_le_portail&oldid=9024159",
+    "lines": 32,
+    "sha256": "419c677d98f2e7df3f0b5de200fd2486282ff9165269d5455d259d68dae1d09f"
+  },
+  {
+    "book": 3,
+    "number": 1,
+    "title": "Écrit sur un exemplaire de la « Divina Commedia »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C3%89crit_sur_un_exemplaire_de_la_%C2%AB_Divina_Commedia_%C2%BB&oldid=12918384",
+    "lines": 14,
+    "sha256": "508328c5a1bba88573d3cc6066e3bf6771c2d0bc1f19908173504bef4d1d3170"
+  },
+  {
+    "book": 3,
+    "number": 4,
+    "title": "Écrit au bas d’un crucifix",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C3%89crit_au_bas_d%E2%80%99un_crucifix&oldid=9024171",
+    "lines": 4,
+    "sha256": "ccba7b0f831e69f08b84cdc58d82f91b664037946c4d6eb21bb17dcb4d1b3a69"
+  },
+  {
+    "book": 3,
+    "number": 6,
+    "title": "La source",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/La_Source&oldid=9024176",
+    "lines": 24,
+    "sha256": "ad2a79d7739131573d706573a1618c0933f5b76ffbc6a755c4cc0b911142d812"
+  },
+  {
+    "book": 3,
+    "number": 7,
+    "title": "La statue",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/La_Statue&oldid=9024179",
+    "lines": 30,
+    "sha256": "359de1ffdcf6814cc4bf34d9f6d1146e5105f4fb4a1563ea403b3a5997f03811"
+  },
+  {
+    "book": 3,
+    "number": 12,
+    "title": "Explication",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Explication&oldid=9024129",
+    "lines": 38,
+    "sha256": "0129791da09cf2e06ae544c8e8efdc8d350ee24e3a5166fdcf9a8b35da9b6a4b"
+  },
+  {
+    "book": 3,
+    "number": 14,
+    "title": "À la mère de l’enfant mort",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C3%80_la_m%C3%A8re_de_l%E2%80%99enfant_mort&oldid=9024134",
+    "lines": 32,
+    "sha256": "1c70b4ffa8cf44e7ab4e0c869ee67f5c804760a6c8aae5cef06692c47a8a75a0"
+  },
+  {
+    "book": 3,
+    "number": 15,
+    "title": "Épitaphe",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C3%89pitaphe&oldid=14169834",
+    "lines": 12,
+    "sha256": "fafaf21dec17a829f7c681c297a8cfef45beb0bf4cc50ca6bf80a1ee71ddaa4a"
+  },
+  {
+    "book": 3,
+    "number": 18,
+    "title": "Intérieur",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Int%C3%A9rieur&oldid=9024270",
+    "lines": 26,
+    "sha256": "94f4ad902717d26f4d83221029bed3af5c86336c2deeaf957db40fdc7dfe7fb0"
+  },
+  {
+    "book": 3,
+    "number": 19,
+    "title": "Baraques de la foire",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Baraques_de_la_foire&oldid=9024267",
+    "lines": 30,
+    "sha256": "d206edf72ba1576bcfd413dfdddcab85dd8f816c1320c2e508e6a30723f48ce7"
+  },
+  {
+    "book": 3,
+    "number": 21,
+    "title": "Écrit sur la plinthe d’un bas-relief antique",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C3%89crit_sur_la_plinthe_d%E2%80%99un_bas-relief_antique&oldid=9024262",
+    "lines": 26,
+    "sha256": "05b3027790791e5801b692e0bfb91b6e9044bb1a9b2c81c628fe9e01c524deec"
+  },
+  {
+    "book": 3,
+    "number": 22,
+    "title": "« La clarté du dehors… »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_La_clart%C3%A9_du_dehors_ne_distrait_pas_mon_%C3%A2me_%C2%BB&oldid=9024190",
+    "lines": 30,
+    "sha256": "dfe9eb0c83eb31da093b34f1dd9714eecb9e9c51b793e0851dc9dffb9e57aaf0"
+  },
+  {
+    "book": 3,
+    "number": 23,
+    "title": "Le revenant",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Le_Revenant&oldid=9024192",
+    "lines": 104,
+    "sha256": "ea40b57c2d9e49dabad127054025c553cbe07bf01f2456e6e5e517a2775eda65"
+  },
+  {
+    "book": 3,
+    "number": 24,
+    "title": "Aux arbres",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Aux_arbres&oldid=9024194",
+    "lines": 40,
+    "sha256": "f13a0e09ce9335505c90c84d1c0d0fa5bbe959e27a53c484c292363d45be47a4"
+  },
+  {
+    "book": 3,
+    "number": 25,
+    "title": "« L’enfant, voyant l’aïeule… »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_L%E2%80%99enfant,_voyant_l%E2%80%99a%C3%AFeule_%C3%A0_filer_occup%C3%A9e_%C2%BB&oldid=9024197",
+    "lines": 8,
+    "sha256": "41e460a8c672daa8c623e82ba457ae03219ac3918e215d6d44ff67bf449a87af"
+  },
+  {
+    "book": 3,
+    "number": 26,
+    "title": "Joies du soir",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/Joies_du_soir&oldid=9024199",
+    "lines": 48,
+    "sha256": "fbdbdb99e15899d86689bb503bb73ae6009254cdfeabf6666308d4521553249e"
+  },
+  {
+    "book": 3,
+    "number": 27,
+    "title": "« J’aime l’araignée et j’aime l’ortie »",
+    "source": "https://fr.wikisource.org/w/index.php?title=Les_Contemplations/%C2%AB_J%E2%80%99aime_l%E2%80%99araign%C3%A9e_et_j%E2%80%99aime_l%E2%80%99ortie_%C2%BB&oldid=12522317",
+    "lines": 28,
+    "sha256": "fc36d46833e87a4e0ee3e45cbd9d682ac468ba2e9f9eaabee9799e69f8aad13e"
+  }
+]

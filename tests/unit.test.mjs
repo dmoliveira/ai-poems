@@ -109,6 +109,45 @@ test('Brazilian originals retain their reviewed edition texts, evidence and disc
   assert.ok(home.includes('/ai-poems/assets/flags/br.svg'));
   assert.ok(home.includes(`Brazil</strong><small>${placeCounts(poems).find(p => p.place === 'Brazil').count} poems`));
 });
+test('French classics retain their proofread texts, edition credits and complete discovery', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/hugo-1911.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.length, 55);
+  const ids = manifest.map(item => `hugo-contemplations-${item.book}-${String(item.number).padStart(2, '0')}`);
+  assert.equal(new Set(ids).size, ids.length);
+  const selected = ids.map(id => poems.find(p => p.id === id));
+  for (const [index, item] of manifest.entries()) {
+    const poem = selected[index];
+    assert.ok(poem, ids[index]);
+    assert.equal(poem.authorId, 'victor-hugo');
+    assert.equal(poem.author, 'Victor Hugo');
+    assert.equal(poem.language, 'French');
+    assert.equal(poem.lang, 'fr');
+    assert.deepEqual(associatedPlaces(poem), ['France']);
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.match(poem.sourceTitle, /Nelson 1911/);
+    assert.match(poem.rights, /Wikisource contributors under CC BY-SA 4\.0/);
+    assert.match(poem.context, /1911.*1858 edition is linked for comparison/);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(lineCount(poem), item.lines);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'French', author: 'Victor Hugo' }).includes(poem));
+    if (item.title.startsWith('«')) assert.equal(poem.title, poem.text.split('\n')[0]);
+  }
+  const coccinelle = poems.find(p => p.id === 'hugo-contemplations-1-15');
+  const verses = poems.find(p => p.id === 'hugo-contemplations-2-02');
+  const spider = poems.find(p => p.id === 'hugo-contemplations-3-27');
+  assert.deepEqual(coccinelle.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 4, 4, 4]);
+  assert.match(verses.text, /^Mes vers fuiraient, doux et frêles,/);
+  assert.match(spider.text, /^J’aime l’araignée et j’aime l’ortie,/);
+  assert.ok(filterPoems(poems, { query: 'mes vers fuiraient' }).includes(verses));
+  assert.ok(filterPoems(poems, { query: 'araignee et j’aime l’ortie' }).includes(spider));
+  const poet = groupPoets(poems).find(p => p.id === 'victor-hugo');
+  for (const id of ids) assert.ok(poet.poems.some(p => p.id === id), id);
+  assert.ok(poet.poems.some(p => p.id === 'demain-des-laube-hugo'));
+});
 test('reviewed poet associations preserve sources, texts and legacy place filters', () => {
   const cases = [
     { id: 'castellana-072', authorId: 'andres-bello', years: '1781–1865', places: ['Venezuela', 'England', 'Chile'], source: 'https://www.gutenberg.org/files/65880/65880-h/65880-h.htm#P072', sourceTitle: 'Project Gutenberg · Las cien mejores poesías, 1910, no. 72', contextSource: 'https://uchile.cl/presentacion/historia/rectores-de-la-u-de-chile/andres-bello-lopez-1843-1865', digest: '17497bcd8cbbb154613010d62bb98115e0a8045ba32327bab819cca81565ce68' },

@@ -226,6 +226,53 @@ test('Brazilian originals support place discovery, search and static reading', a
   await staticContext.close();
 });
 
+test('expanded French classics support search, attribution and static reading', async () => {
+  const selected = poems.filter(p => p.id.startsWith('hugo-contemplations-'));
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=French#explore`);
+  const count = filterPoems(poems, { language: 'French' }).length;
+  await page.getByText(`${count} poems found`, { exact: true }).waitFor();
+  const seed = { saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } };
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('mes vers fuiraient');
+  const matches = filterPoems(poems, { language: 'French', query: 'mes vers fuiraient' });
+  await page.getByText(`${matches.length} ${matches.length === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+  const poem = selected.find(p => p.id === 'hugo-contemplations-2-02');
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'fr');
+  assert.equal(await page.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+  assert.equal(await page.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+  assert.ok((await page.locator('.source-note').textContent()).includes('CC BY-SA 4.0'));
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.deepEqual(stored.saved, seed.saved);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) {
+    assert.equal(await staticPage.locator(`#index-original-French a[href$="/poems/${item.id}/"]`).count(), 1);
+  }
+  for (const id of ['hugo-contemplations-1-15', 'hugo-contemplations-2-02', 'hugo-contemplations-3-27']) {
+    const item = poems.find(p => p.id === id);
+    await staticPage.goto(`${base}poems/${id}/`);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), item.text);
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.getByRole('link', { name: 'Victor Hugo', exact: true }).click();
+  assert.equal(new URL(staticPage.url()).pathname, '/ai-poems/poets/victor-hugo/');
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('reviewed poet places have matching counts, sources and static reader pages', async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
