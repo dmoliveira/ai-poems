@@ -6,7 +6,8 @@ import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
 import { groupPoets } from '../scripts/poets.mjs';
-import { associatedPlaces, filterPoems, placeCounts } from '../src/catalog.mjs';
+import { renderHome } from '../scripts/templates.mjs';
+import { associatedPlaces, filterPoems, placeCounts, recordedYearRanges, yearRangeCounts } from '../src/catalog.mjs';
 
 const port = 43817;
 const base = `http://127.0.0.1:${port}/ai-poems/`;
@@ -1443,6 +1444,173 @@ test('the poet directory and every linked work remain available without JavaScri
   assert.equal(await page.locator('.poet-works-list a').count(), 8);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await context.close();
+});
+
+test('recorded-year shortcuts preserve other filters and report contextual counts', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const entry = page.getByRole('link', { name: 'Browse by recorded year' });
+  await entry.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForURL('**/#year-ranges');
+  assert.equal(await page.locator('#filter-drawer').getAttribute('open'), '');
+  assert.equal(await page.locator('#advanced-filters').getAttribute('open'), '');
+  const ranges = page.locator('#year-ranges');
+  assert.equal(await ranges.evaluate(element => document.activeElement === element), true);
+  const dated = poems.filter(poem => poem.year !== null).length;
+  const unknown = poems.length - dated;
+  const countLabel = count => `${count.toLocaleString('en-US')} ${count === 1 ? 'poem' : 'poems'}`;
+  assert.ok((await ranges.textContent()).includes(`${dated.toLocaleString('en-US')} ${dated === 1 ? 'poem has' : 'poems have'} a recorded year; ${unknown.toLocaleString('en-US')} without one ${unknown === 1 ? 'is' : 'are'} excluded from year filters`));
+  assert.match(await ranges.textContent(), /composition, publication, an edition or a traditional date/);
+  assert.match(await ranges.textContent(), /Bounds are inclusive; counts reflect your other filters/);
+  const before = ranges.locator('[data-year-range="0"]');
+  const nineteenth = ranges.locator('[data-year-range="2"]');
+  assert.equal(await ranges.locator('[data-year-range]').count(), 2);
+  assert.equal(await before.locator('small').textContent(), countLabel(yearRangeCounts(poems)[0].count));
+  assert.equal(await nineteenth.locator('small').textContent(), countLabel(yearRangeCounts(poems)[2].count));
+  for (const width of [320, 390, 700, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px`);
+    for (const button of await ranges.locator('[data-year-range]').all()) {
+      const box = await button.boundingBox();
+      assert.ok(box && box.width >= 44 && box.height >= 44, `year-range target at ${width}px`);
+    }
+  }
+  await page.setViewportSize({ width: 320, height: 844 });
+  for (const theme of ['light', 'sepia', 'dark']) {
+    await page.getByLabel('Reading theme').selectOption(theme);
+    await page.getByRole('status').getByText('Theme saved.').waitFor();
+    const accessibility = await new AxeBuilder({ page }).include('#year-ranges').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], theme);
+  }
+  await page.getByLabel('Original language').selectOption('Japanese');
+  const japanese = { language: 'Japanese' };
+  const beforeJapanese = yearRangeCounts(poems, japanese)[0].count;
+  assert.equal(await before.locator('small').textContent(), countLabel(beforeJapanese));
+  assert.equal(await nineteenth.locator('small').textContent(), '0 poems');
+  assert.equal(await nineteenth.isDisabled(), true);
+  await before.focus();
+  await page.keyboard.press('Enter');
+  await page.getByText(`${beforeJapanese} ${beforeJapanese === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+  assert.equal(await page.locator('#filter-language').inputValue(), 'Japanese');
+  assert.equal(await page.locator('#filter-from').inputValue(), '');
+  assert.equal(await page.locator('#filter-to').inputValue(), '1699');
+  assert.equal(new URL(page.url()).searchParams.get('language'), 'Japanese');
+  assert.equal(new URL(page.url()).searchParams.get('to'), '1699');
+  await page.getByRole('button', { name: 'Clear all', exact: true }).click();
+  const search = page.getByLabel('Search the poetry library');
+  await search.fill('Leopardi');
+  const leopardi = { query: 'Leopardi' };
+  assert.equal(await before.isDisabled(), yearRangeCounts(poems, leopardi)[0].count === 0);
+  const nineteenthCount = yearRangeCounts(poems, leopardi)[2].count;
+  assert.equal(await nineteenth.locator('small').textContent(), countLabel(nineteenthCount));
+  await nineteenth.click();
+  await page.getByText(`${nineteenthCount} ${nineteenthCount === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+  assert.equal(await search.inputValue(), 'Leopardi');
+  assert.equal(await page.locator('#filter-from').inputValue(), '1800');
+  assert.equal(await page.locator('#filter-to').inputValue(), '1899');
+  assert.equal(new URL(page.url()).searchParams.get('q'), 'Leopardi');
+  assert.equal(new URL(page.url()).searchParams.get('from'), '1800');
+  assert.equal(new URL(page.url()).searchParams.get('to'), '1899');
+  await page.goBack();
+  await page.getByText(totalText).waitFor();
+  assert.equal(await search.inputValue(), '');
+  assert.equal(new URL(page.url()).searchParams.has('from'), false);
+  await context.close();
+});
+
+test('recorded-year links reopen the filters on mobile after reload and browser history', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const url = `${base}?language=Japanese#year-ranges`;
+  const verify = async () => {
+    const ranges = page.locator('#year-ranges');
+    await ranges.waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#filter-drawer').getAttribute('open'), '');
+    assert.equal(await page.locator('#advanced-filters').getAttribute('open'), '');
+    assert.equal(await page.locator('#filter-language').inputValue(), 'Japanese');
+    assert.equal(await ranges.locator('[data-year-range="0"] small').textContent(), '1 poem');
+    assert.equal(await ranges.locator('[data-year-range="2"]').isDisabled(), true);
+    assert.ok(await ranges.evaluate(element => {
+      const box = element.getBoundingClientRect();
+      return box.top >= 0 && box.top < innerHeight;
+    }), 'year controls are scrolled into view');
+  };
+  await page.goto(url);
+  await verify();
+  await page.reload();
+  await verify();
+  await page.goto(`${base}?language=Japanese#explore`);
+  await page.goBack();
+  await verify();
+  await context.close();
+});
+
+test('all recorded-year shortcuts honor synthetic boundary years and unknown dates', async () => {
+  const years = [-44, 0, 1699, 1700, 1799, 1800, 1899, 1900, 1999, 2000, 2026, null];
+  const sample = years.map((year, index) => ({ ...poems[0], id: `year-sample-${index}`, title: `Year sample ${index}`, displayTitle: `Year sample ${index}`, year, yearLabel: year === null ? 'Exact year unknown' : `Recorded ${year}` }));
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route('**/ai-poems/', route => route.fulfill({ contentType: 'text/html; charset=utf-8', body: renderHome(sample, '/ai-poems/') }));
+  await page.route('**/data/catalog.json', route => route.fulfill({ contentType: 'application/json; charset=utf-8', body: JSON.stringify(sample) }));
+  await page.goto(base);
+  await page.getByText('12 poems found', { exact: true }).waitFor();
+  await page.getByRole('link', { name: 'Browse by recorded year' }).click();
+  const ranges = page.locator('#year-ranges');
+  assert.match(await ranges.textContent(), /11 poems have a recorded year; 1 without one is excluded from year filters/);
+  assert.equal(await ranges.locator('[data-year-range]').count(), recordedYearRanges.length);
+  for (const [index, range] of recordedYearRanges.entries()) {
+    const expected = filterPoems(sample, { from: range.from, to: range.to }).map(poem => poem.id).sort();
+    const button = ranges.locator(`[data-year-range="${index}"]`);
+    assert.equal(await button.locator('small').textContent(), `${expected.length} poems`);
+    await button.click();
+    await page.waitForFunction(ids => [...document.querySelectorAll('#results .poem-card-link')].map(link => new URL(link.href).pathname.split('/').filter(Boolean).at(-1)).sort().join(',') === ids.join(','), expected);
+    assert.equal(await page.locator('#filter-from').inputValue(), range.from);
+    assert.equal(await page.locator('#filter-to').inputValue(), range.to);
+    assert.equal(new URL(page.url()).searchParams.get('from') || '', range.from);
+    assert.equal(new URL(page.url()).searchParams.get('to') || '', range.to);
+  }
+  await context.close();
+});
+
+test('a catalogue without recorded years has no empty shortcut entry', async () => {
+  const sample = [{ ...poems[0], year: null }];
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route('**/ai-poems/', route => route.fulfill({ contentType: 'text/html; charset=utf-8', body: renderHome(sample, '/ai-poems/') }));
+  await page.route('**/data/catalog.json', route => route.fulfill({ contentType: 'application/json; charset=utf-8', body: JSON.stringify(sample) }));
+  await page.goto(base);
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  assert.equal(await page.locator('.year-range-entry').count(), 0);
+  assert.equal(await page.locator('#year-ranges').count(), 0);
+  await page.locator('#filter-summary').click();
+  await page.locator('#advanced-filters summary').click();
+  assert.equal(await page.getByText(/No poems currently have a recorded year/).isVisible(), true);
+  await page.getByLabel('From year').fill('0');
+  await page.getByText('0 poems found', { exact: true }).waitFor();
+  await context.close();
+});
+
+test('recorded-year entry does not become a dead control without JavaScript or catalogue access', async () => {
+  for (const mode of ['no JavaScript', 'catalogue failure', 'module failure']) {
+    const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: mode !== 'no JavaScript', reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    if (mode === 'catalogue failure') await page.route('**/data/catalog.json', route => route.abort());
+    if (mode === 'module failure') await page.route('**/app.mjs', route => route.abort());
+    await page.goto(base);
+    if (mode === 'catalogue failure') await page.getByText(/The library could not load/).waitFor();
+    const seed = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } });
+    await page.evaluate(value => localStorage.setItem('verso-library-v1', value), seed);
+    assert.equal(await page.locator('.year-range-entry').isVisible(), false, mode);
+    assert.equal(await page.locator('[data-year-range]').first().isDisabled(), true, mode);
+    await page.locator('#complete-index summary').click();
+    assert.equal(await page.locator('#complete-index').getAttribute('open'), '', mode);
+    assert.equal(await page.locator('#complete-index').getByRole('link', { name: /The Old Pond — Matsuo Bashō/ }).count(), 1, mode);
+    assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), seed, mode);
+    await context.close();
+  }
 });
 
 test('discovery cards show matching poets and counts and lead to the same filters', async () => {

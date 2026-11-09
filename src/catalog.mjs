@@ -52,6 +52,20 @@ export function filterPoems(poems, filters = {}) {
   });
 }
 
+export const recordedYearRanges = [
+  { label: 'Before 1700', from: '', to: '1699' },
+  { label: '1700–1799', from: '1700', to: '1799' },
+  { label: '1800–1899', from: '1800', to: '1899' },
+  { label: '1900–1999', from: '1900', to: '1999' },
+  { label: '2000 onward', from: '2000', to: '' },
+];
+
+// Compare ranges against the other filters, not against the current year bounds.
+export function yearRangeCounts(poems, filters = {}) {
+  const matches = filterPoems(poems, { ...filters, from: '', to: '' });
+  return recordedYearRanges.map(range => ({ ...range, count: filterPoems(matches, { from: range.from, to: range.to }).length }));
+}
+
 export const countedFilters = ['author', 'language', 'country', 'collection', 'form', 'length', 'theme', 'translation'];
 
 // Each option is counted against all other active filters, not its own.
