@@ -1,0 +1,96 @@
+{
+  "gutenbergSha256": "d914607929d57348ad993ba3f4f582bd2cdcd4d7f131f652ef0715579cef85f1",
+  "scanSha256": {
+    "francis-scan-37.jpg": "001799e5c887b45b2ff6607db4941329647eac2c49f3743902fcc0035fdae299",
+    "francis-scan-38.jpg": "08f6d67f72a7cdceaf21ce1eca013ba71d38d672e9ddb430557c20942574732c",
+    "ferri-scan-39.jpg": "dc00f761fafe8781c5436f5b159e4fdbba097aa8b06611e40a0baacf9b78da70",
+    "ferri-scan-65.jpg": "f52b001ddf6887d8e94a17da459633f06cd0ca96c4b9f6dbc6c4d1d283d529ff",
+    "ferri-scan-71.jpg": "ac0d2daa9d6ffd87a0757c2465f58e0d61fef31126d2c793010430850d2c5889",
+    "ferri-scan-72.jpg": "ad34b9ab6e8f20db300e3c93742ea6743746d80f8d81fa84fab9a30ef8bd1590",
+    "ferri-scan-73.jpg": "31c239f1004db4d7e9eb8cc339f28994af1343ea6082889bbcbab4cc7dcabdf5",
+    "ferri-scan-236.jpg": "82e87a4ac840b0c908c933ab0af646e80d090e6ce4af16aa88948e056ea6a41f",
+    "ferri-scan-237.jpg": "9b2faf3178b68639c509c8d2198e25e980d304895983060c1329c0202e03a883",
+    "ferri-scan-238.jpg": "d3e5ecdfb471f59eece68854625ca601a6d3e3c9099e7696c55d5700afaa88cd"
+  },
+  "francis": {
+    "source": "https://it.wikisource.org/w/index.php?title=Laudes_creaturarum_(Lucas)&oldid=3719546",
+    "sourceTextSha256": "3a9561798c7864cbf1dc192ffb9300eaaf846a9b338d408e2feea9b151808718",
+    "comparison": "https://it.wikisource.org/w/index.php?title=Cantico_di_Frate_Sole&oldid=3676436",
+    "comparisonTextSha256": "b9faf08903d65853537e3caa56fccf72ccfc2532325654905b9331570c675594",
+    "textSha256": "d086561e9b4faf85c5ff5eee31c60c08b3c87f64183e89fad2a3bfa65f1a9028",
+    "stanzas": [4, 5, 2, 3, 2, 3, 3, 4, 5, 2]
+  },
+  "jacopone": [
+    {
+      "number": 18,
+      "roman": "XVIII",
+      "title": "Como l’omo è acecato dal mondo",
+      "pages": [39],
+      "source": "https://it.wikisource.org/w/index.php?title=Le_Laude_(1915)/XVIII._Como_l%27omo_%C3%A8_acecato_dal_mondo&oldid=3719865",
+      "sourceTextSha256": "d3dc7200a72cbfa58a26de5c9a06d10bebed86ac125e858dbcb9726f2658a6f5",
+      "gutenbergTextSha256": "43a5f7d66567cb3eda9678826a18b3bf28ef4250a929f99509e3de84bcd30862",
+      "comparisonDifferences": [10, 11],
+      "corrections": [{"line": 11, "before": "einbrigato", "after": "embrigato"}],
+      "stanzas": [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+      "textSha256": "ea2f91743859c1d33a95a6190a6e7396c5bef1ef360dbb30d086dc7d9f969b78",
+      "note": "The scan reads embrigato, where the Wikisource transcription has einbrigato."
+    },
+    {
+      "number": 28,
+      "roman": "XXVIII",
+      "title": "De la impazienzia che fa tutti li beni perdere",
+      "pages": [65],
+      "source": "https://it.wikisource.org/w/index.php?title=Le_Laude_(1915)/XXVIII._De_la_impazienzia_che_fa_tutti_li_beni_perdere&oldid=3719875",
+      "sourceTextSha256": "fef50bbbeb6a74512220cd22bf89ebc89c71529c2147cc3b76059ccc14724f76",
+      "gutenbergTextSha256": "2dba3583fc58ac6184fd1b810fd6f56cacfb2744c65ca6899e208e67e244de26",
+      "comparisonDifferences": [7],
+      "corrections": [{"line": 7, "before": "piacenza", "after": "placenza"}],
+      "stanzas": [1, 2, 2, 2, 2, 2, 2, 2],
+      "textSha256": "e77c2ae925a2dd230088a74fe20fb2446293520c15938cb3d3b0cb120fc7e038",
+      "note": "The scan reads placenza, where the Wikisource transcription has piacenza."
+    },
+    {
+      "number": 32,
+      "roman": "XXXII",
+      "title": "Como è da guardarse da’ lupi che vengono sotto vesta de pecora",
+      "pages": [71],
+      "source": "https://it.wikisource.org/w/index.php?title=Le_Laude_(1915)/XXXII._Como_%C3%A8_da_guardarse_da%27_lupi_che_vengono_sotto_la_vesta_da_pecora&oldid=3719879",
+      "sourceTextSha256": "74bb84b01a28a5eeea229b9df9b62062ddde5acd00e74c5300b64c8c0f31f4a2",
+      "gutenbergTextSha256": "90a99a2e41eb2506d36cbdcde8cbd87a9ae4e37195af91cae82c2c0021dee42c",
+      "comparisonDifferences": [5, 22, 27],
+      "corrections": [],
+      "stanzas": [2, 4, 4, 4, 4, 4, 4, 4],
+      "textSha256": "304371e3142eb021ce0eaade5374d079b814d6c287b2e89b920d67f5a9cc8314",
+      "note": "The scan reads vol fidare, while the Gutenberg transcription reads voi fidare."
+    },
+    {
+      "number": 33,
+      "roman": "XXXIII",
+      "title": "De l’amore falso che offende le virtú",
+      "pages": [72, 73],
+      "source": "https://it.wikisource.org/w/index.php?title=Le_Laude_(1915)/XXXIII._De_l%27amore_falso_che_offende_le_virt%C3%B9&oldid=3719880",
+      "sourceTextSha256": "9a334e7d89f76ba54e617aa352c640fafc69667112a8ad3de6de15c40920ef0f",
+      "gutenbergTextSha256": "f0d9d44b74c0dae3b98103b7224cbaddf1052f74fe4b82982d9a536709436e59",
+      "comparisonDifferences": [16, 21, 23],
+      "corrections": [{"line": 16, "before": "ensanito:", "after": "ensanito;"}, {"line": 23, "before": "ventate", "after": "veritate"}],
+      "stanzas": [2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+      "textSha256": "2b9f7e8bb0cc00a1b411d335e27737d1b097491cebe8e76991acb8b0a29f462e",
+      "note": "The scan reads veritate rather than the Wikisource transcription’s ventate; its punctuation also differs."
+    },
+    {
+      "number": 93,
+      "roman": "XCIII",
+      "title": "Pianto de la Madonna de la passione del figliolo Iesú Cristo",
+      "displayTitle": "Donna del paradiso",
+      "pages": [236, 237, 238],
+      "source": "https://it.wikisource.org/w/index.php?title=Le_Laude_(1915)/XCIII._Pianto_de_la_Madonna_de_la_passione_del_figliolo_Ies%C3%B9_Cristo&oldid=3719839",
+      "sourceTextSha256": "164d4f96503bfd08146da96fd18d416a2d9bed421976cbe15bd78894a9a4398e",
+      "gutenbergTextSha256": "e144cca006d20bf5509ba04092665825e6cc0ad9bc4443ad8a6def83d338e205",
+      "comparisonDifferences": [21, 55, 64],
+      "corrections": [{"line": 55, "before": "está", "after": "esta"}, {"line": 64, "before": "batte", "after": "hatte"}],
+      "stanzas": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+      "textSha256": "5e1554647d942d3033facb78dcd6b0087c72ebf39a845dce8188d0b0a5cf0442",
+      "note": "The 1915 scan prints hatte, while the Wikisource transcription has batte; the reason for the difference is not established."
+    }
+  ]
+}
