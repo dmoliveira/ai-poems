@@ -363,6 +363,51 @@ test('Machado originals support Brazilian discovery, source credits and static r
   await staticContext.close();
 });
 
+test('Bashō travel verses support Japanese search, credits and static reading', async () => {
+  const selected = poems.filter(p => p.id.startsWith('basho-oku-'));
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Japanese#explore`);
+  const count = filterPoems(poems, { language: 'Japanese' }).length;
+  await page.getByText(`${count} poems found`, { exact: true }).waitFor();
+  const seed = { saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } };
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('閑さや岩にしみ入る');
+  const matches = filterPoems(poems, { language: 'Japanese', query: '閑さや岩にしみ入る' });
+  await page.getByText(`${matches.length} ${matches.length === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+  const poem = selected.find(p => p.id === 'basho-oku-22');
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'ja');
+  assert.equal(await page.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+  assert.equal(await page.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+  assert.ok((await page.locator('.source-note').textContent()).includes('CC BY-SA 4.0'));
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.deepEqual(stored.saved, seed.saved);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-Japanese a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const id of ['basho-oku-20', 'basho-oku-22', 'basho-oku-38', 'basho-oku-40', 'old-pond-basho', 'summer-grass-basho', 'mogami-river-basho']) {
+    const item = poems.find(p => p.id === id);
+    await staticPage.goto(`${base}poems/${id}/`);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), item.text);
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.getByRole('link', { name: 'Matsuo Bashō', exact: true }).click();
+  assert.equal(new URL(staticPage.url()).pathname, '/ai-poems/poets/matsuo-basho/');
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('reviewed poet places have matching counts, sources and static reader pages', async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -464,10 +509,18 @@ test('filter option counts follow the other filters without changing values or a
 test('length filters and search journeys work on mobile', async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
-  await page.goto(`${base}?country=Italy&length=5-14#explore`);
-  assert.equal(await page.locator('#advanced-filters').getAttribute('open'), '');
+  let releaseCatalogue;
+  const catalogueGate = new Promise(resolve => { releaseCatalogue = resolve; });
+  await page.route('**/data/catalog.json', async route => { await catalogueGate; await route.continue(); });
+  const requested = page.waitForRequest('**/data/catalog.json');
+  try {
+    await page.goto(`${base}?country=Italy&length=5-14#explore`, { waitUntil: 'commit' });
+    await requested;
+    assert.equal(await page.locator('#advanced-filters').getAttribute('open'), null);
+  } finally { releaseCatalogue(); }
   const shortCount = filterPoems(poems, { country: 'Italy', length: '5-14' }).length;
   await page.getByText(`${shortCount} ${shortCount === 1 ? 'poem' : 'poems'} found`).waitFor();
+  assert.equal(await page.locator('#advanced-filters').getAttribute('open'), '');
   assert.equal(await page.locator('#results').getByText('La ricordanza').count(), 1);
   assert.equal(await page.getByRole('button', { name: 'Remove Length: 5–14 lines filter' }).count(), 1);
   await page.getByRole('button', { name: 'Remove Length: 5–14 lines filter' }).click();
@@ -1399,7 +1452,7 @@ test('Japanese additions are searchable and readable on mobile with and without 
   await page.goto(`${base}?language=Japanese&country=Japan#explore`);
   const japanese = filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length;
   await page.getByText(`${japanese} poems found`).waitFor();
-  assert.equal(japanese, 5);
+  assert.equal(japanese, 5 + poems.filter(p => p.id.startsWith('basho-oku-')).length);
   await page.getByLabel('Search the poetry library').fill('のたりのたり');
   await page.getByText('1 poem found').waitFor();
   const result = page.locator('#results .poem-card-link');
@@ -1920,7 +1973,7 @@ test('the poet directory and every linked work remain available without JavaScri
   assert.equal(await page.locator('.poet-directory [data-author="Matsuo Bashō"] [lang="ja"]').textContent(), '松尾芭蕉');
   await page.locator('.poet-directory [data-author="Matsuo Bashō"]').click();
   assert.equal(new URL(page.url()).pathname, '/ai-poems/poets/matsuo-basho/');
-  assert.equal(await page.locator('.poet-works-list a').count(), 3);
+  assert.equal(await page.locator('.poet-works-list a').count(), groupPoets(poems).find(poet => poet.id === 'matsuo-basho').poems.length);
   assert.equal(await page.getByRole('link', { name: /Filter these poems/ }).count(), 0);
   await page.locator('.poet-works-list').getByRole('link', { name: /The Old Pond/ }).click();
   assert.equal(await page.locator('#original-panel .verse').textContent(), '古池や蛙とびこむ水の音');
@@ -2326,10 +2379,19 @@ test('the sourced sonnet path works without JavaScript or catalogue access', asy
 test('editorial paths lead to short poems and the sourced edition sequence', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
-  await page.goto(base);
+  let releaseCatalogue;
+  const catalogueGate = new Promise(resolve => { releaseCatalogue = resolve; });
+  await page.route('**/data/catalog.json', async route => { await catalogueGate; await route.continue(); });
+  const requested = page.waitForRequest('**/data/catalog.json');
   const paths = page.getByRole('navigation', { name: 'Suggested reading paths' });
   const short = filterPoems(poems, { length: '1-4' }).length;
-  assert.equal(await paths.getByText(`${short.toLocaleString('en-US')} poems · lines in the original`).isVisible(), true);
+  const shortCount = paths.getByText(`${short.toLocaleString('en-US')} poems · lines in the original`);
+  try {
+    await page.goto(base, { waitUntil: 'commit' });
+    await requested;
+    assert.equal(await shortCount.isVisible(), false);
+  } finally { releaseCatalogue(); }
+  await shortCount.waitFor({ state: 'visible' });
   const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
   const shortLink = paths.getByRole('link', { name: /Poems in 1–4 lines/ });
