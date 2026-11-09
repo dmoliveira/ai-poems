@@ -509,10 +509,18 @@ test('filter option counts follow the other filters without changing values or a
 test('length filters and search journeys work on mobile', async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
-  await page.goto(`${base}?country=Italy&length=5-14#explore`);
-  assert.equal(await page.locator('#advanced-filters').getAttribute('open'), '');
+  let releaseCatalogue;
+  const catalogueGate = new Promise(resolve => { releaseCatalogue = resolve; });
+  await page.route('**/data/catalog.json', async route => { await catalogueGate; await route.continue(); });
+  const requested = page.waitForRequest('**/data/catalog.json');
+  try {
+    await page.goto(`${base}?country=Italy&length=5-14#explore`, { waitUntil: 'commit' });
+    await requested;
+    assert.equal(await page.locator('#advanced-filters').getAttribute('open'), null);
+  } finally { releaseCatalogue(); }
   const shortCount = filterPoems(poems, { country: 'Italy', length: '5-14' }).length;
   await page.getByText(`${shortCount} ${shortCount === 1 ? 'poem' : 'poems'} found`).waitFor();
+  assert.equal(await page.locator('#advanced-filters').getAttribute('open'), '');
   assert.equal(await page.locator('#results').getByText('La ricordanza').count(), 1);
   assert.equal(await page.getByRole('button', { name: 'Remove Length: 5–14 lines filter' }).count(), 1);
   await page.getByRole('button', { name: 'Remove Length: 5–14 lines filter' }).click();
@@ -2371,10 +2379,19 @@ test('the sourced sonnet path works without JavaScript or catalogue access', asy
 test('editorial paths lead to short poems and the sourced edition sequence', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
-  await page.goto(base);
+  let releaseCatalogue;
+  const catalogueGate = new Promise(resolve => { releaseCatalogue = resolve; });
+  await page.route('**/data/catalog.json', async route => { await catalogueGate; await route.continue(); });
+  const requested = page.waitForRequest('**/data/catalog.json');
   const paths = page.getByRole('navigation', { name: 'Suggested reading paths' });
   const short = filterPoems(poems, { length: '1-4' }).length;
-  assert.equal(await paths.getByText(`${short.toLocaleString('en-US')} poems · lines in the original`).isVisible(), true);
+  const shortCount = paths.getByText(`${short.toLocaleString('en-US')} poems · lines in the original`);
+  try {
+    await page.goto(base, { waitUntil: 'commit' });
+    await requested;
+    assert.equal(await shortCount.isVisible(), false);
+  } finally { releaseCatalogue(); }
+  await shortCount.waitFor({ state: 'visible' });
   const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
   const shortLink = paths.getByRole('link', { name: /Poems in 1–4 lines/ });
