@@ -194,6 +194,51 @@ test('Italian classics retain reviewed texts, edition caveats and complete disco
     assert.ok(poet.poems.some(p => p.id === id), id);
   }
 });
+test('Machado originals retain scan-reviewed readings, credits and discovery', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/machado-reviewed.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.length, 23);
+  const ids = manifest.map(item => `machado-${item.slug}`);
+  assert.equal(new Set(ids).size, ids.length);
+  for (const item of manifest) {
+    const poem = poems.find(p => p.id === `machado-${item.slug}`);
+    assert.ok(poem, item.slug);
+    assert.equal(poem.author, 'Machado de Assis');
+    assert.equal(poem.authorId, 'machado-de-assis');
+    assert.equal(poem.authorYears, '1839–1908');
+    assert.deepEqual(associatedPlaces(poem), ['Brazil']);
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.match(poem.sourceTitle, new RegExp(String(item.edition)));
+    assert.match(poem.rights, /Wikisource contributors under CC BY-SA 4\.0/);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(lineCount(poem), item.lines);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Brazil', author: 'Machado de Assis' }).includes(poem));
+    for (const correction of item.corrections) {
+      assert.equal(poem.text.split('\n').filter(Boolean)[correction.line - 1], correction.after);
+      assert.ok(correction.scanPage > 0);
+    }
+  }
+  for (const slug of ['o-corvo', 'to-be-or-not-to-be', 'dante', 'a-elvira', 'lyra-chineza']) assert.ok(!ids.includes(`machado-${slug}`));
+  const faith = poems.find(p => p.id === 'machado-fe');
+  const charity = poems.find(p => p.id === 'machado-caridade');
+  const visio = poems.find(p => p.id === 'machado-visio');
+  assert.deepEqual(faith.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 4, 4, 4, 4]);
+  assert.match(faith.context, /epigraph.*authorship is disputed/);
+  assert.match(charity.text, /Dando-lhes leito e pão, guarida e amor\.$/);
+  assert.match(charity.text, /Parou\. E na anciedade ainda o mesmo encanto\nDescia-lhe/);
+  assert.match(visio.text, /Entre lagrimas luziam/);
+  assert.match(visio.text, /Com o olhar indifferente/);
+  assert.match(poems.find(p => p.id === 'machado-lindoya').context, /Basílio da Gama’s O Uraguai/);
+  assert.ok(filterPoems(poems, { theme: 'Faith', query: 'oracoes dos homens' }).includes(faith));
+  assert.ok(filterPoems(poems, { query: 'bailando no ar' }).some(p => p.id === 'machado-circulo-vicioso'));
+  const poet = groupPoets(poems).find(p => p.id === 'machado-de-assis');
+  for (const id of ids) assert.ok(poet.poems.some(p => p.id === id), id);
+});
 test('reviewed poet associations preserve sources, texts and legacy place filters', () => {
   const cases = [
     { id: 'castellana-072', authorId: 'andres-bello', years: '1781–1865', places: ['Venezuela', 'England', 'Chile'], source: 'https://www.gutenberg.org/files/65880/65880-h/65880-h.htm#P072', sourceTitle: 'Project Gutenberg · Las cien mejores poesías, 1910, no. 72', contextSource: 'https://uchile.cl/presentacion/historia/rectores-de-la-u-de-chile/andres-bello-lopez-1843-1865', digest: '17497bcd8cbbb154613010d62bb98115e0a8045ba32327bab819cca81565ce68' },
