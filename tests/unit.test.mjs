@@ -378,6 +378,61 @@ test('al-Mutanabbī poems retain their reviewed scan readings, comparison notes 
   const existing = poems.find(p => p.id === 'let-the-days-do-as-they-will');
   assert.equal(createHash('sha256').update(existing.text).digest('hex'), 'a03835cb05af40ff28c11f5887acf29c18fda7cfe0272774b0826aa8c74d7809');
 });
+test('Francis and Jacopone originals retain reviewed editions and separate witnesses', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/francis-jacopone-reviewed.json', import.meta.url), 'utf8'));
+  const francis = poems.find(p => p.id === 'francis-laudes-creaturarum');
+  assert.ok(francis);
+  const selected = [francis, ...manifest.jacopone.map(item => {
+    const poem = poems.find(p => p.id === `jacopone-ferri-${String(item.number).padStart(2, '0')}`);
+    assert.ok(poem, item.roman);
+    assert.equal(poem.authorId, 'jacopone-da-todi');
+    assert.equal(poem.authorOriginal, 'Iacopone da Todi');
+    assert.equal(poem.source, item.source);
+    assert.equal(lineCount(poem), item.stanzas.reduce((sum, size) => sum + size, 0));
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.textSha256);
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.context, /same edition, not independent historical editions/);
+    return poem;
+  })];
+  assert.equal(selected.length, 6);
+  assert.equal(francis.authorId, 'francis-of-assisi');
+  assert.equal(francis.authorOriginal, 'Francesco d’Assisi');
+  assert.equal(francis.source, manifest.francis.source);
+  assert.equal(francis.contextSource, manifest.francis.comparison);
+  assert.equal(lineCount(francis), 33);
+  assert.equal(createHash('sha256').update(francis.text).digest('hex'), manifest.francis.textSha256);
+  assert.match(francis.text, /^Altissimu onnipotente bon signore,\nTue so le laude/);
+  assert.match(francis.text, /La quale è molto utile e humele e pretiosa e casta\./);
+  assert.match(francis.text, /Et serviateli cum grande humilitate\. Amen\.$/);
+  assert.match(francis.context, /1910.*Codex 338 transcription is a separate comparison/);
+  assert.match(francis.context, /lu jorno allumeni per nui.*è iorno et allumini noi per loi/);
+  const passion = selected.find(p => p.id === 'jacopone-ferri-93');
+  assert.match(passion.text, /figlio, hatte la gente — malamente trattato!/);
+  assert.doesNotMatch(passion.text, /figlio, batte la gente/);
+  assert.equal(passion.displayTitle, 'Donna del paradiso');
+  assert.ok(filterPoems(poems, { query: 'Iacopone' }).includes(passion));
+  assert.ok(filterPoems(poems, { query: 'Donna del paradiso' }).includes(passion));
+  for (const poem of selected) {
+    assert.equal(poem.language, 'Italian');
+    assert.equal(poem.lang, 'it');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(associatedPlaces(poem), ['Italy']);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*check local law/);
+    assert.ok(filterPoems(poems, { language: 'Italian', country: 'Italy', author: poem.author, query: poem.title }).includes(poem));
+    assert.match(renderPoem(poem, poems, '/ai-poems/'), /<dt>Created in<\/dt><dd>Not established<\/dd>/);
+  }
+  assert.deepEqual(francis.themes, ['Faith', 'Nature']);
+  assert.deepEqual(passion.themes, ['Faith']);
+  for (const poem of selected.filter(p => p.authorId === 'jacopone-da-todi' && p.id !== passion.id)) assert.deepEqual(poem.themes, []);
+  for (const [id, count] of [['francis-of-assisi', 1], ['jacopone-da-todi', 5]]) {
+    const poet = groupPoets(poems).find(p => p.id === id);
+    assert.equal(poet.poems.length, count);
+    for (const poem of selected.filter(p => p.authorId === id)) assert.ok(poet.poems.some(p => p.id === poem.id));
+  }
+});
 test('reviewed poet associations preserve sources, texts and legacy place filters', () => {
   const cases = [
     { id: 'castellana-072', authorId: 'andres-bello', years: '1781–1865', places: ['Venezuela', 'England', 'Chile'], source: 'https://www.gutenberg.org/files/65880/65880-h/65880-h.htm#P072', sourceTitle: 'Project Gutenberg · Las cien mejores poesías, 1910, no. 72', contextSource: 'https://uchile.cl/presentacion/historia/rectores-de-la-u-de-chile/andres-bello-lopez-1843-1865', digest: '17497bcd8cbbb154613010d62bb98115e0a8045ba32327bab819cca81565ce68' },
