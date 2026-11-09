@@ -239,6 +239,41 @@ test('Machado originals retain scan-reviewed readings, credits and discovery', a
   const poet = groupPoets(poems).find(p => p.id === 'machado-de-assis');
   for (const id of ids) assert.ok(poet.poems.some(p => p.id === id), id);
 });
+test('Bashō travel verses retain reviewed originals, attribution and source variants', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/basho-oku-reviewed.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.length, 40);
+  assert.equal(new Set(manifest.map(item => item.number)).size, 40);
+  const ids = manifest.map(item => `basho-oku-${String(item.number).padStart(2, '0')}`);
+  for (const [index, item] of manifest.entries()) {
+    const poem = poems.find(p => p.id === ids[index]);
+    assert.ok(poem, ids[index]);
+    assert.equal(poem.authorId, 'matsuo-basho');
+    assert.equal(poem.authorOriginal, '松尾芭蕉');
+    assert.equal(poem.language, 'Japanese');
+    assert.equal(poem.lang, 'ja');
+    assert.deepEqual(associatedPlaces(poem), ['Japan']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.match(poem.rights, /Wikisource transcription by contributors under CC BY-SA 4\.0/);
+    assert.equal(poem.text, item.text);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.equal(lineCount(poem), 1);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Japanese', country: 'Japan', author: 'Matsuo Bashō', query: poem.text }).includes(poem));
+  }
+  assert.ok(!ids.includes('basho-oku-16'));
+  assert.ok(!ids.includes('basho-oku-23'));
+  assert.equal(poems.find(p => p.id === 'basho-oku-20').text, '這ひ出でよかひやが下の蟾の聲');
+  assert.match(poems.find(p => p.id === 'basho-oku-20').context, /scan reads かひや.*transcription reads かいや/);
+  assert.equal(poems.find(p => p.id === 'basho-oku-38').text, 'あかあかと日はつれなくも秋の風');
+  assert.equal(poems.find(p => p.id === 'basho-oku-40').text, 'むざんやな兜の下のきりぎりす');
+  assert.match(poems.find(p => p.id === 'basho-oku-22').context, /しみ入る.*しみ込/);
+  assert.match(poems.find(p => p.id === 'basho-oku-35').context, /右.*道/);
+  const poet = groupPoets(poems).find(p => p.id === 'matsuo-basho');
+  for (const id of [...ids, 'old-pond-basho', 'summer-grass-basho', 'mogami-river-basho']) assert.ok(poet.poems.some(p => p.id === id), id);
+});
 test('reviewed poet associations preserve sources, texts and legacy place filters', () => {
   const cases = [
     { id: 'castellana-072', authorId: 'andres-bello', years: '1781–1865', places: ['Venezuela', 'England', 'Chile'], source: 'https://www.gutenberg.org/files/65880/65880-h/65880-h.htm#P072', sourceTitle: 'Project Gutenberg · Las cien mejores poesías, 1910, no. 72', contextSource: 'https://uchile.cl/presentacion/historia/rectores-de-la-u-de-chile/andres-bello-lopez-1843-1865', digest: '17497bcd8cbbb154613010d62bb98115e0a8045ba32327bab819cca81565ce68' },
@@ -507,8 +542,9 @@ test('Japanese additions preserve sourced edition readings and leave translation
   }
   assert.match(poems.find(p => p.id === 'mogami-river-basho').context, /涼し as a variant/);
   assert.match(poems.find(p => p.id === 'spring-sea-buson').context, /repetition mark.*place.*debated/);
-  assert.equal(filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length, 5);
-  assert.equal(filterPoems(poems, { query: '松尾芭蕉' }).length, 3);
+  const laterBasho = poems.filter(p => p.id.startsWith('basho-oku-')).length;
+  assert.equal(filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length, 5 + laterBasho);
+  assert.equal(filterPoems(poems, { query: '松尾芭蕉' }).length, 3 + laterBasho);
   assert.equal(filterPoems(poems, { query: '与謝蕪村' }).length, 2);
 });
 test('Italian additions retain early-edition texts and separately sourced translations', () => {
