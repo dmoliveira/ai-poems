@@ -847,6 +847,23 @@ h2 em {
   font-size: 11px;
   font-weight: 700;
 }
+.explore-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 18px;
+}
+.year-range-entry {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--olive-dark);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .search-bar {
   background: var(--paper);
   border: 1px solid var(--line);
@@ -959,6 +976,62 @@ h2 em {
 }
 .year-inputs input {
   min-width: 0;
+}
+.year-ranges {
+  min-width: 0;
+  margin: 16px 0 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+.year-ranges:focus-visible {
+  outline: 3px solid #a26942;
+  outline-offset: 3px;
+}
+.year-ranges legend {
+  padding: 0 8px 0 0;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+.year-coverage {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.year-range-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+.year-range-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--bg);
+  color: var(--ink);
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+}
+.year-range-list button:hover:not(:disabled) {
+  border-color: var(--olive);
+}
+.year-range-list button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.year-range-list small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+  white-space: nowrap;
 }
 .filter-note {
   font-size: 11px;
@@ -1954,6 +2027,9 @@ h2 em {
     align-items: start;
     flex-direction: column;
     gap: 15px;
+  }
+  .explore-heading-actions {
+    justify-content: flex-start;
   }
   .section-heading h2,
   .poets-section h2,

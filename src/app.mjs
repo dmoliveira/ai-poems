@@ -1,4 +1,4 @@
-import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml as e, filterPoems, normalize, poemCard, readingLanguages, surprisePoem } from './catalog.mjs';
+import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml as e, filterPoems, normalize, poemCard, readingLanguages, recordedYearRanges, surprisePoem, yearRangeCounts } from './catalog.mjs';
 
 const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
@@ -351,6 +351,8 @@ function setupExplore() {
   const summary = document.querySelector('#filter-summary');
   const chips = document.querySelector('#active-filters');
   const fields = Object.fromEntries(['author', 'theme', 'form', 'length', 'language', 'translation', 'readable', 'country', 'collection', 'from', 'to'].map(name => [name, document.querySelector(`#filter-${name}`)]));
+  const yearRanges = document.querySelector('#year-ranges');
+  const yearButtons = [...document.querySelectorAll('[data-year-range]')];
   const search = document.querySelector('#search');
   const sort = document.querySelector('#sort');
   const pageSize = 8;
@@ -390,6 +392,14 @@ function setupExplore() {
       const counts = contextualCounts(poems, filters);
       for (const name of countedFilters) for (const option of fields[name].options) {
         option.textContent = `${option.dataset.label} (${(counts[name].get(option.value) || 0).toLocaleString('en-US')})`;
+      }
+      if (yearButtons.length) {
+        const ranges = yearRangeCounts(poems, filters);
+        for (const button of yearButtons) {
+          const count = ranges[Number(button.dataset.yearRange)].count;
+          button.disabled = !count;
+          button.querySelector('small').textContent = `${count.toLocaleString('en-US')} ${count === 1 ? 'poem' : 'poems'}`;
+        }
       }
       countedSignature = signature;
     }
@@ -448,6 +458,24 @@ function setupExplore() {
     } catch { /* A missing or invalid journey leaves the normal results intact. */ }
   }
   [...Object.values(fields), search, sort].forEach(input => input.addEventListener('input', () => { limit = pageSize; updateURL(); render(); }));
+  function revealYearRanges({ focus = false, scroll = false } = {}) {
+    if (!yearRanges) return;
+    drawer.open = true;
+    advanced.open = true;
+    if (focus) yearRanges.focus({ preventScroll: true });
+    if (scroll) yearRanges.scrollIntoView({ behavior: 'instant', block: 'start' });
+  }
+  function restoreYearFragment() {
+    if (location.hash === '#year-ranges') revealYearRanges({ scroll: true });
+  }
+  document.querySelector('.year-range-entry')?.addEventListener('click', () => revealYearRanges({ focus: true }));
+  yearButtons.forEach(button => button.addEventListener('click', () => {
+    const range = recordedYearRanges[Number(button.dataset.yearRange)];
+    if (!range) return;
+    fields.from.value = range.from;
+    fields.to.value = range.to;
+    limit = pageSize; updateURL(); render();
+  }));
   document.querySelector('#search-form').addEventListener('submit', event => { event.preventDefault(); limit = pageSize; updateURL(); render(); });
   document.querySelector('#clear-filters').addEventListener('click', () => { Object.values(fields).forEach(input => { input.value = ''; }); search.value = ''; sort.value = 'featured'; limit = pageSize; updateURL(); render(); });
   more.addEventListener('click', () => { limit += pageSize; render(); });
@@ -490,13 +518,15 @@ function setupExplore() {
       announce('Could not copy the link. You can copy the address from your browser.');
     }
   });
-  window.addEventListener('popstate', () => { restoreURL(); updateURL(); render(); });
+  window.addEventListener('popstate', () => { restoreURL(); updateURL(); render(); restoreYearFragment(); });
+  window.addEventListener('hashchange', restoreYearFragment);
   if (window.matchMedia('(max-width: 700px)').matches) drawer.open = false;
   [...Object.values(fields), search, sort, document.querySelector('#clear-filters'), document.querySelector('#search-form button[type="submit"]')].forEach(input => { input.disabled = false; });
   document.querySelectorAll('[data-explore-only]').forEach(element => { element.hidden = false; });
   restoreURL();
   updateURL();
   render();
+  restoreYearFragment();
   restoreJourney(performance.getEntriesByType('navigation')[0]?.type === 'back_forward');
   window.addEventListener('pageshow', event => { if (event.persisted) restoreJourney(true); });
 }

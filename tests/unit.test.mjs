@@ -11,7 +11,7 @@ import { renderFeed } from '../scripts/feed.mjs';
 import { groupPoets } from '../scripts/poets.mjs';
 import { relatedPoems } from '../scripts/recommendations.mjs';
 import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
-import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, surprisePoem } from '../src/catalog.mjs';
+import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
 test('catalogue has distinct, sourced records in all eight original languages', () => {
@@ -128,6 +128,31 @@ test('search combines text, accents, metadata, translation and dates without gue
   assert.equal(filterPoems(poems, { collection: 'The Book of American Negro Poetry' }).length, 113);
   assert.equal(collectionLabel('The Book of American Negro Poetry'), 'American poetry · 1922 anthology');
   assert.equal(collectionLabel('Oku no Hosomichi'), 'Oku no Hosomichi');
+});
+test('recorded-year ranges are inclusive, disjoint and respect other filters', () => {
+  const years = [-44, 0, 1699, 1700, 1799, 1800, 1899, 1900, 1999, 2000, 2026, null];
+  const sample = years.map((year, index) => ({ ...poems[0], id: `year-test-${index}`, year, language: index % 2 ? 'Japanese' : 'Chinese', country: index % 2 ? 'Japan / United States / United States' : 'China', text: index % 2 ? 'silver river' : 'quiet moon' }));
+  assert.deepEqual(yearRangeCounts(sample).map(range => range.count), [3, 2, 2, 2, 2]);
+  assert.equal(yearRangeCounts(sample).reduce((sum, range) => sum + range.count, 0), years.filter(year => year !== null).length);
+  assert.deepEqual(filterPoems(sample, { from: '0', to: '0' }).map(poem => poem.year), [0]);
+  for (const filters of [{ language: 'Japanese', from: '1900', to: '1999' }, { country: 'United States', query: 'silver', from: '1800' }, { language: 'French' }]) {
+    const actual = yearRangeCounts(sample, filters).map(range => range.count);
+    const expected = recordedYearRanges.map(range => filterPoems(sample, { ...filters, from: range.from, to: range.to }).length);
+    assert.deepEqual(actual, expected, JSON.stringify(filters));
+  }
+  const home = renderHome(sample, '/ai-poems/');
+  assert.match(home, /Across the library, 11 poems have a recorded year; 1 without one is excluded from year filters/);
+  assert.match(home, /composition, publication, an edition or a traditional date/);
+  assert.match(home, /Bounds are inclusive; counts reflect your other filters/);
+  for (let index = 0; index < recordedYearRanges.length; index++) assert.match(home, new RegExp(`data-year-range="${index}"`));
+  const current = renderHome(poems, '/ai-poems/');
+  assert.match(current, /data-year-range="0"/);
+  assert.match(current, /data-year-range="2"/);
+  assert.doesNotMatch(current, /data-year-range="[134]"/);
+  assert.match(renderHome([{ ...poems[0], year: 1609 }], '/ai-poems/'), /1 poem has a recorded year; 0 without one are excluded from year filters/);
+  const noYears = renderHome([{ ...poems[0], year: null }], '/ai-poems/');
+  assert.doesNotMatch(noYears, /year-range-entry|id="year-ranges"/);
+  assert.match(noYears, /No poems currently have a recorded year/);
 });
 test('discovery classification is neutral while historical source titles and filter values remain intact', () => {
   const mckay = poems.find(p => p.id === 'american-1922-00659');
