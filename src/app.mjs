@@ -363,11 +363,19 @@ function setupExplore() {
     const values = [...new Set(poems.flatMap(p => name === 'theme' ? p.themes : name === 'translation' ? p.translations.map(t => t.language) : name === 'country' ? associatedPlaces(p) : [p[name]]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
     fields[name].insertAdjacentHTML('beforeend', values.map(value => `<option value="${e(value)}">${e(name === 'collection' ? collectionLabel(value) : value)}</option>`).join(''));
   }
+  const availableLanguages = [...new Set([...readingLanguages, ...poems.flatMap(poem => [poem.language, ...poem.translations.map(translation => translation.language)])].filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  fields.readable.insertAdjacentHTML('beforeend', availableLanguages.map(value => `<option value="${e(value)}">${e(value)}</option>`).join(''));
   for (const name of countedFilters) for (const option of fields[name].options) option.dataset.label = option.textContent;
   let countedSignature;
   function restoreURL() {
     const params = new URL(location.href).searchParams;
     search.value = params.get('q') || '';
+    const readable = params.get('readable') || '';
+    if (readable && ![...fields.readable.options].some(option => option.value === readable)) {
+      const option = new Option(readable, readable);
+      option.dataset.label = readable;
+      fields.readable.add(option);
+    }
     for (const [name, input] of Object.entries(fields)) input.value = params.get(name) || '';
     if (['collection', 'form', 'length', 'theme', 'translation', 'from', 'to'].some(name => fields[name].value)) advanced.open = true;
     sort.value = params.get('sort') || 'featured';

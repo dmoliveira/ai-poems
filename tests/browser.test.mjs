@@ -7,7 +7,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
 import { groupPoets } from '../scripts/poets.mjs';
 import { renderHome } from '../scripts/templates.mjs';
-import { associatedPlaces, filterPoems, placeCounts, recordedYearRanges, yearRangeCounts } from '../src/catalog.mjs';
+import { associatedPlaces, filterPoems, placeCounts, readingLanguages, recordedYearRanges, yearRangeCounts } from '../src/catalog.mjs';
 
 const port = 43817;
 const base = `http://127.0.0.1:${port}/ai-poems/`;
@@ -261,6 +261,8 @@ test('filter option counts follow the other filters without changing values or a
   await language.selectOption('Chinese');
   assert.equal(await language.inputValue(), 'Chinese');
   assert.equal(await language.evaluate(element => document.activeElement === element), true);
+  await page.keyboard.press('Tab');
+  assert.equal(await page.locator('#filter-readable').evaluate(element => document.activeElement === element), true);
   await page.keyboard.press('Tab');
   assert.equal(await page.locator('#filter-country').evaluate(element => document.activeElement === element), true);
   await context.close();
@@ -932,6 +934,131 @@ test('preferred language finds originals and translations and explains missing o
   await context.close();
 });
 
+test('language availability is directly discoverable without changing the reading preference', async () => {
+  const seed = { preferredLanguage: 'Portuguese', language: 'Portuguese', saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  await context.addInitScript(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.locator('#filter-summary').click();
+  const available = page.getByRole('combobox', { name: 'Available in (original or translation)', exact: true });
+  const preferred = page.getByLabel('Preferred reading language', { exact: true });
+  assert.equal(await preferred.inputValue(), 'Portuguese');
+  for (const language of readingLanguages) {
+    const count = filterPoems(poems, { readable: language }).length;
+    assert.equal(await available.locator(`option[value="${language}"]`).textContent(), `${language} (${count.toLocaleString('en-US')})`);
+  }
+  await page.getByLabel('Original language').focus();
+  await page.keyboard.press('Tab');
+  assert.equal(await available.evaluate(element => document.activeElement === element), true);
+  await page.keyboard.press('a');
+  const arabic = filterPoems(poems, { readable: 'Arabic' }).length;
+  await page.getByText(`${arabic} poems found`, { exact: true }).waitFor();
+  assert.equal(await available.inputValue(), 'Arabic');
+  assert.equal(new URL(page.url()).searchParams.get('readable'), 'Arabic');
+  assert.match(await page.locator('#readable-note').textContent(), /originals and available translations.*AI-assisted.*not yet independently reviewed/);
+  assert.equal(await preferred.inputValue(), 'Portuguese');
+  assert.equal(await page.getByRole('button', { name: 'Show poems available in Portuguese' }).getAttribute('aria-pressed'), 'false');
+  assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await page.getByLabel('Original language').selectOption('Chinese');
+  const arabicChinese = filterPoems(poems, { readable: 'Arabic', language: 'Chinese' });
+  await page.getByText(`${arabicChinese.length} poem found`, { exact: true }).waitFor();
+  assert.ok(arabicChinese.some(poem => poem.id === 'quiet-night-thought-li-bai'));
+  for (const language of readingLanguages) {
+    const count = filterPoems(poems, { readable: language, language: 'Chinese' }).length;
+    assert.equal(await available.locator(`option[value="${language}"]`).textContent(), `${language} (${count.toLocaleString('en-US')})`);
+  }
+  assert.equal(await available.locator('option[value="Italian"]').textContent(), 'Italian (1)');
+  await page.getByRole('button', { name: 'Show poems available in Portuguese' }).click();
+  assert.equal(await available.inputValue(), 'Portuguese');
+  assert.equal(new URL(page.url()).searchParams.get('readable'), 'Portuguese');
+  assert.equal(await page.getByRole('button', { name: 'Show poems available in Portuguese' }).getAttribute('aria-pressed'), 'true');
+  assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  for (const width of [320, 390, 700, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    const box = await available.boundingBox();
+    assert.ok(box && box.width >= 44 && box.height >= 44, `language target at ${width}px`);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px`);
+  }
+  await page.setViewportSize({ width: 320, height: 844 });
+  for (const theme of ['light', 'sepia', 'dark']) {
+    await page.getByLabel('Reading theme').selectOption(theme);
+    await page.getByRole('status').getByText('Theme saved.').waitFor();
+    const accessibility = await new AxeBuilder({ page }).include('.filter-drawer').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], theme);
+  }
+  await context.close();
+});
+
+test('unknown available-language links remain zero-result filters and survive reload', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const value = 'Unavailable <language>';
+  await page.goto(`${base}?readable=${encodeURIComponent(value)}#explore`);
+  await page.getByText('0 poems found', { exact: true }).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('readable'), value);
+  await page.locator('#filter-summary').click();
+  const available = page.getByRole('combobox', { name: 'Available in (original or translation)', exact: true });
+  assert.equal(await available.inputValue(), value);
+  assert.equal(await available.locator('option:checked').textContent(), `${value} (0)`);
+  assert.equal(await page.getByRole('button', { name: `Remove Available in: ${value} filter` }).count(), 1);
+  await page.reload();
+  await page.getByText('0 poems found', { exact: true }).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('readable'), value);
+  await page.locator('#filter-summary').click();
+  assert.equal(await available.inputValue(), value);
+  await page.getByRole('button', { name: `Remove Available in: ${value} filter` }).click();
+  await page.getByText(totalText).waitFor();
+  assert.equal(new URL(page.url()).searchParams.has('readable'), false);
+  await context.close();
+});
+
+test('available-language options include catalogue languages and count overlapping translations once', async () => {
+  const translation = { language: 'Welsh', title: 'Test', text: 'Test' };
+  const sample = [
+    { ...poems[0], id: 'language-sample-a', language: 'English', translations: [translation, translation] },
+    { ...poems[0], id: 'language-sample-b', language: 'Welsh', translations: [translation] },
+    { ...poems[0], id: 'language-sample-c', language: 'French', translations: [] },
+  ];
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route('**/ai-poems/', route => route.fulfill({ contentType: 'text/html; charset=utf-8', body: renderHome(sample, '/ai-poems/') }));
+  await page.route('**/data/catalog.json', route => route.fulfill({ contentType: 'application/json; charset=utf-8', body: JSON.stringify(sample) }));
+  await page.goto(base);
+  await page.getByText('3 poems found', { exact: true }).waitFor();
+  await page.locator('#filter-summary').click();
+  const available = page.getByRole('combobox', { name: 'Available in (original or translation)', exact: true });
+  assert.equal(await available.locator('option[value="Welsh"]').textContent(), 'Welsh (2)');
+  assert.equal(await available.locator('option[value="Arabic"]').textContent(), 'Arabic (0)');
+  await available.selectOption('Welsh');
+  await page.getByText('2 poems found', { exact: true }).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('readable'), 'Welsh');
+  await available.selectOption('Arabic');
+  await page.getByText('0 poems found', { exact: true }).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('readable'), 'Arabic');
+  await context.close();
+});
+
+test('language discovery falls back to the static index when scripts or the catalogue fail', async () => {
+  for (const mode of ['no JavaScript', 'catalogue failure', 'module failure']) {
+    const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: mode !== 'no JavaScript', reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    if (mode === 'catalogue failure') await page.route('**/data/catalog.json', route => route.abort());
+    if (mode === 'module failure') await page.route('**/app.mjs', route => route.abort());
+    await page.goto(base);
+    if (mode === 'catalogue failure') await page.getByText(/The library could not load/).waitFor();
+    const seed = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } });
+    await page.evaluate(value => localStorage.setItem('verso-library-v1', value), seed);
+    assert.equal(await page.locator('#filter-readable').isDisabled(), true, mode);
+    assert.equal(await page.locator('#filter-readable').isVisible(), false, mode);
+    await page.locator('#complete-index summary').click();
+    assert.equal(await page.locator('#complete-index').getByRole('link', { name: /The Old Pond — Matsuo Bashō/ }).count(), 1, mode);
+    assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), seed, mode);
+    await context.close();
+  }
+});
+
 test('a shared available-language link works without changing the reader preference', async () => {
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -946,6 +1073,33 @@ test('a shared available-language link works without changing the reader prefere
   assert.equal(await page.getByText(`${count} poems found`).isVisible(), true);
   await page.getByLabel('Preferred reading language', { exact: true }).selectOption('');
   assert.equal(new URL(page.url()).searchParams.get('readable'), 'Arabic');
+  await context.close();
+});
+
+test('availability links preserve year filters and mobile browser history', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const filters = { readable: 'English', from: '1800', to: '1899' };
+  const expected = filterPoems(poems, filters).length;
+  const resultText = `${expected} ${expected === 1 ? 'poem' : 'poems'} found`;
+  await page.goto(`${base}?readable=English&from=1800&to=1899#explore`);
+  await page.getByText(resultText, { exact: true }).waitFor();
+  await page.locator('#filter-summary').click();
+  const available = page.getByRole('combobox', { name: 'Available in (original or translation)', exact: true });
+  assert.equal(await available.inputValue(), 'English');
+  assert.equal(await page.locator('#filter-from').inputValue(), '1800');
+  assert.equal(await page.locator('#filter-to').inputValue(), '1899');
+  assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), '');
+  await page.goto(`${base}?readable=Arabic#explore`);
+  await page.getByText(`${filterPoems(poems, { readable: 'Arabic' }).length} poems found`, { exact: true }).waitFor();
+  await page.goBack();
+  await page.getByText(resultText, { exact: true }).waitFor();
+  if (await page.locator('#filter-drawer').getAttribute('open') === null) await page.locator('#filter-summary').click();
+  assert.equal(await available.inputValue(), 'English');
+  assert.equal(await page.locator('#filter-from').inputValue(), '1800');
+  assert.equal(await page.locator('#filter-to').inputValue(), '1899');
+  assert.equal(new URL(page.url()).searchParams.get('readable'), 'English');
+  assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), '');
   await context.close();
 });
 

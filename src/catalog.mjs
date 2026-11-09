@@ -66,7 +66,7 @@ export function yearRangeCounts(poems, filters = {}) {
   return recordedYearRanges.map(range => ({ ...range, count: filterPoems(matches, { from: range.from, to: range.to }).length }));
 }
 
-export const countedFilters = ['author', 'language', 'country', 'collection', 'form', 'length', 'theme', 'translation'];
+export const countedFilters = ['author', 'language', 'readable', 'country', 'collection', 'form', 'length', 'theme', 'translation'];
 
 // Each option is counted against all other active filters, not its own.
 export function contextualCounts(poems, filters = {}) {
@@ -78,6 +78,7 @@ export function contextualCounts(poems, filters = {}) {
       if (name === 'country') values = associatedPlaces(poem);
       else if (name === 'theme') values = poem.themes;
       else if (name === 'translation') values = poem.translations.map(translation => translation.language);
+      else if (name === 'readable') values = [poem.language, ...poem.translations.map(translation => translation.language)];
       else if (name === 'length') {
         const lines = lineCount(poem);
         values = [lines <= 4 ? '1-4' : lines <= 14 ? '5-14' : '15-plus'];

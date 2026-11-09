@@ -173,7 +173,7 @@ test('discovery classification is neutral while historical source titles and fil
 });
 test('contextual option counts match filtering and count overlapping metadata once per poem', () => {
   const sample = [
-    { ...poems[0], id: 'a', title: 'River A', displayTitle: '', author: 'A', language: 'English', country: 'Jamaica / United States / Jamaica', collection: 'First', form: 'Haiku', themes: ['Nature', 'Nature'], translations: [{ language: 'French', title: 'Fleuve', text: 'river' }, { language: 'French', title: 'Rivière', text: 'river' }], text: 'river', year: 1900 },
+    { ...poems[0], id: 'a', title: 'River A', displayTitle: '', author: 'A', language: 'English', country: 'Jamaica / United States / Jamaica', collection: 'First', form: 'Haiku', themes: ['Nature', 'Nature'], translations: [{ language: 'French', title: 'Fleuve', text: 'river' }, { language: 'French', title: 'Rivière', text: 'river' }, { language: 'English', title: 'River', text: 'river' }], text: 'river', year: 1900 },
     { ...poems[0], id: 'b', title: 'River B', displayTitle: '', author: 'B', language: 'French', country: 'France / United States', collection: 'Second', form: 'Verse', themes: ['Nature'], translations: [{ language: 'English', title: 'River', text: 'river' }], text: 'river\n2\n3\n4\n5', year: 1950 },
     { ...poems[0], id: 'c', title: 'A third poem', displayTitle: '', author: 'A', language: 'French', country: 'France', collection: 'First', form: 'Verse', themes: [], translations: [], text: Array(15).fill('line').join('\n'), year: null },
   ];
@@ -181,11 +181,16 @@ test('contextual option counts match filtering and count overlapping metadata on
   assert.equal(all.country.get('Jamaica'), 1);
   assert.equal(all.country.get('United States'), 2);
   assert.equal(all.translation.get('French'), 1);
+  assert.equal(all.readable.get('French'), 3);
+  assert.equal(all.readable.get('English'), 2);
+  assert.equal(all.readable.get('Arabic') || 0, 0);
   assert.equal(all.theme.get('Nature'), 2);
   assert.deepEqual(['1-4', '5-14', '15-plus'].map(value => all.length.get(value)), [1, 1, 1]);
   assert.equal(contextualCounts(sample, { country: 'France' }).country.get('United States'), 2);
   assert.equal(contextualCounts(sample, { country: 'France' }).country.get(''), 3);
   assert.equal(contextualCounts(sample, { country: 'France' }).language.get('English') || 0, 0);
+  assert.equal(contextualCounts(sample, { country: 'France', query: 'river', readable: 'French' }).readable.get('English'), 1);
+  assert.equal(contextualCounts(sample, { country: 'France', query: 'river', readable: 'French' }).readable.get('French'), 1);
 
   function compareToFiltering(records, combinations) {
     const options = contextualCounts(records);

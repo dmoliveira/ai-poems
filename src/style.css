@@ -969,6 +969,9 @@ h2 em {
   font-size: 12px;
   border-radius: 2px;
 }
+#filter-readable {
+  min-height: 44px;
+}
 .year-inputs {
   display: grid;
   grid-template-columns: 1fr 1fr;
