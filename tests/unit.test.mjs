@@ -63,6 +63,52 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.equal(byId('castellana-003').anonymous, true);
   assert.equal(byId('tang-108').year, null);
 });
+test('Brazilian originals retain their reviewed edition texts, evidence and discovery', () => {
+  const cases = [
+    ['cancao-do-exilio-goncalves-dias', 'CANCAO', 24, '4239dad4c9f1d576ea933ec77ed47cae35f77cecec5057dc8ecd8ca3719d8da7'],
+    ['cachias-goncalves-dias', 'CACHIAS', 24, 'c854332c71ea705b40ef8e9296119ba614d5f75bde4c1ffe7f4e5dbc03e7878a'],
+    ['desejo-goncalves-dias', 'DESEJO', 12, 'a21aa33fec72a42c90c536d094953330a373c8744bbd32d21bbda0356676e6ee'],
+    ['te-deum-goncalves-dias', 'TE_DEUM', 32, 'fa6b39580f2cb0257672476c6c42ecfa0c3cdd9e5f660ad1d9e184b4f62e6ad4'],
+  ];
+  const selected = cases.map(([id]) => poems.find(p => p.id === id));
+  for (const [id, anchor, lines, digest] of cases) {
+    const poem = selected.find(p => p?.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.authorId, 'goncalves-dias');
+    assert.equal(poem.author, 'Gonçalves Dias');
+    assert.equal(poem.authorYears, '1823–1864');
+    assert.deepEqual(associatedPlaces(poem), ['Brazil']);
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.equal(poem.source, `https://www.gutenberg.org/cache/epub/74854/pg74854-images.html#${anchor}`);
+    assert.match(poem.sourceTitle, /third edition \(1860\)/);
+    assert.match(poem.rights, /public domain in the United States.*Check local law/);
+    assert.equal(lineCount(poem), lines);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), digest);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Brazil' }).includes(poem));
+    assert.ok(filterPoems(poems, { query: 'goncalves dias' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const [exile, cachias, desire, hymn] = selected;
+  assert.equal(exile.year, 1843);
+  assert.match(exile.yearLabel, /Dated.*1843/);
+  assert.match(exile.creationPlace, /Coimbra/);
+  for (const poem of [cachias, desire, hymn]) {
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+  }
+  assert.match(cachias.text, /Na base da montanha;\nEs bella/);
+  for (const poem of [exile, desire, hymn]) assert.match(poem.context, /epigraph is not included/);
+  assert.match(hymn.context, /Christian Te Deum.*Catholic and other Christian traditions/);
+  assert.ok(filterPoems(poems, { theme: 'Faith', query: 'te deum' }).includes(hymn));
+  assert.ok(filterPoems(poems, { query: 'gorgeiao' }).includes(exile));
+  const poet = groupPoets(poems).find(group => group.id === 'goncalves-dias');
+  for (const [id] of cases) assert.ok(poet.poems.some(p => p.id === id), id);
+  const home = renderHome(poems, '/ai-poems/');
+  assert.ok(home.includes('/ai-poems/assets/flags/br.svg'));
+  assert.ok(home.includes(`Brazil</strong><small>${placeCounts(poems).find(p => p.place === 'Brazil').count} poems`));
+});
 test('reviewed poet associations preserve sources, texts and legacy place filters', () => {
   const cases = [
     { id: 'castellana-072', authorId: 'andres-bello', years: '1781–1865', places: ['Venezuela', 'England', 'Chile'], source: 'https://www.gutenberg.org/files/65880/65880-h/65880-h.htm#P072', sourceTitle: 'Project Gutenberg · Las cien mejores poesías, 1910, no. 72', contextSource: 'https://uchile.cl/presentacion/historia/rectores-de-la-u-de-chile/andres-bello-lopez-1843-1865', digest: '17497bcd8cbbb154613010d62bb98115e0a8045ba32327bab819cca81565ce68' },
@@ -101,6 +147,7 @@ test('reviewed poet associations preserve sources, texts and legacy place filter
 });
 test('new circle flags match the pinned upstream revision', async () => {
   for (const [code, digest] of [
+    ['br', '2333b293cbc44e8b736565ac84d4bd03cb136f017e5194d321dcc8ca46aa0464'],
     ['ca', 'be435f09cf3e411f2436202801a90d127800cc5f7b970fdd95aa4f177f8075a9'],
     ['cl', 'adc5239ae20b01235b9a6e62947c1b21f77d33adc21dae70b8cbb23f507b7fae'],
   ]) {

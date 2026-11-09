@@ -153,7 +153,7 @@ test('country flags and counts link to the matching country results', async () =
       return { src: new URL(image.src).pathname, width: image.naturalWidth };
     }));
   });
-  assert.deepEqual(flags.map(flag => flag.src.split('/').pop()).sort(), ['ca.svg', 'cl.svg', 'cn.svg', 'cu.svg', 'es.svg', 'fr.svg', 'gb-eng.svg', 'it.svg', 'jm.svg', 'jp.svg', 'pt.svg', 'us.svg', 've.svg']);
+  assert.deepEqual(flags.map(flag => flag.src.split('/').pop()).sort(), ['br.svg', 'ca.svg', 'cl.svg', 'cn.svg', 'cu.svg', 'es.svg', 'fr.svg', 'gb-eng.svg', 'it.svg', 'jm.svg', 'jp.svg', 'pt.svg', 'us.svg', 've.svg']);
   assert.ok(flags.every(flag => flag.src.startsWith('/ai-poems/assets/flags/') && flag.width > 0));
   await card.click();
   await page.getByText(`${count} poems found`).waitFor();
@@ -168,6 +168,62 @@ test('country flags and counts link to the matching country results', async () =
   await page.setViewportSize({ width: 320, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await context.close();
+});
+
+test('Brazilian originals support place discovery, search and static reading', async () => {
+  const ids = ['cancao-do-exilio-goncalves-dias', 'cachias-goncalves-dias', 'desejo-goncalves-dias', 'te-deum-goncalves-dias'];
+  const selected = ids.map(id => poems.find(p => p.id === id));
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const seed = { saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } };
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.locator('#countries .more-countries summary').click();
+  const count = placeCounts(poems).find(p => p.place === 'Brazil').count;
+  const card = page.locator('#countries').getByRole('link', { name: `Brazil ${count} poems`, exact: true });
+  assert.equal(await card.locator('img').getAttribute('src'), '/ai-poems/assets/flags/br.svg');
+  await card.click();
+  await page.getByText(`${count} poems found`, { exact: true }).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('country'), 'Brazil');
+  assert.ok(await page.locator('#results .poem-card-link').count() > 0);
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Portuguese');
+  await page.getByText(`${filterPoems(poems, { language: 'Portuguese', country: 'Brazil' }).length} poems found`, { exact: true }).waitFor();
+  await page.getByLabel('Search the poetry library').fill('gorgeiao');
+  const searchCount = filterPoems(poems, { language: 'Portuguese', country: 'Brazil', query: 'gorgeiao' }).length;
+  await page.getByText(`${searchCount} ${searchCount === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+  const exile = selected.find(p => p.id.startsWith('cancao-do-exilio'));
+  await page.locator(`#results a[href$="/poems/${exile.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), exile.text);
+  assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'pt');
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.deepEqual(stored.saved, seed.saved);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) {
+    const link = staticPage.locator('#index-original-Portuguese').locator(`a[href$="/poems/${poem.id}/"]`);
+    assert.equal(await link.count(), 1);
+    await staticPage.goto(`${base}poems/${poem.id}/`);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(poem.rights));
+    await staticPage.getByRole('link', { name: poem.author, exact: true }).click();
+    assert.equal(new URL(staticPage.url()).pathname, '/ai-poems/poets/goncalves-dias/');
+    for (const other of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${other.id}/"]`).count(), 1);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await staticPage.goto(base);
+    await staticPage.locator('#complete-index summary').click();
+  }
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
 });
 
 test('reviewed poet places have matching counts, sources and static reader pages', async () => {
