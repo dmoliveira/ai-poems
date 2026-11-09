@@ -660,7 +660,7 @@ h2 em {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
-.reading-path-links a {
+.reading-path-links > a {
   display: flex;
   flex-direction: column;
   position: relative;
@@ -670,13 +670,13 @@ h2 em {
   background: var(--paper);
   border: 1px solid var(--line);
 }
-.reading-path-links a:only-child {
+.reading-path-links > a:only-child {
   grid-column: 1/-1;
 }
-.reading-path-links a:hover {
+.reading-path-links > a:hover {
   border-color: var(--olive);
 }
-.reading-path-links span {
+.reading-path-links > a span {
   color: var(--olive-dark);
   font-size: 10px;
   font-weight: 700;
@@ -689,10 +689,10 @@ h2 em {
   font-size: 14px;
   letter-spacing: 0;
 }
-.reading-path-links strong {
+.reading-path-links > a strong {
   font: 600 22px/1.15 Cormorant, Georgia, serif;
 }
-.reading-path-links small,
+.reading-path-links > a small,
 .reading-paths noscript p {
   color: var(--muted);
   font-size: 12px;
@@ -700,6 +700,56 @@ h2 em {
 .reading-paths noscript a {
   color: var(--olive-dark);
   text-decoration: underline;
+}
+.sequence-path {
+  grid-column: 1/-1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  min-width: 0;
+  padding: 15px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+.sequence-path > div {
+  min-width: 0;
+}
+.sequence-kicker {
+  margin: 0 0 4px;
+  color: var(--olive-dark);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.sequence-path h4 {
+  margin: 0;
+  font: 600 22px/1.15 Cormorant, Georgia, serif;
+}
+.sequence-note {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.sequence-path-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+}
+.sequence-path-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--olive-dark);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.sequence-path-links a span {
+  margin-left: 4px;
 }
 .country-grid {
   display: grid;

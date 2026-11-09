@@ -1919,6 +1919,78 @@ test('featured reading and its sources remain available with no JavaScript, a fa
   }
 });
 
+test('the sourced sonnet path exposes both works and evidence accessibly', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const first = poems.find(poem => poem.id === 'shakespeare-sonnet-18');
+  const next = poems.find(poem => poem.id === 'shakespeare-sonnet-19');
+  const card = page.locator('.sequence-path');
+  const start = card.getByRole('link', { name: 'Read Sonnet 18' });
+  const target = card.getByRole('link', { name: 'Read Sonnet 19' });
+  const source = card.getByRole('link', { name: 'View sequence source' });
+  assert.equal(await card.getByRole('heading', { name: 'Two sonnets by William Shakespeare' }).count(), 1);
+  assert.equal(await card.locator('.sequence-note').textContent(), first.connections[0].note);
+  assert.match(await card.textContent(), /sequence link, not a claim of influence/);
+  assert.equal(await start.getAttribute('href'), `/ai-poems/poems/${first.id}/`);
+  assert.equal(await target.getAttribute('href'), `/ai-poems/poems/${next.id}/`);
+  assert.equal(await source.getAttribute('href'), first.connections[0].source);
+  assert.equal(await source.getAttribute('rel'), 'noopener noreferrer');
+  for (const width of [320, 390, 700, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px`);
+    for (const link of [start, target, source]) {
+      const box = await link.boundingBox();
+      assert.ok(box && box.width >= 44 && box.height >= 44, `sequence target at ${width}px`);
+    }
+    assert.ok(await card.evaluate(element => element.scrollWidth <= element.clientWidth + 1), `sequence fits at ${width}px`);
+  }
+  await page.setViewportSize({ width: 320, height: 844 });
+  for (const theme of ['light', 'sepia', 'dark']) {
+    await page.getByLabel('Reading theme').selectOption(theme);
+    await page.getByRole('status').getByText('Theme saved.').waitFor();
+    const accessibility = await new AxeBuilder({ page }).include('.sequence-path').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), [], theme);
+  }
+  await start.focus();
+  await page.keyboard.press('Tab');
+  assert.equal(await target.evaluate(element => document.activeElement === element), true);
+  await page.keyboard.press('Tab');
+  assert.equal(await source.evaluate(element => document.activeElement === element), true);
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Enter');
+  await page.waitForURL(`**/poems/${next.id}/`);
+  assert.equal(await page.locator('#original-panel .verse').textContent(), next.text);
+  await context.close();
+});
+
+test('the sourced sonnet path works without JavaScript or catalogue access', async () => {
+  for (const mode of ['no JavaScript', 'catalogue failure', 'module failure']) {
+    const context = await browser.newContext({ viewport: { width: 320, height: 844 }, javaScriptEnabled: mode !== 'no JavaScript', reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    if (mode === 'catalogue failure') await page.route('**/data/catalog.json', route => route.abort());
+    if (mode === 'module failure') await page.route('**/app.mjs', route => route.abort());
+    await page.goto(base);
+    if (mode === 'catalogue failure') await page.getByText(/The library could not load/).waitFor();
+    const seed = { saved: ['old-pond-basho'], recent: [], extra: { keep: true } };
+    await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+    const card = page.locator('.sequence-path');
+    assert.equal(await card.isVisible(), true, mode);
+    assert.equal(await card.getByRole('link', { name: 'View sequence source' }).getAttribute('href'), 'https://www.gutenberg.org/ebooks/1041', mode);
+    await card.getByRole('link', { name: 'Read Sonnet 18' }).focus();
+    await page.keyboard.press('Enter');
+    await page.waitForURL('**/poems/shakespeare-sonnet-18/');
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poems.find(poem => poem.id === 'shakespeare-sonnet-18').text, mode);
+    assert.equal(await page.locator('.connections-section').getByRole('link', { name: /Sonnet 19/ }).count(), 1, mode);
+    const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+    assert.deepEqual(stored.saved, seed.saved, mode);
+    assert.deepEqual(stored.extra, seed.extra, mode);
+    if (mode !== 'catalogue failure') assert.deepEqual(stored, seed, mode);
+    await context.close();
+  }
+});
+
 test('editorial paths lead to short poems and the sourced edition sequence', async () => {
   const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
