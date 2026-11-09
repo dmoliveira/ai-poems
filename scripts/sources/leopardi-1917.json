@@ -1,0 +1,725 @@
+[
+  {
+    "number": 1,
+    "title": "All'Italia",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/I._All%27Italia&oldid=3796269",
+    "sourceTextSha256": "b9b4be5b9eb6b5685e5a52b1c9870107f32e4d8d77a1155f4d2462ca6dfc0f77",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/All%27Italia&oldid=3864470",
+    "olderTextSha256": "513b10e6988c8f64722b9c123afe9bfce2b70fb0c8169e87ea66372b322cece6",
+    "gutenbergLinesSha256": "6029569ce6950262a25a8f4e202c82c386833321eb775a75e6dca17d0ee84894",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 140,
+    "sha256": "b9b4be5b9eb6b5685e5a52b1c9870107f32e4d8d77a1155f4d2462ca6dfc0f77"
+  },
+  {
+    "number": 2,
+    "title": "Sopra il monumento di Dante che si preparava in Firenze",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/II._Sopra_il_monumento_di_Dante&oldid=3796270",
+    "sourceTextSha256": "65ca65c83d7e404969f5ca2d2761f2527eb2e05d30136debda020e4b9ce02234",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Sopra_il_monumento_di_Dante&oldid=3796203",
+    "olderTextSha256": "004559baaa406b29cd34f3c322fd866ce51ce3e2a579b65e5c29c2ad0694a612",
+    "gutenbergLinesSha256": "03988e2f46bd266caf1fe6cc5974b17021c4b59434818cf8d640cfc348bcdded",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 200,
+    "sha256": "65ca65c83d7e404969f5ca2d2761f2527eb2e05d30136debda020e4b9ce02234"
+  },
+  {
+    "number": 3,
+    "title": "Ad Angelo Mai quand'ebbe trovato i libri di Cicerone della Repubblica",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/III._Ad_Angelo_Mai&oldid=3796271",
+    "sourceTextSha256": "912c7e18355034495c5cec0b0708b335170409dc4bc676ec8f5b0d78f5d85364",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Ad_Angelo_Mai&oldid=3796169",
+    "olderTextSha256": "159e3f23c98a2693d0bee6f0e74b631aec56ca7cc1e6579dd0fb4a78bad43366",
+    "gutenbergLinesSha256": "fee17eb7ca92a0342c39980838c59ee768223920a51786f041c706f77f8be944",
+    "scanReviews": [
+      {
+        "line": 124,
+        "page": 29
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 180,
+    "sha256": "912c7e18355034495c5cec0b0708b335170409dc4bc676ec8f5b0d78f5d85364"
+  },
+  {
+    "number": 4,
+    "title": "Nelle nozze della sorella Paolina",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/IV._Nelle_nozze_della_sorella_Paolina&oldid=3796272",
+    "sourceTextSha256": "a746256b1a000e7b99fb733055c2645b61313f2200bc686cfd1231942ce324cb",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Nelle_nozze_della_sorella_Paolina&oldid=3796197",
+    "olderTextSha256": "cc27f9d9c6120b8cf2b0c2042ed4e3e126d8f4e45bdd658de044d23fe9cf7491",
+    "gutenbergLinesSha256": "d31ea29c5649185aa86b392d2b7177107abc1651f7706b4aeb1e2a95f529c1b3",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 105,
+    "sha256": "a746256b1a000e7b99fb733055c2645b61313f2200bc686cfd1231942ce324cb"
+  },
+  {
+    "number": 5,
+    "title": "A un vincitore nel pallone",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/V._A_un_vincitore_nel_pallone&oldid=3796276",
+    "sourceTextSha256": "4e333e1687009639e7f06a4aca471d82fa785914eab604267dfce8605d4ee546",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/A_un_vincitore_nel_pallone&oldid=3796168",
+    "olderTextSha256": "6b5e13ce4f27afa00f2ebe36774f29f256ea6e0b76eba62308dddac1bdff7581",
+    "gutenbergLinesSha256": "143d4b3898185396dce4cee83e3a58008b56647950392c57313ca62ddad413a5",
+    "scanReviews": [
+      {
+        "line": 32,
+        "page": 36
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 65,
+    "sha256": "4e333e1687009639e7f06a4aca471d82fa785914eab604267dfce8605d4ee546"
+  },
+  {
+    "number": 6,
+    "title": "Bruto minore",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/VI._Bruto_minore&oldid=3796277",
+    "sourceTextSha256": "a7c8f94480d6a5b71f2034bc553251d618cc0687451462ae4f07103c593e3ad5",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Bruto_minore&oldid=3796178",
+    "olderTextSha256": "73249d265f2cf677de27a9f30e69a421663e6b1f7a03049fe6e46d49f5931f45",
+    "gutenbergLinesSha256": "aef29bd8de0d880580fc9344c6e90a93e078b852545b2d0b720446657f9d48da",
+    "scanReviews": [
+      {
+        "line": 34,
+        "page": 39
+      },
+      {
+        "line": 61,
+        "page": 40
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 120,
+    "sha256": "a7c8f94480d6a5b71f2034bc553251d618cc0687451462ae4f07103c593e3ad5"
+  },
+  {
+    "number": 7,
+    "title": "Alla primavera o Delle favole antiche",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/VII._Alla_primavera&oldid=3796278",
+    "sourceTextSha256": "0b91ceb0bc644018076ee4ff9244a7c929ce7e528f284dd634ffcecbadc42a0b",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Alla_primavera&oldid=3796173",
+    "olderTextSha256": "00ce7e5ade5c05584faef51111bfd9f8667c41e271bc729ed3fb259d752ae4d6",
+    "gutenbergLinesSha256": "9bf39965f2a5414118999ada76ea160d8274249c9b27a8742a475d788ec4682f",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 95,
+    "sha256": "0b91ceb0bc644018076ee4ff9244a7c929ce7e528f284dd634ffcecbadc42a0b"
+  },
+  {
+    "number": 8,
+    "title": "Inno ai patriarchi o De' princípi del genere umano",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/VIII._Inno_ai_patriarchi&oldid=3796279",
+    "sourceTextSha256": "ea4068c97624d7bb48a4eae85174d82762267f16110cb72fa140c3a0cfc4bc20",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Inno_ai_Patriarchi&oldid=3796190",
+    "olderTextSha256": "6135d95008f7d46861166841e9ef41f3d88576f0b337a8152970f4b0a60aacad",
+    "gutenbergLinesSha256": "0d026d643124c8fc73283c352c25dd3a854bc4f1a68a85436b852b67ac430744",
+    "scanReviews": [
+      {
+        "line": 15,
+        "page": 46
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 117,
+    "sha256": "ea4068c97624d7bb48a4eae85174d82762267f16110cb72fa140c3a0cfc4bc20"
+  },
+  {
+    "number": 9,
+    "title": "Ultimo canto di Saffo",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/IX._Ultimo_canto_di_Saffo&oldid=3796273",
+    "sourceTextSha256": "1dc488f900e6eee2e694e35597843cd4be72dda470060e7de9fd2b44927fd9f3",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Ultimo_canto_di_Saffo&oldid=3796207",
+    "olderTextSha256": "da060c8395ab3b7c0ae31ce6320f82d4b4c1cdb35ff9cff71bf11f5708e05734",
+    "gutenbergLinesSha256": "2595f34ecb5421b951dbb96be14aba6229a35a2fbc02f09bbca693b248d28faa",
+    "scanReviews": [
+      {
+        "line": 20,
+        "page": 50
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 72,
+    "sha256": "1dc488f900e6eee2e694e35597843cd4be72dda470060e7de9fd2b44927fd9f3"
+  },
+  {
+    "number": 10,
+    "title": "Il primo amore",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/X._Il_primo_amore&oldid=3676034",
+    "sourceTextSha256": "834456be302531cce1c15634197bbab53090732445cc7000c221ef5152a1a0c7",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Il_primo_amore&oldid=3796185",
+    "olderTextSha256": "2aa77c1fa345b1682b3443caf7f9655d4e732526b6b6accaa3201cd811da5b9a",
+    "gutenbergLinesSha256": "2a2d93e2d7d331434e04fa4f61fdf63397cc7bf1f6e75d12e6b889214f6dd547",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "The plain-text stanza breaks render the tercets indicated by indentation in this edition.",
+    "lines": 103,
+    "sha256": "8ce7c61ed04ce448ee06919614e6dd97fe3827ddea8cde630c9ec798c14513be"
+  },
+  {
+    "number": 11,
+    "title": "Il passero solitario",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XI._Il_passero_solitario&oldid=3796280",
+    "sourceTextSha256": "9a577a15ec8b64e3a9dd39d66db0d18127a430d5db6750ed079c33d69c124816",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Il_passero_solitario&oldid=3796183",
+    "olderTextSha256": "3d20e7ee9ba5601b103244811b42497e8fafda988a49dc24c20e5faeebaae167",
+    "gutenbergLinesSha256": "be223f6d29a74512fdec8b4e00b8d2cad99164cf981dfa67040325c6aa07d0bd",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 59,
+    "sha256": "9a577a15ec8b64e3a9dd39d66db0d18127a430d5db6750ed079c33d69c124816"
+  },
+  {
+    "number": 15,
+    "title": "Il sogno",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XV._Il_sogno&oldid=3676042",
+    "sourceTextSha256": "0d6a97309b713944516f3c2b8a59b7b94af65e9ccd492e46eca3a524c62bc898",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Il_sogno&oldid=3796188",
+    "olderTextSha256": "9b4a980e0581fbdbfa06872f7ed5dfb48e89faf2b3a860d3fc34e308a057002a",
+    "gutenbergLinesSha256": "bc1b5dbe657c7b7f458bdd6e6fae0450dab331650241189eda221a565bf3934a",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 100,
+    "sha256": "0d6a97309b713944516f3c2b8a59b7b94af65e9ccd492e46eca3a524c62bc898"
+  },
+  {
+    "number": 16,
+    "title": "La vita solitaria",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XVI._La_vita_solitaria&oldid=3796287",
+    "sourceTextSha256": "ec5762dcec1b2e323d45c1c091fa1096d9378d6d3be5c5a1c0a7cf63d9a0b60f",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/La_vita_solitaria&oldid=3796195",
+    "olderTextSha256": "c15db1d41072ab360875e0e3cfc833384c81c6056418f54c9f5d70d17881bdd4",
+    "gutenbergLinesSha256": "54f2eb9f88a50e167afc1c19c26f40606ebceb0e3a93a15aad294a019f6ed358",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 107,
+    "sha256": "ec5762dcec1b2e323d45c1c091fa1096d9378d6d3be5c5a1c0a7cf63d9a0b60f"
+  },
+  {
+    "number": 17,
+    "title": "Consalvo",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XVII._Consalvo&oldid=3796288",
+    "sourceTextSha256": "0613e93d968177773996e0fd946742b1e7e5bd11961d5b838991af98a1f37aa5",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Consalvo&oldid=3796180",
+    "olderTextSha256": "507173e8a481182ca23ecbb680668c5b13708f2a5e0c5336b75a0134dc22b280",
+    "gutenbergLinesSha256": "16bf407a647642d2b704ac86f610dba24a79c0630d49bce5e0b169bb30994f10",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 151,
+    "sha256": "0613e93d968177773996e0fd946742b1e7e5bd11961d5b838991af98a1f37aa5"
+  },
+  {
+    "number": 18,
+    "title": "Alla sua donna",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XVIII._Alla_sua_donna&oldid=3676045",
+    "sourceTextSha256": "2d80a47f9773e8ab4770eaa19dd2af43bff38759798c3e8204a33e1284174ea8",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Alla_sua_donna&oldid=3796174",
+    "olderTextSha256": "e19d96fb8b09c609d385ac10637bc9f6529eacbec1ffb469b8be9f4cba68e1db",
+    "gutenbergLinesSha256": "797e6f2532ab2cff6d996c50d3b6ce56f003397f888de38b007d0f1813f8c285",
+    "scanReviews": [
+      {
+        "line": 13,
+        "page": 76
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 55,
+    "sha256": "2d80a47f9773e8ab4770eaa19dd2af43bff38759798c3e8204a33e1284174ea8"
+  },
+  {
+    "number": 19,
+    "title": "Al conte Carlo Pepoli",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XIX._Al_conte_Carlo_Pepoli&oldid=3796284",
+    "sourceTextSha256": "7bd7f38c046d68d8856f42d107b0ff38a367323e8c170f5b0cad8cae1fddfbb4",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Al_conte_Carlo_Pepoli&oldid=3796170",
+    "olderTextSha256": "9466b60a3c2aa29db67cc7775b168bb168e66103a16987e9544ba4e6ad5047e2",
+    "gutenbergLinesSha256": "e83230ea003ca6cec7fd7b2d54fce5aefc82ef9772e8455069bffb2bc8f6a67a",
+    "scanReviews": [
+      {
+        "line": 33,
+        "page": 79
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 158,
+    "sha256": "7bd7f38c046d68d8856f42d107b0ff38a367323e8c170f5b0cad8cae1fddfbb4"
+  },
+  {
+    "number": 20,
+    "title": "Il risorgimento",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XX._Il_risorgimento&oldid=3796289",
+    "sourceTextSha256": "cb6ed254525e974e627c296af41b0d1f36dff5c270ad1f3174866b8e920386b3",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Il_risorgimento&oldid=3796186",
+    "olderTextSha256": "eb2ff7c0972312f42d53b036209cbae344daf5669f52ee45751df1d719c78b95",
+    "gutenbergLinesSha256": "a8b209b8d0f8c184c8c94957e824c31ae7202157386825f90051c2e97479c91b",
+    "scanReviews": [
+      {
+        "line": 41,
+        "page": 84
+      },
+      {
+        "line": 109,
+        "page": 86
+      },
+      {
+        "line": 143,
+        "page": 87
+      },
+      {
+        "line": 147,
+        "page": 88
+      }
+    ],
+    "corrections": [
+      {
+        "line": 41,
+        "before": "Qual fui! quando dissimile",
+        "after": "Qual fui! quanto dissimile",
+        "reason": "The 1917 print reads quando; quanto follows the 1835 and 1920 editions."
+      },
+      {
+        "line": 143,
+        "before": "e d’un celeste loco",
+        "after": "e d’un celeste foco",
+        "reason": "The 1917 scan prints foco; the Wikisource transcription has loco."
+      }
+    ],
+    "contextNote": "Two readings are corrected: one follows the 1835 and 1920 editions where the 1917 print differs; the other follows the 1917 scan. See the source notes.",
+    "lines": 160,
+    "sha256": "b0f9f640c2e1f094d1543dcebdf3d718277614aa3fe4fee60b8b37b7b409cb9e"
+  },
+  {
+    "number": 21,
+    "title": "A Silvia",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXI._A_Silvia&oldid=3796290",
+    "sourceTextSha256": "2810c2bbd3c8e7f5fb4303459069cca78f4ec56a3e0b2e831afc0541f6402680",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/A_Silvia&oldid=3796166",
+    "olderTextSha256": "2d9a236e2b0f1335b9d373c3de7760b2dec914f88641aa569d4e45a22c7a7ef5",
+    "gutenbergLinesSha256": "008e93e82127a74e9e9c35964f05212b73354a0d017156c8c2ed34e13b1b01b0",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 63,
+    "sha256": "2810c2bbd3c8e7f5fb4303459069cca78f4ec56a3e0b2e831afc0541f6402680"
+  },
+  {
+    "number": 22,
+    "title": "Le ricordanze",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXII._Le_ricordanze&oldid=3796291",
+    "sourceTextSha256": "93f7731aa5afa472ed1372a22579feccf51bf58042b9571d3d34ee2b1eff036b",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Le_ricordanze&oldid=3796196",
+    "olderTextSha256": "9810a258117e20f9c5bc8b9eae6cf73c6ee3ab4245b2bf300c04e375207ee159",
+    "gutenbergLinesSha256": "d594d6a7d41428b724e349274d305d15b731aeb93097150e2b94dcc5263fd0dc",
+    "scanReviews": [
+      {
+        "line": 43,
+        "page": 93
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 173,
+    "sha256": "93f7731aa5afa472ed1372a22579feccf51bf58042b9571d3d34ee2b1eff036b"
+  },
+  {
+    "number": 23,
+    "title": "Canto notturno di un pastore errante dell'Asia",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXIII._Canto_notturno_di_un_pastore_errante_dell%27Asia&oldid=3676049",
+    "sourceTextSha256": "a65bedb12cd37fb1b2b4ab2cd80f9e31b5f81d6921f4db0f5dd03d508e01ae05",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Canto_notturno_di_un_pastore_errante_dell%27Asia&oldid=3796179",
+    "olderTextSha256": "a38d65a6d468f4be258f2a8dffb90bbb15e713f929cbc699b543e2bcccd1801e",
+    "gutenbergLinesSha256": "7008f18241da9beb495ea7be07e9959b1c08680d809654570e0a970eef4384d0",
+    "scanReviews": [
+      {
+        "line": 67,
+        "page": 100
+      },
+      {
+        "line": 70,
+        "page": 100
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 143,
+    "sha256": "a65bedb12cd37fb1b2b4ab2cd80f9e31b5f81d6921f4db0f5dd03d508e01ae05"
+  },
+  {
+    "number": 24,
+    "title": "La quiete dopo la tempesta",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXIV._La_quiete_dopo_la_tempesta&oldid=3796292",
+    "sourceTextSha256": "d2a406dfa73ad397694747e155eee040839c3d477a1f4b9a623d073bcc4168f8",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/La_quiete_dopo_la_tempesta&oldid=3796193",
+    "olderTextSha256": "f12f456bfed8cc68ee0bd602f55e1c4b62794b43a03a39e807cc24c45c65dc26",
+    "gutenbergLinesSha256": "a071b798b790e91a42982f8338e96cac491ff1655ea58c526242b9322fdd51bb",
+    "scanReviews": [
+      {
+        "line": 24,
+        "page": 104
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 54,
+    "sha256": "d2a406dfa73ad397694747e155eee040839c3d477a1f4b9a623d073bcc4168f8"
+  },
+  {
+    "number": 25,
+    "title": "Il sabato del villaggio",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXV._Il_sabato_del_villaggio&oldid=3796294",
+    "sourceTextSha256": "a6edacbefe36bdbf9993f7a39384d4c3f51017ef8f283e46e83e964a6daa8f9d",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Il_sabato_del_villaggio&oldid=3796187",
+    "olderTextSha256": "1844afc8c199a180377ac9627ac7e48628191ec6fb34b15e7388197343395e08",
+    "gutenbergLinesSha256": "4c5c3d7059867c500efd17155462657a20a08ce1c4178d138d4538ab4120394f",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 51,
+    "sha256": "a6edacbefe36bdbf9993f7a39384d4c3f51017ef8f283e46e83e964a6daa8f9d"
+  },
+  {
+    "number": 26,
+    "title": "Il pensiero dominante",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXVI._Il_pensiero_dominante&oldid=3796295",
+    "sourceTextSha256": "fd302ab69de62afe70c958d1869932193cd543706d2bb99de1ea07757cf14268",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Il_pensiero_dominante&oldid=3796184",
+    "olderTextSha256": "4f1aca6cc73f82d11d924d73b9c85a52cd8eb7b0daaf50bfadc9beaac48f5ddc",
+    "gutenbergLinesSha256": "33620f55fae1864bee5c0291c53d39adc9b7c8d7069f9d0327e72c8c43ce7608",
+    "scanReviews": [
+      {
+        "line": 109,
+        "page": 110
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 147,
+    "sha256": "fd302ab69de62afe70c958d1869932193cd543706d2bb99de1ea07757cf14268"
+  },
+  {
+    "number": 27,
+    "title": "Amore e Morte",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXVII._Amore_e_Morte&oldid=3796296",
+    "sourceTextSha256": "8e7027d5d38e13da321622a0d13f285ccd09b0e13165e0297a7ed580d49fcb6d",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Amore_e_morte&oldid=3796175",
+    "olderTextSha256": "4deb1b8851403ee0f068dcfb332edff2f94763b5a62fa9d39955900d588d452f",
+    "gutenbergLinesSha256": "b901b52d627ff1c3766a55652ebff74d2605eb111aae242b5308bdcabcd27223",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "A separately printed Greek and Italian epigraph attributed to Menander is not included in the verse.",
+    "lines": 124,
+    "sha256": "8e7027d5d38e13da321622a0d13f285ccd09b0e13165e0297a7ed580d49fcb6d"
+  },
+  {
+    "number": 28,
+    "title": "A se stesso",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXVIII._A_se_stesso&oldid=3796297",
+    "sourceTextSha256": "06a79c99503c1d2a14c5b8be6114f852048f13cd11325dded7dca1f18dfce642",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/A_se_stesso&oldid=3796167",
+    "olderTextSha256": "42c391b88abb7db966d9278a51b1105bd57963bb070eccd47e42d67074950f19",
+    "gutenbergLinesSha256": "3614b75726b06bb45852e506883594053c4af30d1025991d5dcb2073596c39a3",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 16,
+    "sha256": "06a79c99503c1d2a14c5b8be6114f852048f13cd11325dded7dca1f18dfce642"
+  },
+  {
+    "number": 29,
+    "title": "Aspasia",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXIX._Aspasia&oldid=3796293",
+    "sourceTextSha256": "3e19c05fa7cc82f17f9712abb3a2ef3d13b6fd0e3defe9661977ffd252d38329",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Aspasia&oldid=3796176",
+    "olderTextSha256": "81b3dc834df4c20829ce86c67c2762dd749fbd61a549565ab6b8f759c400680f",
+    "gutenbergLinesSha256": "477ba55af0a8ce58d47d4cf82b3d8d5536f459ef52ca8eb95232dc05626662fe",
+    "scanReviews": [
+      {
+        "line": 69,
+        "page": 119
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 112,
+    "sha256": "3e19c05fa7cc82f17f9712abb3a2ef3d13b6fd0e3defe9661977ffd252d38329"
+  },
+  {
+    "number": 30,
+    "title": "Sopra un basso rilievo antico sepolcrale dove una giovane morta è rappresentata in atto di partire, accomiatandosi dai suoi",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXX._Sopra_un_basso_rilievo_antico_sepolcrale&oldid=3796298",
+    "sourceTextSha256": "14f4d72d514138bf0bdb5cf04b691f5a05cd8ac46b141b411ccc3c09d2e88a04",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Sopra_un_basso_rilievo_antico_sepolcrale&oldid=3796205",
+    "olderTextSha256": "19cbb1a762a09f3e8f288524002348a8decc1109049e99062a3f493deb19dc7e",
+    "gutenbergLinesSha256": "7234e865c5450434857cd5d0c0405ed9b97d10c2d31b661bfd4dbfb27f974685",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 109,
+    "sha256": "14f4d72d514138bf0bdb5cf04b691f5a05cd8ac46b141b411ccc3c09d2e88a04"
+  },
+  {
+    "number": 31,
+    "title": "Sopra il ritratto di una bella donna scolpito nel monumento sepolcrale della medesima",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXXI._Sopra_il_ritratto_di_una_bella_donna&oldid=3796299",
+    "sourceTextSha256": "4dcc2aeac0d3aef81cb6ab8f0645aad378f35ffce17683d771219d5112382b29",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Sopra_il_ritratto_di_una_bella_donna&oldid=3796204",
+    "olderTextSha256": "f724d92aedbe67f877e0bdebd44f539c5b2b74f81b73dba3f8c549d954ac5e42",
+    "gutenbergLinesSha256": "5805944277d50a15888c7dd8782d6c7cc113d56bcca365418d32b9d46c4aca91",
+    "scanReviews": [
+      {
+        "line": 39,
+        "page": 126
+      },
+      {
+        "line": 55,
+        "page": 126
+      }
+    ],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 56,
+    "sha256": "4dcc2aeac0d3aef81cb6ab8f0645aad378f35ffce17683d771219d5112382b29"
+  },
+  {
+    "number": 32,
+    "title": "Palinodia al marchese Gino Capponi",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXXII._Palinodia_al_marchese_Gino_Capponi&oldid=3796300",
+    "sourceTextSha256": "af0c7fdad0384a27c4d87a2a73dbf9c1c97f84dd841badc74d6a888eea80dfb1",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Palinodia_al_marchese_Gino_Capponi&oldid=3796201",
+    "olderTextSha256": "dcb89b953a0930a223bbb11dfc8097dc8a8100bcf3f805b738b6c0156a8a6ec8",
+    "gutenbergLinesSha256": "4e3b17cfc793a1cb5038ed7f1cb4f0e2a40f19f019ea20c90c6d38be0adc5388",
+    "scanReviews": [
+      {
+        "line": 7,
+        "page": 127
+      },
+      {
+        "line": 38,
+        "page": 128
+      },
+      {
+        "line": 100,
+        "page": 130
+      },
+      {
+        "line": 101,
+        "page": 130
+      },
+      {
+        "line": 121,
+        "page": 130
+      },
+      {
+        "line": 165,
+        "page": 132
+      },
+      {
+        "line": 171,
+        "page": 132
+      },
+      {
+        "line": 184,
+        "page": 132
+      },
+      {
+        "line": 200,
+        "page": 133
+      },
+      {
+        "line": 246,
+        "page": 134
+      },
+      {
+        "line": 254,
+        "page": 134
+      }
+    ],
+    "corrections": [
+      {
+        "line": 7,
+        "before": "l’uomo, o si può. Fra Meraviglia e sdegno,",
+        "after": "l’uomo, o si può. Fra meraviglia e sdegno,",
+        "reason": "The 1917 scan prints lower-case meraviglia."
+      },
+      {
+        "line": 38,
+        "before": "Auro secolo omai volgono, o Gino,",
+        "after": "Aureo secolo omai volgono, o Gino,",
+        "reason": "The 1917 scan prints Aureo; the Wikisource transcription has Auro."
+      }
+    ],
+    "contextNote": "The separately printed Petrarch epigraph is omitted. Two transcription details are corrected against the 1917 scan.",
+    "lines": 279,
+    "sha256": "ddd1f2950d9b4229f01b8ddcd1c489a791296a6bcf3353fffab9f495217f999f"
+  },
+  {
+    "number": 33,
+    "title": "Il tramonto della luna",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXXIII._Il_tramonto_della_luna&oldid=3796301",
+    "sourceTextSha256": "91348dc46dc35191e083f6303a53f90590fae78c0a1e0f4574a7032ba3694635",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(Starita_corretta_1835)/Il_tramonto_della_luna&oldid=3898400",
+    "olderTextSha256": "e6826611af6a2c9f1ae1cf24cb9aaf4faae5e4b4422fedcb02189f7b63d76500",
+    "gutenbergLinesSha256": "94f615f131ac6921613bc1878eebdf32ad9ad44273b26050e500c121243e379c",
+    "scanReviews": [
+      {
+        "line": 63,
+        "page": 138
+      }
+    ],
+    "corrections": [
+      {
+        "line": 63,
+        "before": "Ma la vita immortal, poi che la bella",
+        "after": "Ma la vita mortal, poi che la bella",
+        "reason": "The 1917 print has immortal; mortal follows the annotated Starita copy and 1920 edition."
+      }
+    ],
+    "contextNote": "The 1917 print reads “immortal” in line 63; this text follows the annotated Starita copy and 1920 edition, which read “mortal.” The annotated copy’s final six lines are in Ranieri’s hand; the deathbed-dictation story is disputed.",
+    "lines": 68,
+    "sha256": "3d70f960b44846fedd38229b55ce08b1bfd4ebfa86166911acd4cf68033ee7da"
+  },
+  {
+    "number": 34,
+    "title": "La ginestra, o Il fiore del deserto",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXXIV._La_ginestra&oldid=3676060",
+    "sourceTextSha256": "96621c917aedef055f37c771befa2a37577d48c134ef5b59b64ae3b55acbceed",
+    "olderSource": null,
+    "olderTextSha256": null,
+    "gutenbergLinesSha256": "0f9a68f53fae75a79bf66fe61a8addfdceaaad99ccfa440b48a86a3382323d2f",
+    "scanReviews": [
+      {
+        "line": 34,
+        "page": 140
+      },
+      {
+        "line": 61,
+        "page": 141
+      },
+      {
+        "line": 75,
+        "page": 141
+      },
+      {
+        "line": 80,
+        "page": 141
+      },
+      {
+        "line": 96,
+        "page": 142
+      },
+      {
+        "line": 125,
+        "page": 143
+      },
+      {
+        "line": 140,
+        "page": 143
+      },
+      {
+        "line": 141,
+        "page": 143
+      },
+      {
+        "line": 144,
+        "page": 143
+      },
+      {
+        "line": 157,
+        "page": 143
+      },
+      {
+        "line": 169,
+        "page": 144
+      },
+      {
+        "line": 170,
+        "page": 144
+      },
+      {
+        "line": 178,
+        "page": 144
+      },
+      {
+        "line": 180,
+        "page": 144
+      },
+      {
+        "line": 255,
+        "page": 146
+      },
+      {
+        "line": 268,
+        "page": 147
+      },
+      {
+        "line": 279,
+        "page": 147
+      },
+      {
+        "line": 289,
+        "page": 147
+      },
+      {
+        "line": 305,
+        "page": 148
+      },
+      {
+        "line": 313,
+        "page": 148
+      },
+      {
+        "line": 315,
+        "page": 148
+      }
+    ],
+    "corrections": [
+      {
+        "line": 75,
+        "before": "della barbarie in parte, e per cui solo",
+        "after": "dalla barbarie in parte, e per cui solo",
+        "reason": "The 1917 scan prints dalla; the Wikisource transcription has della."
+      },
+      {
+        "line": 169,
+        "before": "e sono immense, in guisa",
+        "after": "e sono immense in guisa",
+        "reason": "The 1917 scan has no comma after immense."
+      }
+    ],
+    "contextNote": "The separately printed Greek and Italian epigraph cites John 3:19 and is omitted here. This complete 317-line 1917 version lacks three lines found in the 1920 edition; two transcription details are corrected against the 1917 scan.",
+    "lines": 317,
+    "sha256": "521b4f9d8b3d7f3818bfc027cf098aaa5296cfc87aeb157a54b2e769577aabed"
+  },
+  {
+    "number": 36,
+    "title": "Scherzo",
+    "source": "https://it.wikisource.org/w/index.php?title=Canti_(Leopardi_-_Donati)/XXXVI._Scherzo&oldid=3796304",
+    "sourceTextSha256": "b39d6902af0a6901ecb1ef0605abe1410a72b9f212a29be252493c6981eb2823",
+    "olderSource": "https://it.wikisource.org/w/index.php?title=Canti_(1835)/Scherzo&oldid=3796202",
+    "olderTextSha256": "1d86858c3514d5b31af2647cd30c48e2dd036e780b9fa946c6191e928f0e801f",
+    "gutenbergLinesSha256": "3eaaf37e9fab3f04726d2d1366418609763706df717161cf2ec0b7965540d7cb",
+    "scanReviews": [],
+    "corrections": [],
+    "contextNote": "",
+    "lines": 18,
+    "sha256": "b39d6902af0a6901ecb1ef0605abe1410a72b9f212a29be252493c6981eb2823"
+  }
+]
