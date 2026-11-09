@@ -476,6 +476,42 @@ test('homepage totals follow catalogue growth and use singular for one poem', ()
   assert.match(home, /<noscript><a class="button primary" href="#complete-index">Browse poem index/);
   assert.doesNotMatch(home, /class="announcement"/);
 });
+test('the complete index groups each poem once by original language', () => {
+  const index = records => renderHome(records, '/ai-poems/').match(/<details id="complete-index"[\s\S]*?<\/details>/)?.[0] || '';
+  const html = index(poems);
+  assert.match(html, /Browse by original language\. Translations and reading aids, when available, are on the poem pages/);
+  const links = [...html.matchAll(/href="\/ai-poems\/poems\/([^/]+)\/"/g)].map(match => match[1]);
+  assert.equal(links.length, poems.length);
+  assert.deepEqual(links.toSorted(), poems.map(poem => poem.id).toSorted());
+  for (const language of new Set(poems.map(poem => poem.language))) {
+    const count = poems.filter(poem => poem.language === language).length;
+    const id = `index-original-${encodeURIComponent(language)}`;
+    assert.ok(html.includes(`href="#${encodeURIComponent(id)}">${escapeHtml(language)} <span>${count.toLocaleString('en-US')}<span class="sr-only"> ${count === 1 ? 'poem' : 'poems'}</span></span>`), language);
+    assert.ok(html.includes(`id="${escapeHtml(id)}"><h3>${escapeHtml(language)} <small>${count.toLocaleString('en-US')} ${count === 1 ? 'poem' : 'poems'}</small>`), language);
+  }
+  const arabic = { ...poems.find(poem => poem.language === 'Arabic'), displayTitle: '' };
+  assert.ok(index([arabic]).includes(`<span lang="ar" dir="rtl">${escapeHtml(arabic.title)}</span>`));
+  const basho = poems.find(poem => poem.id === 'old-pond-basho');
+  assert.ok(html.includes(`>${escapeHtml(basho.displayTitle)} — ${escapeHtml(basho.author)}</a>`));
+  const unusual = [
+    { ...poems[0], id: 'index-a', title: 'Zebra', displayTitle: '', language: 'A & <B>' },
+    { ...poems[0], id: 'index-b', title: 'Alpha', displayTitle: '', language: 'A & <B>' },
+    { ...poems[0], id: 'index-c', title: 'Another', displayTitle: '', language: 'A%20& <B>' },
+  ];
+  const sparse = index(unusual);
+  for (const language of new Set(unusual.map(poem => poem.language))) {
+    const id = `index-original-${encodeURIComponent(language)}`;
+    assert.ok(sparse.includes(`id="${escapeHtml(id)}"`));
+    assert.ok(sparse.includes(`href="#${escapeHtml(encodeURIComponent(id))}"`));
+  }
+  assert.ok(sparse.indexOf('index-b/') < sparse.indexOf('index-a/'));
+  assert.match(sparse, /A &amp; &lt;B&gt; <small>2 poems<\/small>/);
+  assert.match(sparse, /1 poem<\/small>/);
+  assert.doesNotMatch(sparse, /A & <B>/);
+  const empty = index([]);
+  assert.match(empty, /No poems are currently listed/);
+  assert.doesNotMatch(empty, /class="index-jumps"|class="index-group"/);
+});
 test('discovery cards match their filters and omit unavailable paths or examples', () => {
   const card = (html, filters) => {
     const href = escapeHtml(`/ai-poems/?${new URLSearchParams(filters)}#explore`);

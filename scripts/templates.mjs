@@ -101,6 +101,13 @@ export function renderHome(poems, base) {
   }).filter(collection => collection.count);
   const authors = groupPoets(poems);
   const index = poems.toSorted((a, b) => (a.displayTitle || a.title).localeCompare(b.displayTitle || b.title));
+  const indexByLanguage = new Map();
+  for (const poem of index) {
+    if (!indexByLanguage.has(poem.language)) indexByLanguage.set(poem.language, []);
+    indexByLanguage.get(poem.language).push(poem);
+  }
+  const indexGroups = [...indexByLanguage].toSorted(([a], [b]) => a.localeCompare(b)).map(([language, works]) => ({ language, works, id: `index-original-${encodeURIComponent(language)}` }));
+  const indexItem = poem => `<li><a href="${e(base)}poems/${e(poem.id)}/">${poem.displayTitle ? e(poem.displayTitle) : `<span lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</span>`}${poem.disambiguation ? ` (${disambiguation(poem)})` : ''} — ${e(poem.author)}</a></li>`;
   const places = placeCounts(poems);
   const regions = new Set(['Not established', 'Arabian Peninsula']);
   const orderedPlaces = [...places.filter(p => !regions.has(p.place)), ...places.filter(p => regions.has(p.place))];
@@ -165,7 +172,7 @@ export function renderHome(poems, base) {
       <section id="shelf" class="shelf-section"><div><p class="eyebrow"><span>05 /</span> JUST FOR YOU</p><h2>A shelf of <em>your own.</em></h2><p class="js-required">Keep the poems you love close by. Your saved poems and reading preferences are stored only on this device—no account needed.</p><noscript><p>Saved poems and reading history need JavaScript. Your existing saved data is not changed.</p></noscript><details class="clear-control js-required"><summary>Clear saved poems</summary><p>Remove all saved poems from this device?</p><button type="button" id="clear-shelf" class="text-button" disabled>Yes, clear saved poems</button></details></div>
         <div class="js-required"><h3 class="shelf-heading">Saved poems</h3><div id="shelf-items" class="shelf-items"><p>Your saved poems will appear here. Tap ♡ on a poem to keep it close.</p></div><div class="recent-heading"><h3 class="shelf-heading">Recently read</h3><details class="clear-control"><summary>Clear history</summary><p>Remove your recently read list?</p><button type="button" id="clear-history" class="text-button" disabled>Yes, clear history</button></details></div><div id="recent-items" class="shelf-items"><p>Your recently read poems will appear here.</p></div></div>
       </section>
-      <details id="complete-index" class="complete-index"><summary>Browse the complete poetry index (${poems.length})</summary><ul>${index.map(p => `<li><a href="${e(base)}poems/${e(p.id)}/">${e(p.displayTitle || p.title)}${p.disambiguation ? ` (${disambiguation(p)})` : ''} — ${e(p.author)}</a></li>`).join('')}</ul></details>
+      <details id="complete-index" class="complete-index"><summary>Browse the complete poetry index (${poems.length})</summary>${indexGroups.length ? `<p class="index-intro">Browse by original language. Translations and reading aids, when available, are on the poem pages.</p><nav class="index-jumps" aria-label="Index by language of the original">${indexGroups.map(group => `<a href="#${e(encodeURIComponent(group.id))}">${e(group.language)} <span>${group.works.length.toLocaleString('en-US')}<span class="sr-only"> ${group.works.length === 1 ? 'poem' : 'poems'}</span></span></a>`).join('')}</nav>${indexGroups.map(group => `<section class="index-group" id="${e(group.id)}"><h3>${e(group.language)} <small>${group.works.length.toLocaleString('en-US')} ${group.works.length === 1 ? 'poem' : 'poems'}</small></h3><ul>${group.works.map(indexItem).join('')}</ul></section>`).join('')}` : '<p>No poems are currently listed.</p>'}</details>
     </div>
   </main>${footer(base)}</body></html>`;
 }
