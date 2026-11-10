@@ -1,0 +1,109 @@
+{
+  "scanSha256": {
+    "dvorak-1895.pdf": "0d400e3ae355612f6dea79627dec6c9ca429876d5358400cfe9deeb1a628677d",
+    "abu-firas-1910.pdf": "1615dcbbe3b94fe57d8ee25509ea9cb9da87079a19f4fa0b078b05e12ac161fd",
+    "ahlwardt-1859.pdf": "9568a82c8b6e4ce7a2e72859e0e3163078ad0c7391d7d77254aa625a0a90859d"
+  },
+  "poems": [
+    {
+      "slug": "dove",
+      "pages": [197, 198],
+      "comparison": "ahlwardt",
+      "comparisonPages": [119],
+      "comparisonPrintedPages": [103],
+      "couplets": 7,
+      "text": "أقول وقد ناحت بقربي حمامة\nأيا جارتي هل بات حالك حالي\nمعا ذا الهوى ما ذقت طارقة النوى\nولا خطرت منك الهموم ببال\nأتحمل محزون الفؤاد قوادم\nعلى غصن نائي المسافة عالي\nأيا جارتنا ما أنصف الدهر بيننا\nتعالي أقاسمك الهموم تعالي\nتعالي ترى روحا لدي ضعيفة\nتردد في جسم يعذب بالي\nأيضحك مأسور وتبكي طليقة\nويسكت محزون ويندب سالي\nلقد كنت أولى منك بالدمع مقلة\nولكن دمعي في الحوادث غالي",
+      "note": "The 1859 Ahlwardt printing also gives seven couplets, but has هل تشعرين بحالي, معاذ الهوى, and فاعلمي where this printing has هل بات حالك حالي, معا ذا الهوى, and مقلة. Dvořák prints ببال and cites ببالي for other witnesses. The 1910 dīwān prints only five couplets and other variant words; the versions are not silently combined."
+    },
+    {
+      "slug": "eid",
+      "pages": [196, 197],
+      "comparison": "diwan",
+      "comparisonPages": [78],
+      "comparisonPrintedPages": [89],
+      "couplets": 5,
+      "text": "يا عيد ما عدت بمحبوب\nعلى معنى القلب مكروب\nيا عيد قد عدت على ناظر\nعن كل حسن فيك محجوب\nيا وحشة الدار التي ربها\nأصبح في أثواب مربوب\nقد طلع العيد على أهلها\nبوجه لا حسن ولا طيب\nما لي وللدهر وأحداثه\nلقد رماني بالأعاجيب",
+      "note": "The 1910 printing also has five couplets but reads في كل حسن فيك مكذوب and وطلع العيد على أهله, rather than عن كل حسن فيك محجوب and قد طلع العيد على أهلها."
+    },
+    {
+      "slug": "spring",
+      "pages": [174],
+      "comparison": "diwan",
+      "comparisonPages": [42],
+      "comparisonPrintedPages": [125],
+      "couplets": 3,
+      "text": "انظر إلى زهر الربيع\nوالماء في برك البديع\nوإذا الرياح جرت عليه\nفي الذهاب وفي الرجوع\nنثرت على بيض الصفائح\nبيننا حلق الدروع",
+      "note": "The 1910 printing has مرت and بينها where this printing reads نثرت and بيننا."
+    },
+    {
+      "slug": "pomegranate",
+      "pages": [175],
+      "comparison": "diwan",
+      "comparisonPages": [44],
+      "comparisonPrintedPages": [123],
+      "couplets": 3,
+      "text": "وجلنار مشرق\nعلى أعالي شجرة\nكأن في رؤوسه\nأحمره وأصفره\nقراضة من ذهب\nفي خرق معصفرة",
+      "note": "The 1910 printing reverses the colors: أصفره وأحمره, rather than أحمره وأصفره."
+    },
+    {
+      "slug": "bridge",
+      "pages": [173],
+      "comparison": "diwan",
+      "comparisonPages": [43],
+      "comparisonPrintedPages": [124],
+      "couplets": 2,
+      "text": "كأنما الماء عليه الجسر\nدرج بياض خط فيه سطر\nكأننا لما تهيأ العبر\nأسرة موسى حين شق البحر",
+      "note": "The 1910 printing reads يوم استتب العبر and يوم شق البحر, rather than لما تهيأ العبر and حين شق البحر."
+    },
+    {
+      "slug": "headache",
+      "pages": [171],
+      "comparison": "diwan",
+      "comparisonPages": [92],
+      "comparisonPrintedPages": [75],
+      "couplets": 2,
+      "text": "لطيرتي بالصداع نالت\nفوق منال الصداع مني\nوجدت فيه اتفاق سوء\nصدعني ثم صد عني",
+      "note": "The 1910 printing reads صدعني مثل ما صد عني rather than صدعني ثم صد عني."
+    },
+    {
+      "slug": "consolation",
+      "pages": [172],
+      "comparison": "diwan",
+      "comparisonPages": [102],
+      "comparisonPrintedPages": [65],
+      "couplets": 3,
+      "text": "من السلوة في عينيك\nآيات وآثار\nأراها منك بالقلب\nوفي الأضلاع أبصار\nإذا ما برد القلب\nفما تسخنه النار",
+      "note": "The 1910 printing reads في القلب وللأحشاء أبصار and إذا ما برد الحب, rather than بالقلب وفي الأضلاع أبصار and إذا ما برد القلب."
+    },
+    {
+      "slug": "distance",
+      "pages": [169],
+      "comparison": "diwan",
+      "comparisonPages": [94],
+      "comparisonPrintedPages": [73],
+      "couplets": 2,
+      "text": "وإذا يئست من الدنو\nرغبت في فرط البعاد\nأرجو الشهادة في هواك\nلأن روحي في جهاد",
+      "note": "The 1910 printing ends لأن قلبي في الجهاد, rather than لأن روحي في جهاد."
+    },
+    {
+      "slug": "mortal",
+      "pages": [177],
+      "comparison": "diwan",
+      "comparisonPages": [40, 39],
+      "comparisonPrintedPages": [127, 128],
+      "couplets": 2,
+      "text": "المرء رهن مصائب لا تنقضي\nحتى يوارى جسمه في رمسه\nفمؤجل يلقى الردى في غيره\nومعاجل يلقى الردى في نفسه",
+      "note": "The 1910 printing reads فمؤجل لقي الردى في أهله ومعجل يلقى الأذى في نفسه; the 1895 printing reads فمؤجل يلقى الردى في غيره ومعاجل يلقى الردى في نفسه."
+    },
+    {
+      "slug": "messenger",
+      "pages": [169, 170],
+      "comparison": "diwan",
+      "comparisonPages": [90],
+      "comparisonPrintedPages": [77],
+      "couplets": 3,
+      "text": "وكنى الرسول عن الجواب تظرفا\nفلئن كنى فلقد علمنا ما عنى\nقل يا رسول ولا تحاش فإنه\nلا بد منه أساء بي أم أحسنا\nالذنب لي فيما جناه لأنني\nمكنته من مهجتي فتمكنا",
+      "note": "The 1910 printing reads تطرفا and ولئن, rather than تظرفا and فلئن."
+    }
+  ]
+}
