@@ -1068,6 +1068,64 @@ test('Warda al-Yazijī originals support Arabic search, saved data and static RT
   await staticContext.close();
 });
 
+test('al-Zahawi originals support Arabic discovery, saved data and static RTL reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'jamil-sidqi-al-zahawi');
+  assert.equal(selected.length, 2);
+  const seed = { saved: ['let-the-days-do-as-they-will'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Arabic#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Arabic' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const query of ['جميل صدقي الزهاوي', 'Jamil Sidqi al-Zahawi']) {
+    await page.getByLabel('Search the poetry library').fill(query);
+    await page.getByText('2 poems found', { exact: true }).waitFor();
+    for (const item of selected) assert.equal(await page.locator(`#results a[href$="/poems/${item.id}/"]`).count(), 1);
+  }
+  const poem = selected.find(item => item.id === 'zahawi-1909-tumbler-pigeons');
+  await page.getByLabel('Search the poetry library').fill('تصعيد ورقص في الهواء');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  const verse = page.locator('#original-panel .verse');
+  assert.equal(await verse.textContent(), poem.text);
+  assert.equal(await verse.getAttribute('lang'), 'ar');
+  assert.equal(await verse.getAttribute('dir'), 'rtl');
+  assert.equal(await page.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+  assert.equal(await page.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+  assert.ok((await page.locator('.source-note').textContent()).includes(poem.rights));
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes('let-the-days-do-as-they-will'));
+  assert.ok(stored.saved.includes(poem.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-Arabic a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const item of selected) {
+    await staticPage.goto(`${base}poems/${item.id}/`);
+    const original = staticPage.locator('#original-panel .verse');
+    assert.equal(await original.textContent(), item.text);
+    assert.equal(await original.getAttribute('lang'), 'ar');
+    assert.equal(await original.getAttribute('dir'), 'rtl');
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${item.contextSourceTitle} ↗` }).getAttribute('href'), item.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(item.rights));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.getByRole('link', { name: 'Jamīl Ṣidqī al-Zahāwī', exact: true }).click();
+  assert.equal(new URL(staticPage.url()).pathname, '/ai-poems/poets/jamil-sidqi-al-zahawi/');
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Marrash originals support Arabic discovery, faith and static RTL reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'maryana-marrash');
   assert.equal(selected.length, 12);

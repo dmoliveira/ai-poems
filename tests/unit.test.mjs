@@ -961,6 +961,71 @@ test('Further Warda readings preserve distinct printings, corrected readings and
   const poet = groupPoets(poems).find(group => group.id === 'warda-al-yaziji');
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
 });
+test('al-Zahawi readings retain the two corroborated 1909 printed texts and variants', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/zahawi-kalim-1909.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/zahawi-kalim-1909.txt', import.meta.url), 'utf8');
+  const sections = source.split(/^=== ([a-z-]+) ===\n/gm);
+  assert.equal(sections.shift(), '');
+  const readings = new Map();
+  while (sections.length) readings.set(sections.shift(), sections.shift().trim().replaceAll(' | ', '\n'));
+  assert.deepEqual(manifest.scanSha256, {
+    'zahawi-1909.pdf': 'dba0ee8b9f1792f0ec3564815275eeca6a127fd737cf2205fe0721fceb06d6ab',
+    'zahawi-1924.pdf': 'a63a0f9db1c7d9fc29c1bb9cd02c3ed4adcd94f51d9415f456ccf889c7dd55fa',
+  });
+  const expected = [
+    ['weary-labors', 10, 40, 206, '840fdb321d74f9c4879fcbf892fa792cceb3982f43b1c22e2c43dc942ad93d9c'],
+    ['tumbler-pigeons', 14, 13, 140, '00ae4d9a0e5a1ee57b3b8da8d05b78304c3253cb3832cb216bb333b1a72f8fd7'],
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), expected.map(([slug]) => slug));
+  assert.deepEqual([...readings.keys()], expected.map(([slug]) => slug));
+  const selected = expected.map(([slug, lines, page, comparison, hash], index) => {
+    const item = manifest.poems[index];
+    const poem = poems.find(entry => entry.id === `zahawi-1909-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.author, 'Jamīl Ṣidqī al-Zahāwī');
+    assert.equal(poem.authorOriginal, 'جميل صدقي الزهاوي');
+    assert.equal(poem.authorYears, '1863–1936');
+    assert.deepEqual(associatedPlaces(poem), ['Iraq']);
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.text, readings.get(slug));
+    assert.equal(poem.title, poem.text.split('\n')[0]);
+    assert.equal(lineCount(poem), lines);
+    assert.equal(item.couplets * 2, lines);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(item.textSha256, hash);
+    assert.equal(item.pdfPage, page);
+    assert.equal(item.comparisonPdfPage, comparison);
+    assert.equal(new URL(poem.source).hash, `#page=${page}`);
+    assert.equal(new URL(poem.contextSource).hash, `#page=${comparison}`);
+    assert.match(poem.context, /omitted some verses.*without identifying every affected work/);
+    assert.match(poem.context, /as printed, not independent descent or completeness in every tradition/);
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Arabic', country: 'Iraq', query: poem.title }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: 'جميل صدقي الزهاوي' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  const [labors, pigeons] = selected;
+  assert.match(labors.text, /بقيت برغم من دلالة مرشدي/);
+  assert.match(labors.context, /برغم السعي والعلم والنهى/);
+  assert.match(pigeons.text, /حمائم هن زينة كل راء/);
+  assert.match(pigeons.text, /فطرن من الصباح إلى المساء/);
+  assert.match(pigeons.context, /زينة.*المساء.*بهجة.*السماء/);
+  assert.deepEqual(filterPoems(poems, { query: 'تصعيد ورقص في الهواء' }).map(poem => poem.id), [pigeons.id]);
+  for (const slug of ['future-humanity', 'cooperation', 'regret', 'death-and-life']) {
+    assert.ok(!poems.some(poem => poem.id === `zahawi-1909-${slug}`));
+  }
+  const poet = groupPoets(poems).find(group => group.id === 'jamil-sidqi-al-zahawi');
+  assert.equal(poet.poems.length, 2);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
 test('Marrash readings preserve printed boundaries, source credits and specific faith classification', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/maryana-marrash-bint-fikr-1893.json', import.meta.url), 'utf8'));
   const source = await readFile(new URL('../scripts/sources/maryana-marrash-bint-fikr-1893.txt', import.meta.url), 'utf8');

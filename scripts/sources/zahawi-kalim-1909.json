@@ -1,0 +1,28 @@
+{
+  "scanSha256": {
+    "zahawi-1909.pdf": "dba0ee8b9f1792f0ec3564815275eeca6a127fd737cf2205fe0721fceb06d6ab",
+    "zahawi-1924.pdf": "a63a0f9db1c7d9fc29c1bb9cd02c3ed4adcd94f51d9415f456ccf889c7dd55fa"
+  },
+  "poems": [
+    {
+      "slug": "weary-labors",
+      "printedPage": 155,
+      "pdfPage": 40,
+      "comparisonPrintedPage": 198,
+      "comparisonPdfPage": 206,
+      "couplets": 5,
+      "textSha256": "840fdb321d74f9c4879fcbf892fa792cceb3982f43b1c22e2c43dc942ad93d9c",
+      "note": "Both printings separately head and bound five couplets. The 1909 reading has برغم من دلالة مرشدي and ما جمعنا وسائلا لمصلحة; the 1924 version reads برغم السعي والعلم والنهى and ما اتخذنا وسائلا لمنفعة."
+    },
+    {
+      "slug": "tumbler-pigeons",
+      "printedPage": 182,
+      "pdfPage": 13,
+      "comparisonPrintedPage": 131,
+      "comparisonPdfPage": 140,
+      "couplets": 7,
+      "textSha256": "00ae4d9a0e5a1ee57b3b8da8d05b78304c3253cb3832cb216bb333b1a72f8fd7",
+      "note": "The 1909 headnote introduces the description as appearing at the start of an al-Muqtaṭaf article; the 1924 book separately heads the same seven couplets. The 1909 زينة and المساء differ from the later بهجة and السماء."
+    }
+  ]
+}
