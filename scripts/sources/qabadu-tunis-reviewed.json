@@ -1,0 +1,92 @@
+{
+  "scanSha256": {
+    "tunis-library-1877-candidate.pdf": "818f0a31586b2d97efd3b199ab3e5c6acf96852289a2fe1e6d510c246c2a5cbd",
+    "bsb-v1-p21.jpg": "5497dbd0b65c4f7969077492fb076664167fc463cb8bdbab0c58adbc7a538246",
+    "bsb-v1-p22.jpg": "4f6ce9e5cd867dd9d5e5cee9f3ffe53edb2335fc021320c71c2e70ae4a3d5571",
+    "bsb-v1-p23.jpg": "aec13e8650e330e5db5af3ae7035b361aec9411e2b9a6ab0d50aaad2bdc984dd",
+    "bsb-v1-p50.jpg": "e07fbd66dbc324ffcf4149632ec863b8d0bc74e5b0acca00b430ba09a2327510",
+    "bsb-v1-p51.jpg": "516d98295a9bc0cf8914e263a6fbab9962871a675bec30db25e8c7809c703f06"
+  },
+  "poems": [
+    {
+      "slug": "reward",
+      "printedPages": [22],
+      "tunisPdfPages": [26],
+      "bsbImages": [155],
+      "couplets": 4,
+      "comparison": "https://www.aldiwan.net/poem56617.html",
+      "textSha256": "128cb523211720b93ea22dec40d2540918fcfc2e70a9e89173668523c311ae42",
+      "note": "The heading on p. 21 describes a request for a reward for earlier poems; these four couplets are separately followed by a new heading. The print's أهناها and أملاها correspond to أهنؤها and أملؤها in the online comparison."
+    },
+    {
+      "slug": "toothache",
+      "printedPages": [22],
+      "tunisPdfPages": [26],
+      "bsbImages": [155],
+      "couplets": 10,
+      "comparison": "https://www.aldiwan.net/poem56615.html",
+      "textSha256": "3f9bd9ee2df858222123a83bc9877c482624631411562e57812f948a7c2315ca",
+      "note": "The heading presents an apology for absence; the poem describes a toothache. The print has عناء and شفاء where the online comparison has عنائي and شفائي."
+    },
+    {
+      "slug": "messenger",
+      "printedPages": [22, 23],
+      "tunisPdfPages": [26, 27],
+      "bsbImages": [155, 154],
+      "couplets": 5,
+      "comparison": "https://www.aldiwan.net/poem56616.html",
+      "textSha256": "7b864f97340038af7403ed09ee9b4b3a79c5175645efefcee877ebc66a81def3",
+      "note": "Three couplets are on p. 22 and two continue on p. 23 before a new heading. The print reads للاستعفاء where the online comparison has بلا استعفاء."
+    },
+    {
+      "slug": "couscous",
+      "printedPages": [23],
+      "tunisPdfPages": [27],
+      "bsbImages": [154],
+      "couplets": 7,
+      "comparison": "https://www.aldiwan.net/poem56613.html",
+      "textSha256": "80ad31d18408a8a25e826647e8cf9308fb662c3c6a410f06024bb08e87cd8f57",
+      "note": "The heading calls this a satire on couscous built on a half-line by another writer; it does not identify that writer or specify the borrowed half-line. The seven-couplet work is separately bounded in this printing."
+    },
+    {
+      "slug": "birth-chronogram",
+      "printedPages": [50],
+      "tunisPdfPages": [54],
+      "bsbImages": [127],
+      "couplets": 3,
+      "comparison": "https://www.aldiwan.net/poem56594.html",
+      "textSha256": "ca98820efe4bb4ad21e4bef6199b666895f52547109d132ec8d565f725a00e55",
+      "note": "The heading describes a chronogram for the birth of Khayr al-Dīn's son; 1274 AH printed under the verse is an occasion annotation, not independently established as the date of composition."
+    },
+    {
+      "slug": "visit",
+      "printedPages": [51],
+      "tunisPdfPages": [55],
+      "bsbImages": [126],
+      "couplets": 4,
+      "comparison": "https://www.aldiwan.net/poem56606.html",
+      "textSha256": "ea76b0cf14e4ff6628a2841ba39c57b980e160823702689ce777844aeb2fed88",
+      "note": "The heading addresses Aḥmad ibn Abī al-Ḍiyāf about a missed visit and mentions Istanbul. It is not treated here as proof of a composition place."
+    },
+    {
+      "slug": "almonds",
+      "printedPages": [51],
+      "tunisPdfPages": [55],
+      "bsbImages": [126],
+      "couplets": 4,
+      "comparison": "https://www.aldiwan.net/poem56605.html",
+      "textSha256": "ed687e5a3c1f4a6a334d70d4f08b002052c2214f87d59ffda23b0be19f3713a6",
+      "note": "The heading identifies this as a request to Muḥammad Bayram IV; it is followed by a separately headed seal inscription."
+    },
+    {
+      "slug": "seal-chronogram",
+      "printedPages": [51],
+      "tunisPdfPages": [55],
+      "bsbImages": [126],
+      "couplets": 2,
+      "comparison": "https://www.aldiwan.net/poem56596.html",
+      "textSha256": "e896014961e22ed5a3f05c43e31c69a83cc03d9780454e9fc07c9edf549fb6e6",
+      "note": "The heading presents these two couplets as a seal inscription for Muṣṭafā Bayram on his appointment. The printed 1271 AH annotation is not independently asserted as a composition date."
+    }
+  ]
+}
