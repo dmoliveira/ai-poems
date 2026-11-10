@@ -1,0 +1,1140 @@
+{
+  "gutenbergSha256": "de55105220fd34640a8e6e662aa62abd0451dc1384be2758592720c16f67b4ca",
+  "scanSha256": {
+    "scan-085.jp2": "b8dec11b609580d052e73d53633fe7f769ad6d4c7e96075598ab691489978aa6",
+    "scan-086.jp2": "4c416cbcf321043e2859b8edc15753a4269125b833b8c038345b974e397f68d3",
+    "scan-087.jp2": "a8d64513b6e17cd06983ca4fb0a8593adf99ce6e582543fe6ef89b457f2241f8",
+    "scan-088.jp2": "10266264327d0676179d2a1e2f4d65d1e9b4ff13fc7438cb8a4c92e92d2e3812",
+    "scan-089.jp2": "e7a41748ce33a53de8f6315f0eecf90e70760a071a20ea2de79e638829633a8d",
+    "scan-090.jp2": "2a6c28232ff5ac3933a2fa63a7ef35b73f36919f980527cc559240af44873d27",
+    "scan-091.jp2": "d0ff76d53147073fec4bbe094d5a4756cc8793d6647d0669c00c5c7991084754",
+    "scan-092.jp2": "82d8330d2c87fb9fcb31dbb3f8f5ec37406c966dd9dc7880ffcbbe2905691ada",
+    "scan-093.jp2": "8461774916219a0fd4b444f46be325983b58e0782d7bd90643a69c83d6b6100a",
+    "scan-094.jp2": "de37325feebb53408a9128cca5e2b1e1fce042c0867af2636479a2d341db673d",
+    "scan-095.jp2": "da815cbb13eb72ae9022bd427b96d2a1db60bd281ac87e2d1f476beeafa6c0f0",
+    "scan-102.jp2": "f30b55fffd346d8aac9ec4aec6fa8523d33d346ee42350b6efc916ec95adf7b7",
+    "scan-103.jp2": "923494a130d306cbc0cb09788791c0acf45479094dfb84d3a6a4d36a1bca852b",
+    "scan-110.jp2": "dd70422f0a4b7ef2a9b16759d7a3c16810530ce8c65f8e4388c7c305163aaa60",
+    "scan-111.jp2": "29e93ef28d70b44523f559b882c00a0cbe9258aa0c16ee47a2a23bf3f3dc2ab7",
+    "scan-112.jp2": "a5d9e5ae9100f89cc08a786cb5bffcb105bf345cff868f1000583fc2625a44c4",
+    "scan-113.jp2": "0f0b823960186e9974e884463c43f8c69ebf1cfc55d25304207390edc8b678c4",
+    "scan-117.jp2": "979e87080d1be85123d8efeae03bcf262a7761cf687fde1e00551379cad263b8",
+    "scan-118.jp2": "4cf8113d9563e230446987fccace8628de5a0ac0749df7762cab2253b9ae0bb5",
+    "scan-119.jp2": "1e747ec452298e877c75987fc0f88bca844495f55121cf576717be51109c1bf8",
+    "scan-120.jp2": "5327fff4c6d8e50f10a81ee5e228995ec56011913667e34a119353650f59f8d6",
+    "scan-121.jp2": "b1ca314e5e7f997b0350fb8bea0121fab15f7c43d3020f5f48942b361f09dfc4",
+    "scan-122.jp2": "e984875241ba6a6ddb04dd9bca3026faa997e57ca37271bbb9c7d9e0d26c5d2e",
+    "scan-125.jp2": "8fa9d4c0b70c47bebc0e4b06ca33469b2bfaf2e2acb4b1d72a30ad76170a68f7",
+    "scan-130.jp2": "1e0942012b68becf188eaccf92af87151d93b96169205e15d7e5bc099217d989",
+    "scan-131.jp2": "34d4bddcdc7063fe8b3ac16cbc0d0dfec45d813d25a2af7eda41076bf1c2e8d3",
+    "scan-132.jp2": "0b63b6e086f9dd727c665ccee88b87b9db83525ac09cb71be9a3efcd2e304544",
+    "scan-133.jp2": "e151b0e0071de78fd98e0a8e4c4717e26f34028be43a67be4c388e8f1dac1ae4",
+    "scan-134.jp2": "73ccd4c42f8b0e15188963df793c7cdd0ce86afd4e58652e1a671887da84b2e3",
+    "scan-135.jp2": "cdfc6e7cf3a2ccc883989267179a469f8ff17f85cc784d40229dc47c0b461de9",
+    "scan-137.jp2": "d367482a3f3003247fef986d516444241aa846c8089b88c94a8650f78c5d5403",
+    "scan-138.jp2": "35cf2ae2c75743b6221ea1361b57d889645b7275c1b62f14d79086f48ef16948",
+    "scan-148.jp2": "5ed27ec970d419dd62e902e40f8df68b6fba8a3e32057564d0aa6a48785d3ca1",
+    "scan-149.jp2": "e1281aa85a6baabb88cec293daf980cb7803bcddc9f4e6e0283ec5979176d9f9",
+    "scan-157.jp2": "fc335c142ab20cae0a82dcc9413500861d27e6f31a6d2d5d576edb805f6109e6",
+    "scan-178.jp2": "1c8ec8860db1627c0f7e8f98d4cb2a8e2ec0111c939a3fa834dd119209decf67",
+    "scan-210.jp2": "70c3c218cb0921d76f21ce0d991f4713d380ec9f0094fe387024c3271a7f697d"
+  },
+  "poems": [
+    {
+      "number": 1,
+      "roman": "I",
+      "title": "Voi ch’ascoltate in rime sparse il suono",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_I&oldid=3837809",
+      "scanPage": 85,
+      "sourceSha256": "fb7766b7e43153b68521c97cffbe1550f061e8205aafa74d371769340fc3c80d",
+      "corrections": [],
+      "sha256": "1bd03d0263618795876c9f17b2490058719759af9cbaf2095497075952c85478",
+      "note": "A separate 1903 transcription is compared in the source notes; it reads “ch’i’ sono” where this print has “ch’i sono”.",
+      "comparison": {
+        "type": "gutenberg-1903",
+        "page": 30,
+        "url": "https://www.gutenberg.org/cache/epub/50307/pg50307-images.html#Page_30",
+        "sha256": "a46b3d6f3eabb9fe5b1f6d64ede3b0aea8c2e2ede3c97f4f4dae12ddb29496e9",
+        "differences": []
+      }
+    },
+    {
+      "number": 2,
+      "roman": "II",
+      "title": "Per far una leggiadra sua vendetta",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_II&oldid=3837810",
+      "scanPage": 86,
+      "sourceSha256": "3422646027fa3dfcc0f6e3d93c6e605e8b440d1868fbd96a7a0af2d8f89e2f96",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "Per fare una leggiadra sua vendetta,",
+          "after": "Per far una leggiadra sua vendetta,"
+        }
+      ],
+      "sha256": "a85bd47804719efa09614715b192f25aa016f5f11eee5a17aa11f815b7ab0764"
+    },
+    {
+      "number": 3,
+      "roman": "III",
+      "title": "Era ’l giorno ch’al Sol si scoloraro",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_III&oldid=3837811",
+      "scanPage": 86,
+      "sourceSha256": "70faf6b490841b51ce8e746f91526a0b056ab90629cd7471a32d5fa6eae3ad30",
+      "corrections": [],
+      "sha256": "89852ab9c5b54c78bb16f4798e4265954562a6d1a8a103d38576f16e870e4956"
+    },
+    {
+      "number": 4,
+      "roman": "IV",
+      "title": "Quel ch’infinita provvidenza, ed arte",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_IV&oldid=3837812",
+      "scanPage": 87,
+      "sourceSha256": "2e8bb587a2efcef794063916e4daf98394e4e2e3b2094920b3bacd7618983724",
+      "corrections": [
+        {
+          "line": 9,
+          "before": "Di sè, nascendo, a Roma non fe’ grazia,",
+          "after": "Di sè, nascendo, a Roma non fè grazia,"
+        }
+      ],
+      "sha256": "3de4623e7b9b685b489c94a14f0b98723fdd3a928767011ca7656dba7e8d1f1c"
+    },
+    {
+      "number": 5,
+      "roman": "V",
+      "title": "Quand’io movo i sospiri a chiamar voi",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_V&oldid=3837855",
+      "scanPage": 87,
+      "sourceSha256": "492e519954a7aad3fb39a1e0e5f32de776726f79522568e74d689d92126a7f9c",
+      "corrections": [
+        {
+          "line": 8,
+          "before": "E d’altr’omeri soma, che da’ tuoi.",
+          "after": "È d’altr’omeri soma, che da’ tuoi."
+        }
+      ],
+      "sha256": "74e052ab67e060bf1ee1a170297474fe43136d7fc25dd639c64854aada0548f3"
+    },
+    {
+      "number": 6,
+      "roman": "VI",
+      "title": "Sì traviato è ’l folle mio desio",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_VI&oldid=3837856",
+      "scanPage": 88,
+      "sourceSha256": "f3991a209e9e38546a0df24237a9f9d6d5a56a889f4f2bd491211048ff0bd0a9",
+      "corrections": [],
+      "sha256": "840f4ac3e0b1bb5b737ac47b49725c4d445a9b2d04f7690219399c54c7d09d93"
+    },
+    {
+      "number": 7,
+      "roman": "VII",
+      "title": "La gola, e ’l sonno, e l’oziose piume",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_VII&oldid=3837857",
+      "scanPage": 88,
+      "sourceSha256": "61c652be0df224818696c2d1fa3ae0c6380d5982628212962fd79cc752ef38a3",
+      "corrections": [],
+      "sha256": "3e6d1b414b1cd54b52504ae45665dee31dc0c38ab0b0848a05b89524b309dea8",
+      "note": "A separate 1903 transcription reads “vertù” where this print has “virtù”.",
+      "comparison": {
+        "type": "gutenberg-1903",
+        "page": 28,
+        "url": "https://www.gutenberg.org/cache/epub/50307/pg50307-images.html#Page_28",
+        "sha256": "2ff8bfa0a4185f015fbb55abf3804d94e3d624ea3cd020e788dc4637898b31a1",
+        "differences": [
+          {
+            "line": 2,
+            "original": "Hanno del mondo ogni virtù sbandita,",
+            "comparison": "Hanno del mondo ogni vertù sbandita,"
+          }
+        ]
+      }
+    },
+    {
+      "number": 8,
+      "roman": "VIII",
+      "title": "A pie’ de’ colli ove la bella vesta",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_VIII&oldid=3837858",
+      "scanPage": 89,
+      "sourceSha256": "2ef5c74fa109b24560321347229f3fc10b4b8ee2c00d9416d1b05cd4b150efc2",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "A Pie’ de’ colli ove la bella vesta",
+          "after": "A pie’ de’ colli ove la bella vesta"
+        },
+        {
+          "line": 10,
+          "before": "Condotte da la vita altra serena,",
+          "after": "Condotte dalla vita altra serena,"
+        },
+        {
+          "line": 11,
+          "before": "Un sol conforto, e de la morte, avemo:",
+          "after": "Un sol conforto, e della morte, avemo:"
+        },
+        {
+          "line": 13,
+          "before": "Lo qual’in forza altrui, presso a l’estremo",
+          "after": "Lo qual’in forza altrui, presso all’estremo"
+        }
+      ],
+      "sha256": "ec608897264016430e07d426e5de7118ff6cda27300da77d715ec8f1de0da682"
+    },
+    {
+      "number": 9,
+      "roman": "IX",
+      "title": "Quando ’l pianeta che distingue l’ore",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_IX&oldid=3837813",
+      "scanPage": 89,
+      "sourceSha256": "df610d8108b431d4b45624b20f0f2cce8cde31b12730354438be8a0d1b181336",
+      "corrections": [
+        {
+          "line": 3,
+          "before": "Cade virtù da l’infiammate corna,",
+          "after": "Cade virtù dall’infiammate corna,"
+        }
+      ],
+      "sha256": "d85bc4a9fbc810e2a99f504121f38c6c340c5604ae1a774e86ef645bb3e6d1c1"
+    },
+    {
+      "number": 10,
+      "roman": "X",
+      "title": "Gloriosa Colonna, in cui s’appoggia",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_X&oldid=3837859",
+      "scanPage": 90,
+      "sourceSha256": "6de122d30ba4715a8979198f3e11972c63d15c323b16a84700e01587d9dbd1a2",
+      "corrections": [
+        {
+          "line": 3,
+          "before": "Ch’ancor non torse del vero cammino",
+          "after": "Ch’ancor non torse dal vero cammino"
+        }
+      ],
+      "sha256": "d769f8ffea404cb31c05671b646154ba0cda9a0dd663153cd5027f8835b2f8d3"
+    },
+    {
+      "number": 11,
+      "roman": "XI",
+      "title": "Se la mia vita dall’aspro tormento",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XI&oldid=3837870",
+      "scanPage": 91,
+      "sourceSha256": "68377a08dbc3d2e97493c5dfd84a2147b7560e5a509d3a3b5a407e006a1f69a2",
+      "corrections": [],
+      "sha256": "992159cdffb5617d8dafe3e121df1abdb0b01912e88688d870a49e65a536b737"
+    },
+    {
+      "number": 12,
+      "roman": "XII",
+      "title": "Quando fra l’altre donne ad ora ad ora",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XII&oldid=3837871",
+      "scanPage": 91,
+      "sourceSha256": "e82a60402a91b4c0938af6d2e509783885496e2fc9310ca64bbd67be9c0fa5b9",
+      "corrections": [
+        {
+          "line": 11,
+          "before": "Pocho prezzando quel ch’ogni uom desia:",
+          "after": "Poco prezzando quel ch’ogni uom desia:"
+        },
+        {
+          "line": 14,
+          "before": "Sì ch’i’ vo già de la speranza altero.",
+          "after": "Sì ch’i’ vo già della speranza altero."
+        }
+      ],
+      "sha256": "9da3a8f3abe12166254ea1e332f938ca138d254c7ccdf518c001389415af22e0"
+    },
+    {
+      "number": 13,
+      "roman": "XIII",
+      "title": "Io mi rivolgo indietro a ciascun passo",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XIII&oldid=3837872",
+      "scanPage": 92,
+      "sourceSha256": "637c3308b05fce9d71b1c5096b7c3d3caf7b9e458abf382ea827fbb6e8258338",
+      "corrections": [
+        {
+          "line": 11,
+          "before": "Da lo spirito lor viver lontane:",
+          "after": "Dallo spirito lor viver lontane:"
+        }
+      ],
+      "sha256": "b290380b6595dcce6020431533ca14c05192d163fde95fd820763a719f1d3d57"
+    },
+    {
+      "number": 14,
+      "roman": "XIV",
+      "title": "Movesi ’l vecchierel canuto, e bianco",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XIV&oldid=3837873",
+      "scanPage": 93,
+      "sourceSha256": "9a12ccd1072f3f13952e688bb3beffcba95ffc6c8df7f2458ee88ae5f367cd3e",
+      "corrections": [
+        {
+          "line": 13,
+          "before": "Donna, quanto è possibile, in altrui",
+          "after": "Donna, quant’è possibile, in altrui"
+        }
+      ],
+      "sha256": "9969cfa93e7d7bd9e881682882ef0a0a8e3a6eff8b336b9b865febffc1649ae2"
+    },
+    {
+      "number": 15,
+      "roman": "XV",
+      "title": "Pióvommi amare lagrime dal viso",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XV&oldid=3837885",
+      "scanPage": 93,
+      "sourceSha256": "6d516c53bd1605c2135fe8ee85405380760488f25a0dd9ded07a3e5da10a9be9",
+      "corrections": [],
+      "sha256": "51a17de5dfb4763e21eb02524a2d5fbfbc8ca6fed8427e0bd0fb81805904f837"
+    },
+    {
+      "number": 16,
+      "roman": "XVI",
+      "title": "Quand’io son tutto volto in quella parte",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XVI&oldid=3837886",
+      "scanPage": 94,
+      "sourceSha256": "974f46a0753f4410afd35f4123cdd437072847626bf6354410981bc7f1e545b9",
+      "corrections": [],
+      "sha256": "51e1d4bb186967d96a379dda230618685e390f8c0fdd77fc1a84a488a7dbaafb"
+    },
+    {
+      "number": 17,
+      "roman": "XVII",
+      "title": "Son’ animali al mondo di sì altera",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XVII&oldid=3837887",
+      "scanPage": 94,
+      "sourceSha256": "c491fd79344e0c34c0db4daf14c4051049c995c8ad8f6b5ed3dcf437435a7ced",
+      "corrections": [
+        {
+          "line": 2,
+          "before": "Vista che ’ncontra ’l Sol pur si difende:",
+          "after": "Vista, che ’ncontr’ al Sol pur si difende:"
+        }
+      ],
+      "sha256": "07868ffd6caab864ceb95467da3617512b7f797d96769d55993db5324e23fd43"
+    },
+    {
+      "number": 18,
+      "roman": "XVIII",
+      "title": "Vergognando talor ch’ancor si taccia",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XVIII&oldid=3837888",
+      "scanPage": 95,
+      "sourceSha256": "7c65d5b69335b924e9945ff5823308a3a2e7d2638981d4665ebd5295d3e1c6bd",
+      "corrections": [],
+      "sha256": "08ef9b68e76a4d8e9fdc6d8665cba3785e91f4499102b81dd2f98882a3d27fde"
+    },
+    {
+      "number": 19,
+      "roman": "XIX",
+      "title": "Mille fiate, o dolce mia guerrera",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XIX&oldid=3837874",
+      "scanPage": 95,
+      "sourceSha256": "38cb79950690b0140df4df326a0175ac1c46336641f2af212799205142c5ef5f",
+      "corrections": [
+        {
+          "line": 4,
+          "before": "Mirar sì basso colla mente altera:",
+          "after": "Mirar sì basso con la mente altera:"
+        }
+      ],
+      "sha256": "56d8543127a82fc83041e26753b4f1974ec83cb9efd2b57e3a29e5d1b261d4a4"
+    },
+    {
+      "number": 20,
+      "roman": "XX",
+      "title": "Se l’onorata fronde che prescrive",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XX&oldid=3837889",
+      "scanPage": 102,
+      "sourceSha256": "3872dd837b08d9b1d3b6e4cf9196d6c1fa4c6ad583d3dc7679a668a24270ea4d",
+      "corrections": [],
+      "sha256": "bcb0ec5aa5408e4d2119fbadcc5e126c99cfc809151723c428c90c880399a552"
+    },
+    {
+      "number": 21,
+      "roman": "XXI",
+      "title": "Amor piangeva, ed io con lui tal volta",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXI&oldid=3837890",
+      "scanPage": 102,
+      "sourceSha256": "fcb79b13f52ad1d929f02e1eb881311b51094ada5442c41d81bc87cdd7db0bb0",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "Amor piangeva, ed io con lui talvolta;",
+          "after": "Amor piangeva, ed io con lui tal volta;"
+        },
+        {
+          "line": 7,
+          "before": "Ringrazio lui, ch’i giusti preghi humani",
+          "after": "Ringrazio lui, ch’i giusti preghi umani"
+        },
+        {
+          "line": 9,
+          "before": "E se tornando a l’amorosa vita,",
+          "after": "E se tornando all’amorosa vita,"
+        },
+        {
+          "line": 12,
+          "before": "Fu per mostrar quanto è spinoso calle,",
+          "after": "Fu per mostrar, quant’è spinoso calle,"
+        }
+      ],
+      "sha256": "f58b424f0e9cab640e3426c9927454ff61f2722e2a2e3990afec4a43c91097d2"
+    },
+    {
+      "number": 22,
+      "roman": "XXII",
+      "title": "Più di me lieta non si vede a terra",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXII&oldid=3837891",
+      "scanPage": 103,
+      "sourceSha256": "e42c47e4a1c3deb75c9e7970107360794dbd171353dfc2d5b427ab122e5cfe40",
+      "corrections": [],
+      "sha256": "8f02bb1ff6e08abd9409fb05960e02555b43b5f2c9ff44555d1d592177ac6243"
+    },
+    {
+      "number": 23,
+      "roman": "XXIII",
+      "title": "Il successor di Carlo, che la chioma",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXIII&oldid=3837892",
+      "scanPage": 103,
+      "sourceSha256": "bdce50647f65398673cf280b5affa18875525b298cd850f777392495bc856448",
+      "corrections": [],
+      "sha256": "ff869eb0b452772c14736ad36242e7c86fbdd8a7e3ff2bb0fefabefe001e8df4"
+    },
+    {
+      "number": 24,
+      "roman": "XXIV",
+      "title": "Quest’anima gentil che si diparte",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXIV&oldid=3837893",
+      "scanPage": 110,
+      "sourceSha256": "a3047f50d1a02fe0f4c5f6fc8c98c29cfa0ff4ea7b0d30d1a8a1bedffed83bf7",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "Questa anima gentil che si diparte",
+          "after": "Quest’anima gentil che si diparte"
+        },
+        {
+          "line": 3,
+          "before": "Se lassuso è, quanto esser de’, gradita;",
+          "after": "Se lassuso è, quant’esser de’, gradita;"
+        }
+      ],
+      "sha256": "6577640917ae452982e608701496765a7ebb623095fdb69939c719f3bf384a40"
+    },
+    {
+      "number": 25,
+      "roman": "XXV",
+      "title": "Quanto più m’avvicino al giorno estremo",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXV&oldid=3837895",
+      "scanPage": 111,
+      "sourceSha256": "247324e63a9e096035bb21d2dfff09e0ed63610334337811444ff7aa0dcb4bbc",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "Quanto più m’avicino al giorno estremo",
+          "after": "Quanto più m’avvicino al giorno estremo"
+        }
+      ],
+      "sha256": "1adb5566906d62bdba66908a19b9426514b817f7dda8042d51cb933a50dc81a1"
+    },
+    {
+      "number": 26,
+      "roman": "XXVI",
+      "title": "Già fiammeggiava l’amorosa stella",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXVI&oldid=3837896",
+      "scanPage": 111,
+      "sourceSha256": "b002eb29dd953d18838174361e3855b8251535e96bcd2be158d27e3096b07819",
+      "corrections": [
+        {
+          "line": 14,
+          "before": "Veder quest’occhi ancor non ti si tolle.",
+          "after": "Veder questi occhi ancor non ti si tolle."
+        }
+      ],
+      "sha256": "7a838b9e55ca87193d3af529c2c989136e911c4b9947b5da96ce546ee0ab6f5c"
+    },
+    {
+      "number": 27,
+      "roman": "XXVII",
+      "title": "Apollo; s’ancor vive il bel desio",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXVII&oldid=3837897",
+      "scanPage": 112,
+      "sourceSha256": "4eb368ee169717515a1a988c6ea223f18fdfe64e99b71287d0e6f2ae5eede730",
+      "corrections": [
+        {
+          "line": 2,
+          "before": "Che t’infiammava a le Tessaliche onde;",
+          "after": "Che t’infiammava alle Tessaliche onde;"
+        },
+        {
+          "line": 12,
+          "before": "Sì vedrem poi per maraviglia inseme",
+          "after": "Sì vedrem poi per maraviglia insieme"
+        }
+      ],
+      "sha256": "0387ab4694d70d40318d73ca5cf2ed44fbaaf1b5b3ff65b9aa42162c0d377109"
+    },
+    {
+      "number": 28,
+      "roman": "XXVIII",
+      "title": "Solo, e pensoso i più deserti campi",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXVIII&oldid=3837898",
+      "scanPage": 112,
+      "sourceSha256": "e96cbd98e2773516fc27b429767353665a3d05aec14dec26b5a135552c928175",
+      "corrections": [
+        {
+          "line": 3,
+          "before": "E gli occhi porto per fuggire intenti",
+          "after": "E gli occhi porto per fuggir intenti"
+        }
+      ],
+      "sha256": "e9ecaefd07c273a5e9bd37381896a4bf211487f36acb4dc90e476a5cea336d65",
+      "note": "The 1910 Oxford transcription reads “fuggire” and “Ove vestigio uman l’arena”, where this print has “fuggir” and “Dove vestigio uman la rena”.",
+      "comparison": {
+        "type": "oxford-1910",
+        "filename": "lucas-01.html",
+        "url": "https://it.wikisource.org/w/index.php?title=Solo_e_pensoso_i_pi%C3%B9_deserti_campi_(Lucas)&oldid=3759465",
+        "sha256": "1195ed954b7b8874145b0dee3c615132d710cb2ca615523f93b4b351c5549045",
+        "differences": [
+          {
+            "line": 3,
+            "original": "E gli occhi porto per fuggir intenti",
+            "comparison": "E gli occhi porto, per fuggire, intenti,"
+          },
+          {
+            "line": 4,
+            "original": "Dove vestigio uman la rena stampi.",
+            "comparison": "Ove vestigio uman l’arena stampi."
+          },
+          {
+            "line": 6,
+            "original": "Dal manifesto accorger delle genti:",
+            "comparison": "Dal manifesto accorger de le genti;"
+          }
+        ]
+      }
+    },
+    {
+      "number": 29,
+      "roman": "XXIX",
+      "title": "S’io credessi per morte essere scarco",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXIX&oldid=3837894",
+      "scanPage": 113,
+      "sourceSha256": "618787bd3d805650c0b9a59deb5e2b8ac1a37ab1499b6c2c205ae673c8dcde08",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "S’Io credessi per morte essere scarco",
+          "after": "S’io credessi per morte essere scarco"
+        },
+        {
+          "line": 3,
+          "before": "Colle mie mani avrei già posto in terra",
+          "after": "Con le mie mani avrei già posto in terra"
+        },
+        {
+          "line": 7,
+          "before": "Di qua dal passo ancor che mi si serra,",
+          "after": "Di quà dal passo ancor che mi si serra,"
+        },
+        {
+          "line": 13,
+          "before": "Che mi lassò de’ suoi color’ dipinto;",
+          "after": "Che mi lassò de’ suoi color dipinto;"
+        }
+      ],
+      "sha256": "707584c09ffc912e28a6cf28c3cb2ed1d9ab20f890139fc317ef3b0a28505b22"
+    },
+    {
+      "number": 30,
+      "roman": "XXX",
+      "title": "Or so, e’ non furon mai fiumi, nè stagni",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXX&oldid=3837899",
+      "scanPage": 117,
+      "sourceSha256": "654d3f293f321f805f4de2e8c31d25114c082b3e8e4b8d422cca1689067d1fd1",
+      "corrections": [
+        {
+          "line": 12,
+          "before": "E d’una bianca mano anco mi doglio;",
+          "after": "Ed’una bianca mano anco mi doglio;"
+        }
+      ],
+      "sha256": "1fbbe91c53c131c291f392c2318887b9be893104e980c052e5da5a607a66edd0"
+    },
+    {
+      "number": 31,
+      "roman": "XXXI",
+      "title": "Io temo sì de’ begli occhi l’assalto",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXXI&oldid=3837900",
+      "scanPage": 117,
+      "sourceSha256": "ac37fc26ad7b2d493bc4a19d7e950de1c911ad0d74d3f82e4a0db8d3877f1d79",
+      "corrections": [
+        {
+          "line": 4,
+          "before": "E gran tempo è ch’io presi il primier salto.",
+          "after": "E gran tempo è ch’io presi ’l primier salto."
+        }
+      ],
+      "sha256": "57c7a6896344f5aaa581ed7abe1cd4bca21192663191c40aa08ecb3ed607f892"
+    },
+    {
+      "number": 32,
+      "roman": "XXXII",
+      "title": "S’Amore, o Morte non dà qualche stroppio",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXXII&oldid=3837901",
+      "scanPage": 118,
+      "sourceSha256": "bcc70a44dfe602d434bb65fae75226918fc7b58c55ac8955cab69a0b14e028d8",
+      "corrections": [
+        {
+          "line": 2,
+          "before": "A la tela novella ch’ora ordisco;",
+          "after": "Alla tela novella ch’ora ordisco;"
+        },
+        {
+          "line": 4,
+          "before": "Mentre che l’un coll’altro vero accoppio;",
+          "after": "Mentre che l’un con l’altro vero accoppio;"
+        }
+      ],
+      "sha256": "6c413aa9d49b944c68e3eb2d59792dc9340ce0b3223e0ac4c4f955adc5cc4f9e"
+    },
+    {
+      "number": 33,
+      "roman": "XXXIII",
+      "title": "Quando dal proprio sito si rimove",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXXIII&oldid=3837902",
+      "scanPage": 118,
+      "sourceSha256": "5aaf9b80e5ae2712f8d79bdbff1e028c7bedf88c05a0bbdf9305ce877e514546",
+      "corrections": [
+        {
+          "line": 3,
+          "before": "Sospira, e suda a l’opera Vulcano,",
+          "after": "Sospira, e suda all’opera Vulcano,"
+        },
+        {
+          "line": 5,
+          "before": "Il qual or tona, or nevica, e or piove",
+          "after": "Il qual’or tona, or nevica, ed or piove"
+        },
+        {
+          "line": 7,
+          "before": "La terra piange, e ’l Sol ci sta lontano,",
+          "after": "La terra piagne, e ’l Sol ci sta lontano,"
+        }
+      ],
+      "sha256": "11128180d4d4d73b94d7d995d89de20583ebc4fe86f06f3cdc9727b2998f023e"
+    },
+    {
+      "number": 34,
+      "roman": "XXXIV",
+      "title": "Ma poi che ’l dolce riso umìle, e piano",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXXIV&oldid=3837903",
+      "scanPage": 119,
+      "sourceSha256": "a38dbec59b015c771e487e560f22c123db126943e7f98371fe55898a22538488",
+      "corrections": [],
+      "sha256": "e98c8a632fd0195933373cc897f789313ee108a11d25f49d44a6ad507f2d69f7"
+    },
+    {
+      "number": 35,
+      "roman": "XXXV",
+      "title": "Il figliuol di Latona avea già nove",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXXV&oldid=3837905",
+      "scanPage": 119,
+      "sourceSha256": "9a776ba3e173c158f9a946e19f4b87a999a3158b234e868f1ebe3932a7ab6be9",
+      "corrections": [],
+      "sha256": "e15d164a0bf6f17019c855bf38916b68f8ebfcdcb11fc965fc6f04f4d073ff63"
+    },
+    {
+      "number": 36,
+      "roman": "XXXVI",
+      "title": "Quel ch’in Tessaglia ebbe le man sì pronte",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXXVI&oldid=3837906",
+      "scanPage": 120,
+      "sourceSha256": "d5be834160e065391b95b9ff54d006947ef8994503e01577d19384626e4e1fac",
+      "corrections": [
+        {
+          "line": 4,
+          "before": "Raffigurato a le fattezze conte:",
+          "after": "Raffigurato alle fattezze conte:"
+        }
+      ],
+      "sha256": "cee13df3b7d141fd5b0930eb1a71cdee0526484c86f24b00067e21684f905785"
+    },
+    {
+      "number": 37,
+      "roman": "XXXVII",
+      "title": "Il mio avversario in cui veder solete",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXXVII&oldid=3837907",
+      "scanPage": 120,
+      "sourceSha256": "7d664c1ff35513cf2a29306e1d29b2d79aaea454f8c10b1c0bcb0916bfd1d878",
+      "corrections": [
+        {
+          "line": 9,
+          "before": "Ma s’io v’era con saldi chiovi fisso,",
+          "after": "Ma s’io vi era con saldi chiovi fisso,"
+        }
+      ],
+      "sha256": "3d7e0def622f9202af70b97acf6811b6f5c1bf6f611d11f599b8dd0d4482ac92"
+    },
+    {
+      "number": 38,
+      "roman": "XXXVIII",
+      "title": "L’oro, e le perle, e i fior vermigli, e i bianchi",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXXVIII&oldid=3837908",
+      "scanPage": 121,
+      "sourceSha256": "5970d921b98fb6083ebc25a156b44da3bf0a0f193a307a2affff172ecc8bfada",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "L’Oro, e le perle, e i fior vermigli, e i bianchi,",
+          "after": "L’oro, e le perle, e i fior vermigli, e i bianchi,"
+        },
+        {
+          "line": 6,
+          "before": "Che gran duol rade volte aven che ’nvecchi:",
+          "after": "Che gran duol rade volte avvien che ’nvecchi:"
+        }
+      ],
+      "sha256": "6d312b90401927a83687b5bff85b70b5b729762d3a78093ecb833ae384972e8a"
+    },
+    {
+      "number": 39,
+      "roman": "XXXIX",
+      "title": "Io sentia dentr’al cor già venir meno",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XXXIX&oldid=3837904",
+      "scanPage": 121,
+      "sourceSha256": "246a7be8f5bf1de511ef18a7a45597b497cc9ea7e528078344bde3a649397f5d",
+      "corrections": [
+        {
+          "line": 10,
+          "before": "A riveder gli occhi leggiadri; ond’io,",
+          "after": "A rivedere gli occhi leggiadri; ond’io,"
+        }
+      ],
+      "sha256": "4b38d56f36328ba6f2e3bae4c7f29a913cf743b89a42e10ccecbdddcfea2cd73"
+    },
+    {
+      "number": 40,
+      "roman": "XL",
+      "title": "Se mai foco per foco non si spense",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XL&oldid=3837875",
+      "scanPage": 122,
+      "sourceSha256": "0a9cbed11de643419db4e6d724be85bf4e4c8ef9b776ae9f396618b34336e2fb",
+      "corrections": [
+        {
+          "line": 2,
+          "before": "Nè fiume fu già mai secco per pioggia,",
+          "after": "Nè fiume fu giammai secco per pioggia,"
+        },
+        {
+          "line": 10,
+          "before": "Col gran suono i vicin’ d’intorno assorda:",
+          "after": "Col gran suono i vicin d’intorno assorda:"
+        }
+      ],
+      "sha256": "3ed53f680ea991ad04501dc678a8bc84b75180aa7da9f0cf269d67571322f1cf"
+    },
+    {
+      "number": 41,
+      "roman": "XLI",
+      "title": "Perch’io t’abbia guardato di menzogna",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XLI&oldid=3837876",
+      "scanPage": 122,
+      "sourceSha256": "529a5a0ec011ad0661ecad4278cafa7c8be7e69a875eb865ac035d405dfdc079",
+      "corrections": [
+        {
+          "line": 7,
+          "before": "Sempre più fredda; e se parole sai,",
+          "after": "Sempre più fredda; e se parole fai,"
+        }
+      ],
+      "sha256": "21b90e35df656b2046994389219f1c1ad14a27ce6deafb6636daa27bfb75de90"
+    },
+    {
+      "number": 42,
+      "roman": "XLII",
+      "title": "Poco era ad appressarsi agli occhi miei",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XLII&oldid=3837877",
+      "scanPage": 125,
+      "sourceSha256": "c18a396f5ff9f3cd9590d54cd9b5cd4e11b3cb1b6cd0318db99135b08c7d2bed",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "Poro era ad appressarsi agli occhi miei",
+          "after": "Poco era ad appressarsi agli occhi miei"
+        },
+        {
+          "line": 8,
+          "before": "Pensoso ne la vista oggi sarei;",
+          "after": "Pensoso nella vista oggi sarei;"
+        }
+      ],
+      "sha256": "bb1917f010fc474bbf3dc22b04893f93ba3aee14ab3306f2f7ccefdacf776a38"
+    },
+    {
+      "number": 43,
+      "roman": "XLIII",
+      "title": "Se col cieco desir che ’l cor distrugge",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XLIII&oldid=3837878",
+      "scanPage": 130,
+      "sourceSha256": "610158d1ba494bf1826b6068102166bf01e6e47516e85ed55785f8bf3071d71d",
+      "corrections": [
+        {
+          "line": 5,
+          "before": "Qual ombra è sì crudel, che ’l seme adugge",
+          "after": "Qual’ombra è sì crudel, che ’l seme adugge"
+        }
+      ],
+      "sha256": "2dc073511b39b406fd2bcb5deb2f4f9239bcdefa1d5c9628e4db1e4f366d1e77"
+    },
+    {
+      "number": 44,
+      "roman": "XLIV",
+      "title": "Mie venture al venir son tarde e pigre",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XLIV&oldid=3837879",
+      "scanPage": 131,
+      "sourceSha256": "dc9503be7e0af941572d7181df05bdffb76c127798ede39c59e3cc2414a433fa",
+      "corrections": [
+        {
+          "line": 7,
+          "before": "E corcherassi il Sol la oltre ond’esce",
+          "after": "E corcherassi ’l Sol la oltre ond’esce"
+        },
+        {
+          "line": 10,
+          "before": "O Amor’, o Madonna altr’uso impari;",
+          "after": "O Amor’, o Maddonna altr’uso impari;"
+        }
+      ],
+      "sha256": "67a4ad294c9d94b722d5fbbca792f97b9c7b57c927c53dfa8d2a2101ca1d851a"
+    },
+    {
+      "number": 45,
+      "roman": "XLV",
+      "title": "La guancia, che fu già piangendo stanca",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XLV&oldid=3837881",
+      "scanPage": 131,
+      "sourceSha256": "d7cf6cf5a06730a28e9293bd30d70f2ea5844b3891fc162263080e0dc9bc3485",
+      "corrections": [
+        {
+          "line": 5,
+          "before": "Coll’altro richiudete da man manca",
+          "after": "Con l’altro richiudete da man manca"
+        }
+      ],
+      "sha256": "778ced88be10e9474fa2b8c410c214e2d7140a6185ff0aa53a777cc41dc7bf5e"
+    },
+    {
+      "number": 46,
+      "roman": "XLVI",
+      "title": "L’arbor gentil che forte amai molt’anni",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XLVI&oldid=3837882",
+      "scanPage": 132,
+      "sourceSha256": "c94f2797ae7cd684333022cde78990cf4f8253d79b2c3adff73fe36f5c6413e9",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "L’Arbor gentil che forte amai molt’anni;",
+          "after": "L’arbor gentil che forte amai molt’anni;"
+        },
+        {
+          "line": 2,
+          "before": "Mentre i bei rami non m’ebber a sdegno,",
+          "after": "Mentre i bei rami non m’ebber’a sdegno,"
+        }
+      ],
+      "sha256": "1b27ea2ed719b23ebc493b31cf66f17e6d905d14619e359e22ac3137315dfc55"
+    },
+    {
+      "number": 47,
+      "roman": "XLVII",
+      "title": "Benedetto sia ’l giorno, e ’l mese, e l’anno",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XLVII&oldid=3837883",
+      "scanPage": 133,
+      "sourceSha256": "89b41afc09e476328ecf0d94a51f36b6e1f17dc9530eba5a29e461b3cc7f75b7",
+      "corrections": [
+        {
+          "line": 8,
+          "before": "E le piaghe che ’nfin al cor mi vanno.",
+          "after": "E le piaghe ch’infin’ al cor mi vanno."
+        },
+        {
+          "line": 10,
+          "before": "Chiamando il nome de mia donna ho sparte;",
+          "after": "Chiamando il nome di mia Donna ho sparte;"
+        },
+        {
+          "line": 13,
+          "before": "Ov’io fama l’acquisto: e ’l pensier mio,",
+          "after": "Ov’io fama le acquisto: e ’l pensier mio,"
+        }
+      ],
+      "sha256": "be83ac5e9889d9bbf7f1b28b5fc156e0623108b2df98f4c8545fcdfbeb8323a5"
+    },
+    {
+      "number": 48,
+      "roman": "XLVIII",
+      "title": "Padre del Ciel, dopo i perduti giorni",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XLVIII&oldid=3837884",
+      "scanPage": 133,
+      "sourceSha256": "6f02591b849b62c138acccdc7ccbe3f95dd819edd6ad6636cef9bb381c0e9fe2",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "Padre del ciel, dopo i perduti giorni,",
+          "after": "Padre del Ciel, dopo i perduti giorni,"
+        },
+        {
+          "line": 13,
+          "before": "Reduci i pensier vaghi a miglior luogo:",
+          "after": "Riduci i pensier vaghi a miglior luogo:"
+        }
+      ],
+      "sha256": "b1c847cde5cccab9e93c7ab0d1d73fb56228f588187739bbfb0ae27776df247f"
+    },
+    {
+      "number": 49,
+      "roman": "XLIX",
+      "title": "Se voi poteste per turbati segni",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XLIX&oldid=3837880",
+      "scanPage": 134,
+      "sourceSha256": "afb1971ef9e7ea24ab874ae5e450112d4bcb28832a4daea46468537da36748d7",
+      "corrections": [],
+      "sha256": "d5972cda4e87e5a01f8a3e42f8a4e068de041f722ab197fcce73c5cfe2f1a235"
+    },
+    {
+      "number": 50,
+      "roman": "L",
+      "title": "Lasso, che mal’accorto fui da prima",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_L&oldid=3837814",
+      "scanPage": 135,
+      "sourceSha256": "87b7421daf0f4640b421f2877b0cc27c53b19e0750118fd54669843bbae0e410",
+      "corrections": [],
+      "sha256": "51adc0220e9a7e33c374b02d761e9973568fb14fc00e68661c3e7b14cd1731dd"
+    },
+    {
+      "number": 51,
+      "roman": "LI",
+      "title": "Del mar Tirreno alla sinistra riva",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_LI&oldid=3837815",
+      "scanPage": 137,
+      "sourceSha256": "3d60364e6df4f5b108a585e793f9b9cc607ded6584c838e35be64fdb210a7a97",
+      "corrections": [
+        {
+          "line": 5,
+          "before": "Amor, che dentro a l’anima bolliva,",
+          "after": "Amor, che dentro all’anima bolliva,"
+        },
+        {
+          "line": 13,
+          "before": "Dagli occhi a’ pie’; se del lor’ esser molli",
+          "after": "Dagli occhi a’ piè; se del lor’ esser molli"
+        }
+      ],
+      "sha256": "ab4dd50c736ada9ffceed2d83c2265cb476b4ebbebc2ef7a876c11e7167b4cb8"
+    },
+    {
+      "number": 52,
+      "roman": "LII",
+      "title": "L’aspetto sacro della terra vostra",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_LII&oldid=3837816",
+      "scanPage": 137,
+      "sourceSha256": "7fe810acd0390042fa21a9088f82e2d4d23211ff7f92217164ebfb1fac17b613",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "L’Aspetto sacro della terra vostra",
+          "after": "L’aspetto sacro della terra vostra"
+        },
+        {
+          "line": 5,
+          "before": "Ma con questo pensier’ un altro giostra;",
+          "after": "Ma con questo pensier’ un’ altro giostra;"
+        }
+      ],
+      "sha256": "bb1b25f25ef659ac88300331b8685cae4efb7e95679f1cb4be989e19337dee40"
+    },
+    {
+      "number": 53,
+      "roman": "LIII",
+      "title": "Ben sapev’io che natural consiglio",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_LIII&oldid=3837817",
+      "scanPage": 138,
+      "sourceSha256": "3bad3845053de742af3c755b2ca70bfec75d62dfe751dc1478148af10ac057ce",
+      "corrections": [
+        {
+          "line": 12,
+          "before": "Quando ecco i tuoi ministri (i’ non so donde:)",
+          "after": "Quand’ecco i tuoi ministri (i’ non so donde:)"
+        }
+      ],
+      "sha256": "243b3ca39b16d8de59e4fc7bca9d39b4465291de62bd1cf70b7b5e07d4096457"
+    },
+    {
+      "number": 54,
+      "roman": "LIV",
+      "title": "Io son già stanco di pensar, siccome",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_LIV&oldid=3837818",
+      "scanPage": 148,
+      "sourceSha256": "a11514d12748d3cabbeb8135ae4ca74bd99794c4a3911278aaf3de9eccf61201",
+      "corrections": [
+        {
+          "line": 9,
+          "before": "E ch’e pie’ miei non son fiaccati, e lassi",
+          "after": "E ch’e piè miei non son fiaccati, e lassi"
+        },
+        {
+          "line": 12,
+          "before": "E onde vien l’inchiostro, onde le carte",
+          "after": "Ed onde vien l’inchiostro, onde le carte"
+        }
+      ],
+      "sha256": "1db606d7e162d518c092e39ca5e661285527797ba01e3f271b59978275124295"
+    },
+    {
+      "number": 55,
+      "roman": "LV",
+      "title": "I begli occhi ond’i’ fui percosso in guisa",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_LV&oldid=3837820",
+      "scanPage": 148,
+      "sourceSha256": "9f754ac5dd0e1037ebed99801a87f3e2347cc331a7a6bfd99c05b9df9b4fb101",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "I Begli occhi ond’i’ fui percosso in guisa,",
+          "after": "I begli occhi ond’i’ fui percosso in guisa,"
+        },
+        {
+          "line": 13,
+          "before": "Sempre nel cor colle faville accese;",
+          "after": "Sempre nel cor con le faville accese;"
+        }
+      ],
+      "sha256": "29870317c81cde24129178f326bfe8388be3a9f6b458d504432b42a0e39c014b"
+    },
+    {
+      "number": 56,
+      "roman": "LVI",
+      "title": "Amor con sue promesse lusingando",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_LVI&oldid=3837821",
+      "scanPage": 149,
+      "sourceSha256": "3371c20b0c7c647c8c76500b81fda7f9c9b8a243db782185abbb5b0baeb71d1a",
+      "corrections": [
+        {
+          "line": 2,
+          "before": "Mi ricondusse a la prigione antica;",
+          "after": "Mi ricondusse alla prigione antica;"
+        },
+        {
+          "line": 5,
+          "before": "Non me n’avidi, lasso, se non quando",
+          "after": "Non me n’avvidi, lasso, se non quando"
+        },
+        {
+          "line": 11,
+          "before": "E ’l cor ne gli occhi, e nella fronte ho scritto.",
+          "after": "E ’l cor negli occhi, e nella fronte ho scritto."
+        }
+      ],
+      "sha256": "4c8363eb1e420077cd2a58e3513cd255793bc8129e59031f1fbc90ddee7ea41c"
+    },
+    {
+      "number": 69,
+      "roman": "LXIX",
+      "title": "Erano i capei d’oro all’aura sparsi",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_LXIX&oldid=3837829",
+      "scanPage": 157,
+      "sourceSha256": "b1ab9db847f5a2b3460e589f424a5af0065a2f799722f0078b326232b74806f0",
+      "corrections": [],
+      "sha256": "e6d0eb62a7f9360c5ff269db9fe7fd38ca31d4c289698e56cec366492fb7773a",
+      "note": "The 1910 Oxford transcription reads “a l’aura” and “meraviglia”; this 1739 print has “all’aura” and “maraviglia”.",
+      "comparison": {
+        "type": "oxford-1910",
+        "filename": "lucas-02.html",
+        "url": "https://it.wikisource.org/w/index.php?title=Erano_i_capei_d%27oro_a_l%27aura_sparsi_(Lucas)&oldid=3689743",
+        "sha256": "d9db3ee7dc5c498029301b5b59619c21546cd4ce7457fb3ee77c3c67049d3a83",
+        "differences": [
+          {
+            "line": 1,
+            "original": "Erano i capei d’oro all’aura sparsi,",
+            "comparison": "Erano i capei d’oro a l’aura sparsi,"
+          },
+          {
+            "line": 8,
+            "original": "Qual maraviglia, se di subit’ arsi?",
+            "comparison": "Qual meraviglia se di subit’ arsi?"
+          }
+        ]
+      }
+    },
+    {
+      "number": 98,
+      "roman": "XCVIII",
+      "title": "Quel vago impallidir che ’l dolce riso",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_XCVIII&oldid=3837869",
+      "scanPage": 178,
+      "sourceSha256": "179bafa4456629f86bb230e43b72df9215d395df67dfb02c6d5d3c4fe8fa4fc0",
+      "corrections": [
+        {
+          "line": 7,
+          "before": "Quel pietoso penser ch’altri non scerse:",
+          "after": "Quel pietoso pensier ch’altri non scerse:"
+        }
+      ],
+      "sha256": "549a9ec50de0e190efb5001452765f258dfde3d12cb61717aa43fbf7984cf7fb",
+      "note": "The 1910 Oxford transcription has “sì come” and “fusse”, where this print reads “siccome” and “fosse”.",
+      "comparison": {
+        "type": "oxford-1910",
+        "filename": "lucas-03.html",
+        "url": "https://it.wikisource.org/w/index.php?title=Quel_vago_impallidir,_che_%27l_dolce_riso_(Lucas)&oldid=3748838",
+        "sha256": "1d241734e0e1b30dc0581c17f20b5380e5d59a4dd27c94a535beccd43ed0598c",
+        "differences": [
+          {
+            "line": 5,
+            "original": "Conobbi allor, siccome in paradiso",
+            "comparison": "Conobbi allor sì come in paradiso"
+          },
+          {
+            "line": 10,
+            "original": "Che già mai in donna ov’amor fosse, apparve,",
+            "comparison": "Che già mai in donna, ov’amor fusse, apparve,"
+          }
+        ]
+      }
+    },
+    {
+      "number": 126,
+      "roman": "CXXVI",
+      "title": "In qual parte del ciel’, in quale idea",
+      "source": "https://it.wikisource.org/w/index.php?title=Le_rime_di_M._Francesco_Petrarca/Sonetto_CXXVI&oldid=3837796",
+      "scanPage": 210,
+      "sourceSha256": "8ffca9507b11ddcdf3690e3e8bd22ebda596ab29f2a182e074feb98659726077",
+      "corrections": [
+        {
+          "line": 2,
+          "before": "Era l’essempio onde Natura tolse",
+          "after": "Era l’esempio onde Natura tolse"
+        }
+      ],
+      "sha256": "8c7ac824461cdc37d005004882e0fda01023a6dc7e73c723903748fb9a829735",
+      "note": "The 1910 Oxford transcription has “cielo” and “Quando un”, while this print reads “ciel’” and “Quand’un”.",
+      "comparison": {
+        "type": "oxford-1910",
+        "filename": "lucas-06.html",
+        "url": "https://it.wikisource.org/w/index.php?title=In_qual_parte_del_cielo,_in_quale_idea_(Lucas)&oldid=3709151",
+        "sha256": "0d1996264a63f8c23bacb03bd7c98e80eaad280c3912e96dc96b3c8a4f9e1ef1",
+        "differences": [
+          {
+            "line": 1,
+            "original": "In qual parte del ciel’, in quale idea",
+            "comparison": "In qual parte del cielo, in quale idea"
+          },
+          {
+            "line": 7,
+            "original": "Quand’un cor tante in sè virtuti accolse?",
+            "comparison": "Quando un cor tante in sè virtuti accolse?"
+          }
+        ]
+      }
+    }
+  ]
+}
