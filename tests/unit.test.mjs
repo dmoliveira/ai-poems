@@ -1155,8 +1155,108 @@ test('Marrash readings preserve printed boundaries, source credits and specific 
   assert.deepEqual(filterPoems(poems, { language: 'Arabic', theme: 'Faith', query: 'مريانا مراش' }).map(poem => poem.id), [bySlug('mary-inscription').id]);
   assert.ok(filterPoems(poems, { query: 'ليت النسا لا يلدن مثلهن' }).includes(bySlug('salma-elegy')));
   const poet = groupPoets(poems).find(group => group.id === 'maryana-marrash');
-  assert.equal(poet.poems.length, 12);
+  assert.equal(poet.poems.length, 22);
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
+test('additional Arabic works retain their bounded readings, credits and variants', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/arabic-voices-reviewed.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/arabic-voices-reviewed.txt', import.meta.url), 'utf8');
+  const sections = source.split(/^=== ([a-z-]+) ===\n/gm);
+  assert.equal(sections.shift(), '');
+  const readings = new Map();
+  while (sections.length) readings.set(sections.shift(), sections.shift().trim().replaceAll(' | ', '\n'));
+  assert.deepEqual(manifest.scanSha256, {
+    'bint-fikr-commons.pdf': 'fb138913fddf153646069e625e24bf326d823fef91b1d1cb770e02bf4607e053',
+    'mashahir-1922.pdf': '5871bd12d1d4b8bef093e8690dd5ac3330975fcd3d11cf5b891c80db53dba31e',
+    'ibrahim-collected-undated.pdf': '78d00d3a59fd1314795a08b48334469c9a225de05411b53b423f8218dc757bc3',
+  });
+  const expected = [
+    ['francis-coffin', 2, '241959a8fcd067da0c74cacd83bdf535aa85d2a50ecec1eab23ce5f770320a97'],
+    ['evening-gathering', 5, '5d08a6800dcad6fa39e33661a5ea1a8f06e8984c0983ad1c454b25ad84d9006c'],
+    ['bashir-elegy', 2, 'bb6497a0700518e343ae5fe8fe901955681f8955bc430d5a61d04543a4582f37'],
+    ['steadfast-friend', 3, '6a4dfc3b30fa91c25c49a714ee26a4837b80e264adb987175dfd7b76c855014d'],
+    ['unlearned-physician', 2, 'a692cb3df492b7ec9b589d480eeb12287ace2600002aed3bb98de135c8edb1f7'],
+    ['fragrant-pouch', 2, 'a14a1adb3f4ecde137f6f85c391d9400c2c8f70df7eac91fef92207bcdc350dd'],
+    ['photograph', 2, 'd16a6ef8e6dfccf46f62abe79808772eac1f4ec35702586b9c446865c4411ea3'],
+    ['newborn-greeting', 3, '0057812124f1f852676e82225c9e437ff9d2fd70a5d2fb62b006e5301ed1c71a'],
+    ['barber', 2, '8ffec41f5993eea5279e6c7ba977bd94ea54c21b84a71456fb3cc200e1465851'],
+    ['bereaved-mother', 2, '99c87d1c053ecc7a8d0e100f7a34f4d6985fb08dc65bdaaee24d208d044f196d'],
+    ['truth-and-homeland', 32, '257bb3ea9503b56dfb664c600b879482e16562159d5ca94bc43eb442f26fe945'],
+  ];
+  const marrashSources = {
+    'francis-coffin': [[19], [[174584, 311907]]],
+    'evening-gathering': [[19], [[174584, 311907]]],
+    'bashir-elegy': [[20], [[174586, 311908]]],
+    'steadfast-friend': [[21], [[174587, 311909]]],
+    'unlearned-physician': [[22], [[174588, 311910]]],
+    'fragrant-pouch': [[22], [[174588, 311910]]],
+    'photograph': [[23], [[174589, 311911]]],
+    'newborn-greeting': [[23, 24], [[174589, 311911], [174590, 311912]]],
+    'barber': [[24], [[174590, 311912]]],
+    'bereaved-mother': [[24], [[174590, 311912]]],
+  };
+  assert.deepEqual(manifest.poems.map(item => item.slug), expected.map(([slug]) => slug));
+  for (const [index, [slug, couplets, hash]] of expected.entries()) {
+    const item = manifest.poems[index];
+    const id = item.poet === 'marrash' ? `maryana-marrash-1893-${slug}` : `hafiz-ibrahim-1922-${slug}`;
+    const poem = poems.find(entry => entry.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.text, readings.get(slug));
+    assert.equal(lineCount(poem), couplets * 2);
+    assert.equal(item.couplets, couplets);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(item.textSha256, hash);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: poem.title }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    if (item.poet === 'marrash') {
+      assert.deepEqual(item.printedPages, marrashSources[slug][0]);
+      assert.deepEqual(item.wikiPages.map(page => [page.pageId, page.revision]), marrashSources[slug][1]);
+      assert.equal(poem.authorId, 'maryana-marrash');
+      assert.deepEqual(associatedPlaces(poem), ['Syria']);
+      assert.equal(poem.title, poem.text.split('\n')[0]);
+      assert.match(poem.source, new RegExp(`#page=${item.printedPages[0]}$`));
+      assert.ok(poem.context.includes(item.note));
+      assert.match(poem.context, /not a claim about all textual traditions/);
+      assert.match(poem.rights, /CC BY-SA 4\.0/);
+      for (const page of item.wikiPages) assert.ok(poem.rights.includes(`curid=${page.pageId}&oldid=${page.revision}`));
+    } else {
+      assert.equal(poem.authorId, 'hafiz-ibrahim');
+      assert.equal(poem.authorOriginal, 'حافظ إبراهيم');
+      assert.deepEqual(associatedPlaces(poem), ['Egypt']);
+      assert.deepEqual(item.printedPages, [204, 205, 206]);
+      assert.deepEqual(item.pdfPages, [167, 166, 165]);
+      assert.deepEqual(item.comparisonPrintedPages, [94, 95, 96, 97]);
+      assert.deepEqual(item.comparisonPdfPages, [466, 467, 468, 469]);
+      assert.equal(new URL(poem.source).hash, '#page=167');
+      assert.equal(new URL(poem.contextSource).hash, '#page=466');
+      assert.match(poem.context, /rarely reprints.*previously published poems whole/);
+      assert.match(poem.context, /not independent descent or completeness in every tradition/);
+      assert.match(poem.context, /يزكو.*ولتنتخب.*يذكو.*وتنتخب/);
+      assert.match(poem.context, /يسجح.*يسجج/);
+      assert.ok(filterPoems(poems, { language: 'Arabic', query: 'Hafiz Ibrahim' }).includes(poem));
+      assert.ok(filterPoems(poems, { language: 'Arabic', query: 'فإنما في القلة المنجح' }).includes(poem));
+    }
+  }
+  const baby = poems.find(poem => poem.id === 'maryana-marrash-1893-newborn-greeting');
+  assert.match(baby.text, /فإنها ملاك بالبشر يبتسم\nخط مولدها بالسعد مقترن/);
+  assert.match(baby.context, /one couplet on p\. 23 continues with two on p\. 24/);
+  const mother = poems.find(poem => poem.id === 'maryana-marrash-1893-bereaved-mother');
+  assert.match(mother.text, /قد قصدت شتاتي/);
+  assert.match(mother.context, /not as an established event in the poet's own life/);
+  const hafiz = poems.find(poem => poem.id === 'hafiz-ibrahim-1922-truth-and-homeland');
+  assert.match(hafiz.text, /والروض لا يزكو ولا ينفح/);
+  assert.match(hafiz.text, /ولتنتخب صفوة أبنائها/);
+  assert.match(hafiz.text, /أيديكم فالقيد لا يسجح/);
+  assert.match(hafiz.text, /فإنما في القلة المنجح$/);
+  assert.deepEqual(groupPoets(poems).find(group => group.id === 'hafiz-ibrahim').poems.map(poem => poem.id), [hafiz.id]);
 });
 test('Taymur readings retain complete historical boundaries, variants and Arabic identity', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/taymur-1303-reviewed.json', import.meta.url), 'utf8'));

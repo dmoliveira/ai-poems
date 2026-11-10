@@ -1182,7 +1182,7 @@ test('al-Zahawi originals support Arabic discovery, saved data and static RTL re
 
 test('Marrash originals support Arabic discovery, faith and static RTL reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'maryana-marrash');
-  assert.equal(selected.length, 12);
+  assert.equal(selected.length, 22);
   const seed = { saved: ['let-the-days-do-as-they-will'], recent: [], extra: { keep: true } };
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -1191,8 +1191,10 @@ test('Marrash originals support Arabic discovery, faith and static RTL reading',
   await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
   for (const query of ['مريانا مراش', 'Maryana Marrash']) {
     await page.getByLabel('Search the poetry library').fill(query);
-    await page.getByText('12 poems found', { exact: true }).waitFor();
-    await page.getByRole('button', { name: /Show more poems/ }).click();
+    await page.getByText('22 poems found', { exact: true }).waitFor();
+    for (let shown = 8; shown < selected.length; shown += 8) {
+      await page.getByRole('button', { name: /Show more poems/ }).click();
+    }
     for (const item of selected) assert.equal(await page.locator(`#results a[href$="/poems/${item.id}/"]`).count(), 1);
   }
   await page.getByLabel('Search the poetry library').fill('ليت النسا لا يلدن مثلهن');
@@ -1238,6 +1240,70 @@ test('Marrash originals support Arabic discovery, faith and static RTL reading',
   await staticPage.getByRole('link', { name: 'Maryana Marrash', exact: true }).click();
   assert.equal(new URL(staticPage.url()).pathname, '/ai-poems/poets/maryana-marrash/');
   for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
+test('additional Arabic voices support complete-text search, saved data and static RTL reading', async () => {
+  const ids = [
+    'hafiz-ibrahim-1922-truth-and-homeland',
+    'maryana-marrash-1893-newborn-greeting',
+    'maryana-marrash-1893-photograph',
+    'maryana-marrash-1893-bereaved-mother',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  const [hafiz, newborn] = selected;
+  const seed = { saved: ['let-the-days-do-as-they-will'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Arabic#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Arabic' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const query of ['حافظ إبراهيم', 'Hafiz Ibrahim', 'فإنما في القلة المنجح']) {
+    await page.getByLabel('Search the poetry library').fill(query);
+    await page.getByText('1 poem found', { exact: true }).waitFor();
+    assert.equal(await page.locator(`#results a[href$="/poems/${hafiz.id}/"]`).count(), 1, query);
+  }
+  await page.locator(`#results a[href$="/poems/${hafiz.id}/"]`).click();
+  const verse = page.locator('#original-panel .verse');
+  assert.equal(await verse.textContent(), hafiz.text);
+  assert.equal(await verse.getAttribute('lang'), 'ar');
+  assert.equal(await verse.getAttribute('dir'), 'rtl');
+  assert.equal(await page.getByRole('link', { name: hafiz.sourceTitle }).getAttribute('href'), hafiz.source);
+  assert.equal(await page.getByRole('link', { name: `${hafiz.contextSourceTitle} ↗` }).getAttribute('href'), hafiz.contextSource);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+
+  await page.goto(`${base}?language=Arabic#explore`);
+  await page.getByLabel('Search the poetry library').fill('فإنها ملاك بالبشر يبتسم');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  await page.locator(`#results a[href$="/poems/${newborn.id}/"]`).click();
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [seed.saved[0], hafiz.id, newborn.id]) assert.ok(stored.saved.includes(id));
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Arabic a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    await staticPage.goto(`${base}poems/${poem.id}/`);
+    const original = staticPage.locator('#original-panel .verse');
+    assert.equal(await original.textContent(), poem.text);
+    assert.equal(await original.getAttribute('lang'), 'ar');
+    assert.equal(await original.getAttribute('dir'), 'rtl');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(poem.rights));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
   assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
   await staticContext.close();
 });
