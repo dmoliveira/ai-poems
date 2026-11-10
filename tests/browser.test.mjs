@@ -1465,6 +1465,79 @@ test('additional Arabic voices support complete-text search, saved data and stat
   await staticContext.close();
 });
 
+test('Teresa poems support bilingual search, historical translations and static reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'teresa-of-avila');
+  assert.equal(selected.length, 11);
+  assert.equal(selected.filter(poem => poem.translations.length).length, 7);
+  const poem = selected.find(item => item.id === 'teresa-fuente-1877-01');
+  const translation = poem.translations[0];
+  const seed = { saved: ['labe-1887-14'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Spanish#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Spanish' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  const search = page.getByLabel('Search the poetry library');
+  await search.fill('Teresa de Jesus');
+  await page.getByText('11 poems found', { exact: true }).waitFor();
+  const showMore = page.getByRole('button', { name: /Show more poems/ });
+  while (await showMore.isVisible()) await showMore.click();
+  for (const item of selected) assert.equal(await page.locator(`#results a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const query of ['aquesta divina union', 'wherein I die because I do not die']) {
+    await search.fill(query);
+    await page.getByText('1 poem found', { exact: true }).waitFor();
+    assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1);
+  }
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  await page.getByRole('button', { name: 'Side by side' }).click();
+  assert.equal(await page.locator('#translation-panel .verse').textContent(), translation.text);
+  assert.equal(await page.locator('#translation-panel .verse').getAttribute('lang'), 'en');
+  assert.equal(await page.locator('#translation-panel .translation-credit').textContent(), translation.translator);
+  assert.ok((await page.locator('#translation-panel .translation-rights').textContent()).includes(translation.rights));
+  assert.equal(await page.locator('#translation-panel .translation-rights a').getAttribute('href'), translation.source);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes(seed.saved[0]));
+  assert.ok(stored.saved.includes(poem.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-Spanish a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const item of selected) {
+    const response = await staticPage.goto(`${base}poems/${item.id}/`);
+    assert.equal(response.status(), 200);
+    const original = staticPage.locator('#original-panel .verse');
+    assert.equal(await original.textContent(), item.text);
+    assert.equal(await original.getAttribute('lang'), 'es');
+    assert.equal(await original.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${item.contextSourceTitle} ↗` }).getAttribute('href'), item.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(item.rights));
+    assert.ok((await staticPage.locator('.story').textContent()).includes(item.context));
+    if (item.translations.length) {
+      const translated = item.translations[0];
+      assert.equal(await staticPage.locator('#translations .verse').textContent(), translated.text);
+      assert.equal(await staticPage.locator('#translations .verse').getAttribute('lang'), 'en');
+      assert.ok((await staticPage.locator('#translations').textContent()).includes(translated.translator));
+      assert.ok((await staticPage.locator('#translations').textContent()).includes(translated.rights));
+      assert.equal(await staticPage.locator('#translations a').getAttribute('href'), translated.source);
+    } else assert.equal(await staticPage.locator('#translations').count(), 0);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.goto(`${base}poets/teresa-of-avila/`);
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Labé sonnets support French and Italian discovery, saved data and static reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'louise-labe');
   assert.equal(selected.length, 24);
