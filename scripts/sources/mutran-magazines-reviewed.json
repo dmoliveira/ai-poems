@@ -1,0 +1,166 @@
+{
+  "witnesses": {
+    "muqtabas-1908.pdf": {
+      "sha256": "17766a750a894f255a6cf1f01d993fdc9f3919d162f5b3e82b86301086d8cead",
+      "archiveId": "1908_20240921_202409",
+      "archiveFile": "مجلة المقتبس 1908.pdf"
+    },
+    "zouhour-1910.pdf": {
+      "sha256": "71cf0a2ee277c5c63be8472e1bdea892e107802517d7446e4006de7ab46811aa",
+      "archiveId": "ar411zouh01",
+      "archiveFile": "مجلة الزهور مصر سنة 1910.pdf"
+    },
+    "zouhour-1911.pdf": {
+      "sha256": "0c8cd4f16ab9db5b4b756efc2dc73e264cf863a7ee8d0fdd2c5bdbd8a8d70979",
+      "archiveId": "ar411zouh01",
+      "archiveFile": "مجلة الزهور مصر سنة 1911.pdf"
+    },
+    "zouhour-1912.pdf": {
+      "sha256": "0395bd48e00f2632d57a959afaaf6e406713ec05f6433992fc80f40f16c12347",
+      "archiveId": "ar411zouh01",
+      "archiveFile": "مجلة الزهور مصر سنة 1912.pdf"
+    },
+    "mutran-1928.pdf": {
+      "sha256": "789c33db960659d9567ccb9cf0b4770651bcbda4b8ae4f80ce718ad5f0a59971",
+      "archiveId": "AAlexandrina-143009",
+      "archiveFile": "143009 - ديوان الخليل.pdf"
+    },
+    "mutran-volume1.pdf": {
+      "sha256": "54cca05b386e3a2c310d48b680dc89b5db3e459ce3b1656fba9f5122677907a6",
+      "archiveId": "1_20250825_20250825_2351",
+      "archiveFile": "ديوان الخليل للشاعر خليل مطران ـ 1 الجزء الأول.pdf"
+    },
+    "mutran-vol2.pdf": {
+      "sha256": "ec407475096cc3312e412467e557994577bbd44f4cc480552ad34435b5668c67",
+      "archiveId": "2_20250825_20250825_2353",
+      "archiveFile": "ديوان الخليل للشاعر خليل مطران ـ 2 الجزء الثاني.pdf"
+    },
+    "mutran-vol3.pdf": {
+      "sha256": "c2e68abf586fc7b0e578bf613efa371280740ed35bda9e903de8d188e464879e",
+      "archiveId": "3_20250825_20250825_2355",
+      "archiveFile": "ديوان الخليل للشاعر خليل مطران ـ 3 الجزء الثالث.pdf"
+    }
+  },
+  "poems": [
+    {
+      "slug": "baalbek",
+      "title": "قلعة بعلبك",
+      "couplets": 59,
+      "sourceFile": "muqtabas-1908.pdf",
+      "printedPages": [352, 353, 354, 355],
+      "pdfPages": [356, 357, 358, 359],
+      "sourceLabel": "al-Muqtabas, volume III, June 1908",
+      "yearLabel": "Published by June 1908 · composition date not independently established",
+      "comparisonFile": "mutran-1928.pdf",
+      "comparisonPdfPages": [80, 81, 82, 83],
+      "comparisonLabel": "Dīwān al-Khalīl, undated al-Maʿārif printing, pp. 76–79",
+      "wikiRevisions": [[121807, 216752]],
+      "note": "The June 1908 review attributes this sample to Mutran; an undated al-Maʿārif printing separately heads the same 59-couplet work قلعة بعلبك. The matching boundaries establish completeness in these printings, not in every tradition, and do not establish independent textual descent. The title comes from the book. The magazine has الليال where that book has الليالي. A separately typeset 1949 edition revises the butterfly couplet and other phrases; its readings are not blended into this one."
+    },
+    {
+      "slug": "flowers",
+      "title": "الزهرات الثلاث",
+      "couplets": 22,
+      "sourceFile": "zouhour-1910.pdf",
+      "printedPages": [56, 57, 58],
+      "pdfPages": [60, 61, 62],
+      "sourceLabel": "al-Zuhūr, year 1, April 1910",
+      "yearLabel": "Published April 1910 · composition date not independently established",
+      "comparisonFile": "mutran-vol2.pdf",
+      "comparisonPdfPages": [304, 305, 306],
+      "comparisonLabel": "Dīwān al-Khalīl, volume 2, pp. 299–301",
+      "wikiRevisions": [],
+      "note": "This signed, separately headed work is one poem, not three flowers counted as separate works. The magazine describes it as written for a judge's farewell; the later collected volume separately heads the same 22 couplets القاضي العادل. This comparison establishes the boundaries in the two printings, not independent descent or completeness in every tradition. The magazine reads تاج عهن where the later volume has تاج قطن."
+    },
+    {
+      "slug": "musset",
+      "title": "عاش هذا الفتى محبا شقيا",
+      "couplets": 8,
+      "sourceFile": "zouhour-1911.pdf",
+      "printedPages": [263],
+      "pdfPages": [267],
+      "sourceLabel": "al-Zuhūr, year 2 (1911–12)",
+      "yearLabel": "Published by February 1912 · composition date not independently established",
+      "comparisonFile": null,
+      "comparisonPdfPages": [],
+      "comparisonLabel": null,
+      "wikiRevisions": [[96354, 469031]],
+      "note": "The magazine attributes these eight couplets to Mutran and presents them as an inscription in a volume of Alfred de Musset's poetry; a different article follows. The title here is the opening half-line. Its boundaries are those of the magazine's printed inscription; a wider textual history is not established. The magazine has دمع عينه and واعجبي where the consulted Wikisource transcription has دمع عينيه and واجبي, and attributes the work to Gibran."
+    },
+    {
+      "slug": "jasmine",
+      "title": "الفل",
+      "couplets": 2,
+      "sourceFile": "zouhour-1911.pdf",
+      "printedPages": [426],
+      "pdfPages": [430],
+      "sourceLabel": "al-Zuhūr, year 2 (1911–12)",
+      "yearLabel": "Published by February 1912 · composition date not independently established",
+      "comparisonFile": null,
+      "comparisonPdfPages": [],
+      "comparisonLabel": null,
+      "wikiRevisions": [],
+      "note": "The magazine prints these two couplets under their own heading and Mutran's signature, between works by other named poets. They are complete as separately presented there; a wider textual history is not established."
+    },
+    {
+      "slug": "blood",
+      "title": "قطرة دم",
+      "couplets": 2,
+      "sourceFile": "zouhour-1911.pdf",
+      "printedPages": [534],
+      "pdfPages": [538],
+      "sourceLabel": "al-Zuhūr, year 2, February 1912",
+      "yearLabel": "Published February 1912 · composition date not independently established",
+      "comparisonFile": "mutran-vol3.pdf",
+      "comparisonPdfPages": [292],
+      "comparisonLabel": "Dīwān al-Khalīl, volume 3, p. 292",
+      "wikiRevisions": [[94162, 466329], [96538, 469217]],
+      "note": "The magazine separately heads and signs this two-couplet work; the collected volume also presents the same two couplets separately, under a different heading. This establishes their boundaries in these printings, not in every tradition or an independent textual descent. One consulted Wikisource page misattributes it to Gibran and reads في كل قلب; the magazine and book read في شكل قلب."
+    },
+    {
+      "slug": "saba",
+      "title": "ما في الأسى من تفتت الكبد",
+      "couplets": 16,
+      "sourceFile": "zouhour-1912.pdf",
+      "printedPages": [29, 30],
+      "pdfPages": [33, 34],
+      "sourceLabel": "al-Zuhūr, year 3, March 1912",
+      "yearLabel": "Published March 1912 · composition date not independently established",
+      "comparisonFile": "mutran-vol2.pdf",
+      "comparisonPdfPages": [129, 130],
+      "comparisonLabel": "Dīwān al-Khalīl, volume 2, pp. 124–125",
+      "wikiRevisions": [[94508, 466675], [97023, 470005]],
+      "note": "The magazine introduces this elegy for Yusuf Saba's son, then separates a second elegy by a prose account; the collected volume gives each a separate heading. The magazine prints 16 couplets, including ماد نسيم به فمات وفي / معطفه رقة من الميد, absent from the later volume's 15-couplet version. It also reads ساهمتك where that book reads شاركتك. These versions are not combined, and the reason for the omission is not established. The title here is the opening half-line."
+    },
+    {
+      "slug": "zurayq",
+      "title": "مشهد سير في طبل وبوق",
+      "couplets": 12,
+      "sourceFile": "zouhour-1912.pdf",
+      "printedPages": [30],
+      "pdfPages": [34],
+      "sourceLabel": "al-Zuhūr, year 3, March 1912",
+      "yearLabel": "Published March 1912 · composition date not independently established",
+      "comparisonFile": "mutran-vol2.pdf",
+      "comparisonPdfPages": [131],
+      "comparisonLabel": "Dīwān al-Khalīl, volume 2, p. 126",
+      "wikiRevisions": [[95293, 467457], [97529, 470512]],
+      "note": "The magazine's prose separates this elegy for Jibran Zurayq from the preceding elegy for Yusuf Saba's son; Mutran's signature follows it. The collected volume separately heads the same 12 couplets رثاء جبران زريق. Their boundaries match in these printings, not necessarily all traditions; their textual relationship is not established. The title here is the opening half-line. One consulted Wikisource page instead attributes the poem to Kahlil Gibran."
+    },
+    {
+      "slug": "tears",
+      "title": "دموع الحبيب",
+      "couplets": 2,
+      "sourceFile": "zouhour-1912.pdf",
+      "printedPages": [200],
+      "pdfPages": [204],
+      "sourceLabel": "al-Zuhūr, year 3 (1912–13)",
+      "yearLabel": "Published by February 1913 · composition date not independently established",
+      "comparisonFile": "mutran-vol3.pdf",
+      "comparisonPdfPages": [284],
+      "comparisonLabel": "Dīwān al-Khalīl, volume 3, p. 284",
+      "wikiRevisions": [[94164, 466331], [96416, 469093]],
+      "note": "The magazine separately titles and signs these two couplets. The collected volume prints the same two couplets after a rule separating them from the preceding verse. This establishes their boundaries in these printings, not in every tradition or independent textual descent. One consulted Wikisource page misattributes the work to Gibran."
+    }
+  ]
+}
