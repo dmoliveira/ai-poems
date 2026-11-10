@@ -961,6 +961,65 @@ test('Further Warda readings preserve distinct printings, corrected readings and
   const poet = groupPoets(poems).find(group => group.id === 'warda-al-yaziji');
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
 });
+test('Nasif response retains its bounded printed text and documented uncertainties', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/nasif-nisaiyat-1910.json', import.meta.url), 'utf8'));
+  const source = (await readFile(new URL('../scripts/sources/nasif-nisaiyat-1910.txt', import.meta.url), 'utf8')).trimEnd();
+  assert.deepEqual(manifest.scanSha256, {
+    'nasif-nisaiyat-1910.pdf': '24b5bbe63a0fabf2878f2abef72e753e3e6bd5b6d0996863823662cf925840fb',
+    'nisaiyat-alex-unknown.pdf': '00cb5ca5b3b9f7761da3bc0eaf4be2801063389c5257b9155e7f72ef3cd8ce0c',
+    'muqtabas-year-5.pdf': '2830748149d092b96be646751fcf8275dd090a89f279c2557868423e433cbebf',
+  });
+  const item = manifest.poem;
+  const selected = poems.filter(poem => poem.authorId === 'malak-hifni-nasif');
+  assert.equal(selected.length, 1);
+  const [poem] = selected;
+  assert.equal(poem.id, 'nasif-1910-womens-poem');
+  assert.equal(poem.author, 'Malak Hifni Nasif');
+  assert.equal(poem.authorOriginal, 'ملك حفني ناصف');
+  assert.equal(poem.authorYears, '1886–1918');
+  assert.deepEqual(associatedPlaces(poem), ['Egypt']);
+  assert.equal(poem.language, 'Arabic');
+  assert.equal(poem.lang, 'ar');
+  assert.equal(poem.direction, 'rtl');
+  assert.equal(poem.year, null);
+  assert.equal(poem.creationPlace, undefined);
+  assert.equal(poem.title, 'يا هذه لا تعذلي');
+  assert.equal(poem.text, source);
+  assert.equal(lineCount(poem), 60);
+  assert.equal(item.couplets, 60);
+  assert.equal(createHash('sha256').update(poem.text).digest('hex'), '67b97f3c839ba80a035ff43a41b4f8ca43afd230263971d0a462756fadabf767');
+  assert.equal(item.textSha256, createHash('sha256').update(source).digest('hex'));
+  assert.deepEqual(item.printedPages, [144, 145, 146]);
+  assert.deepEqual(item.pdfPages, [156, 157, 158]);
+  assert.deepEqual(item.comparisonPdfPages, [154, 155, 156]);
+  assert.equal(item.reviewPdfPage, 493);
+  assert.equal(new URL(poem.source).hash, '#page=156');
+  assert.match(poem.contextSource, /AAlexandrina-140749\/page\/n153/);
+  assert.match(poem.text, /^يا هذه لا تعذلي وإذا أبيت فقللي\n/);
+  assert.match(poem.text, /تجدي مقاما بالعراء/);
+  assert.match(poem.text, /بين الدخول فحومل/);
+  assert.match(poem.text, /يكون خلاخل في الأرجل/);
+  assert.match(poem.text, /الضرورة للخروج فحيهل/);
+  assert.match(poem.text, /أمارة بتبذل/);
+  assert.match(poem.text, /للعب باريس ولهو بروكسل/);
+  assert.match(poem.text, /فتفسري وتؤولي/);
+  assert.match(poem.text, /غير الفضيلة للنساء/);
+  assert.match(poem.text, /إن لم ترى رأيي فيا ويل الشجي من الخلي$/);
+  assert.doesNotMatch(poem.text, /صداح يا ملك الكنار|سميتني ملك الكنار/);
+  assert.match(poem.context, /title page.*library catalogues date it 1910/);
+  assert.match(poem.context, /not independent descent or completeness in every tradition/);
+  assert.match(poem.context, /فحومل.*فحنا.*خومل.*بتبذل.*بتبدل/);
+  assert.match(poem.context, /خلاخل.*خلاخلا.*ambiguous/);
+  assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0/);
+  assert.match(poem.rights, /curid=92957&oldid=465123/);
+  assert.deepEqual(poem.themes, []);
+  assert.deepEqual(poem.translations, []);
+  for (const query of ['ملك حفني ناصف', 'Malak Hifni Nasif', 'الضرورة للخروج فحيهل', 'لم ترى رأيي فيا ويل']) {
+    assert.ok(filterPoems(poems, { language: 'Arabic', query }).includes(poem), query);
+  }
+  assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  assert.equal(groupPoets(poems).find(group => group.id === poem.authorId).poems[0].id, poem.id);
+});
 test('al-Zahawi readings retain the two corroborated 1909 printed texts and variants', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/zahawi-kalim-1909.json', import.meta.url), 'utf8'));
   const source = await readFile(new URL('../scripts/sources/zahawi-kalim-1909.txt', import.meta.url), 'utf8');
