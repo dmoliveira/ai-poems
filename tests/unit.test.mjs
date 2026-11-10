@@ -961,6 +961,79 @@ test('Further Warda readings preserve distinct printings, corrected readings and
   const poet = groupPoets(poems).find(group => group.id === 'warda-al-yaziji');
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
 });
+test('Marrash readings preserve printed boundaries, source credits and specific faith classification', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/maryana-marrash-bint-fikr-1893.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/maryana-marrash-bint-fikr-1893.txt', import.meta.url), 'utf8');
+  const sections = source.split(/^=== ([a-z-]+) ===\n/gm);
+  assert.equal(sections.shift(), '');
+  const readings = new Map();
+  while (sections.length) readings.set(sections.shift(), sections.shift().trim().replaceAll(' | ', '\n'));
+  assert.equal(manifest.scanSha256, 'fb138913fddf153646069e625e24bf326d823fef91b1d1cb770e02bf4607e053');
+  const expected = [
+    ['wise-praise', 18, 'fb15fc0b9e39bf813aa3802b304e27bb8303f7891e98e7730b7270303a9c0c65'],
+    ['reason-praise', 14, '1dc5492fddb726cfe9bd4ab419ad6589d8d64215582464cfdc95ceab3f98c0ef'],
+    ['mary-inscription', 4, '65ce371f1d6c67127c6d1f248d45479fbf3ff41d59de1134a31e9101c938d590'],
+    ['virtue', 10, '9350b0d065b9c4c645b83958a597fc870754429a06cac693466062f0aef10054'],
+    ['francis-elegy', 30, '81d1186e065ed9bca6f9724446ba4316af9ee3f4a0e70428240061badec7a06e'],
+    ['salma-elegy', 42, '9c868c635e3a13e5ff605f1395e7d655caac74d8d89be922ee84b9c525a19e66'],
+    ['literary-work', 12, 'fff5210c0f333abef893e3d823988b9902cadcea9cbb01c21b0d6fd6f2b97c5d'],
+    ['friends-family', 10, '7684954f80d8b54272f0c11dbf0967e50251efd08ab8dc1c12e9ad4cbe2729dc'],
+    ['captive-heart', 10, '5514ad605bc86af95b2b06fa0e74016e50ce11b1bfa019d272c309e439410b97'],
+    ['absent-friends', 10, 'db5faa37ce194ae3dfdee85c85330abbd1460b94f3846f9530718c4f8ac09637'],
+    ['lasting-affection', 6, '573cf0607f918fb28e61e6ed1c5e3729aba5d71df6498fd5a6f0302de1124e9a'],
+    ['friend-filmo', 10, '59c27dc2a8ae874ac7240f20941fbfa9c6e0f1bc30d80b80c046fc4211e9f06e'],
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), expected.map(([slug]) => slug));
+  const selected = expected.map(([slug, lines, hash], index) => {
+    const item = manifest.poems[index];
+    const poem = poems.find(entry => entry.id === `maryana-marrash-1893-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.author, 'Maryana Marrash');
+    assert.equal(poem.authorOriginal, 'مريانا مراش');
+    assert.equal(poem.authorYears, 'Born 1846 or 1848; died 1919');
+    assert.deepEqual(associatedPlaces(poem), ['Syria']);
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.text, readings.get(slug));
+    assert.equal(poem.title, poem.text.split('\n')[0]);
+    assert.equal(lineCount(poem), lines);
+    assert.equal(lines, item.couplets * 2);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.match(poem.source, new RegExp(`#page=${item.printedPages[0]}$`));
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.context, /not a claim about all textual traditions/);
+    assert.match(poem.context, /birth year is disputed/i);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /CC BY-SA 4\.0/);
+    for (const page of item.wikiPages) assert.ok(poem.rights.includes(`curid=${page.pageId}&oldid=${page.revision}`));
+    assert.deepEqual(poem.themes, item.faith ? ['Faith'] : []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Arabic', country: 'Syria', query: poem.title }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: 'مريانا مراش' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  const bySlug = slug => selected.find(poem => poem.id === `maryana-marrash-1893-${slug}`);
+  assert.match(bySlug('mary-inscription').text, /وبك الخلاص غدا وإبليس انقهر/);
+  assert.match(bySlug('mary-inscription').context, /غدا.*عدا.*uncertain/);
+  assert.match(bySlug('mary-inscription').context, /no denomination is asserted/);
+  assert.match(bySlug('francis-elegy').text, /خنساء صخر بكته حينما نظرت/);
+  assert.match(bySlug('francis-elegy').text, /ويلاه من حزن قلب نال غايته/);
+  assert.match(bySlug('francis-elegy').context, /death to 1874, not the poem's composition/);
+  assert.match(bySlug('salma-elegy').text, /ليت النسا لا يلدن مثلهن ولا/);
+  assert.match(bySlug('salma-elegy').text, /هذا لعمري قضاء كان في القدر$/);
+  assert.match(bySlug('friends-family').text, /فسبحان من أولاكم حلة الفخر/);
+  assert.match(bySlug('captive-heart').text, /وكبدي تقطع/);
+  assert.match(bySlug('absent-friends').text, /في الطبيعة أعجم$/);
+  assert.deepEqual(filterPoems(poems, { language: 'Arabic', theme: 'Faith', query: 'مريانا مراش' }).map(poem => poem.id), [bySlug('mary-inscription').id]);
+  assert.ok(filterPoems(poems, { query: 'ليت النسا لا يلدن مثلهن' }).includes(bySlug('salma-elegy')));
+  const poet = groupPoets(poems).find(group => group.id === 'maryana-marrash');
+  assert.equal(poet.poems.length, 12);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
 test('Taymur readings retain complete historical boundaries, variants and Arabic identity', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/taymur-1303-reviewed.json', import.meta.url), 'utf8'));
   assert.equal(manifest.poems.length, 7);

@@ -1,0 +1,90 @@
+{
+  "scanSha256": "fb138913fddf153646069e625e24bf326d823fef91b1d1cb770e02bf4607e053",
+  "poems": [
+    {
+      "slug": "wise-praise",
+      "printedPages": [14],
+      "couplets": 9,
+      "wikiPages": [{"pageId": 174579, "revision": 311902}],
+      "note": "The headnote presents this separately headed praise poem as a suggested composition; the following praise poem is separately introduced."
+    },
+    {
+      "slug": "reason-praise",
+      "printedPages": [14],
+      "couplets": 7,
+      "wikiPages": [{"pageId": 174579, "revision": 311902}],
+      "note": "The headnote introduces a separate suggested poem in praise of another person. The scan reads خاض المعامع and والصروف عبيد, where the consulted Wikisource page has خاص المعامع and والصرف عبيد."
+    },
+    {
+      "slug": "mary-inscription",
+      "printedPages": [15],
+      "couplets": 2,
+      "wikiPages": [{"pageId": 174580, "revision": 311903}],
+      "faith": true,
+      "note": "The headnote identifies these two separately bounded couplets as an inscription for a veil over an image of the Virgin Mary. The scan appears to read غدا in وبك الخلاص غدا, while the unproofread Wikisource page and Qafiyah read عدا; the first letter is uncertain, and the scan-based reading here is provisional. The poem is Marian and Christian in subject; no denomination is asserted."
+    },
+    {
+      "slug": "virtue",
+      "printedPages": [15],
+      "couplets": 5,
+      "wikiPages": [{"pageId": 174580, "revision": 311903}],
+      "note": "Five couplets on character and reputation follow a separate headnote and end before the next headnote on p. 16."
+    },
+    {
+      "slug": "francis-elegy",
+      "printedPages": [16],
+      "couplets": 15,
+      "wikiPages": [{"pageId": 174581, "revision": 311904}],
+      "note": "The headnote calls this an elegy for the poet's brother Francis Marrash and dates his death to 1874, not the poem's composition. The scan reads خنساء صخر and من حزن قلب, not Wikisource's خنساء ضخر and من حزن قلبي. The lament فيا لدهر is spaced for reading; the online transcription has في الدهر."
+    },
+    {
+      "slug": "salma-elegy",
+      "printedPages": [17, 18],
+      "couplets": 21,
+      "wikiPages": [{"pageId": 174582, "revision": 311905}, {"pageId": 174583, "revision": 311906}],
+      "note": "The headnote introduces an elegy for a young woman, named Salma in the poem. Sixteen couplets on p. 17 continue with five on p. 18 before a new heading. The print reads مذ هبت الريح and ظلمة الكدر; the unproofread Wikisource page runs the former together and garbles the latter."
+    },
+    {
+      "slug": "literary-work",
+      "printedPages": [18],
+      "couplets": 6,
+      "wikiPages": [{"pageId": 174583, "revision": 311906}],
+      "note": "The headnote describes praise for a literary رواية without identifying its title or author. The scan reads نشرت من الآداب where the consulted Wikisource page has نشرب."
+    },
+    {
+      "slug": "friends-family",
+      "printedPages": [18],
+      "couplets": 5,
+      "wikiPages": [{"pageId": 174583, "revision": 311906}],
+      "note": "The headnote says these verses were sent to a family of the poet's friends. The scan reads من أولاكم حلة الفخر, not Wikisource's من أولادكم."
+    },
+    {
+      "slug": "captive-heart",
+      "printedPages": [21],
+      "couplets": 5,
+      "wikiPages": [{"pageId": 174587, "revision": 311909}],
+      "note": "The headnote identifies this as a suggested composition; the following poem is separately headed. The scan reads في هواك and وكبدي تقطع, whereas the consulted Wikisource page has في عواك and وكيدي تقطع."
+    },
+    {
+      "slug": "absent-friends",
+      "printedPages": [21],
+      "couplets": 5,
+      "wikiPages": [{"pageId": 174587, "revision": 311909}],
+      "note": "The headnote says these verses were composed in the poet's youth but supplies no exact date. The print reads في الطبيعة أعجم, while the unproofread Wikisource page has في الطليعة أعجم."
+    },
+    {
+      "slug": "lasting-affection",
+      "printedPages": [22],
+      "couplets": 3,
+      "wikiPages": [{"pageId": 174588, "revision": 311910}],
+      "note": "The headnote identifies the three couplets as an inscription for a tobacco pouch; the following piece is separately headed."
+    },
+    {
+      "slug": "friend-filmo",
+      "printedPages": [22],
+      "couplets": 5,
+      "wikiPages": [{"pageId": 174588, "revision": 311910}],
+      "note": "The headnote presents these five couplets as praise for a friend named Filmo. The verse compares her with Joseph and Mary; that comparison alone is not treated as devotional classification."
+    }
+  ]
+}
