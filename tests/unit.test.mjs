@@ -1258,6 +1258,80 @@ test('additional Arabic works retain their bounded readings, credits and variant
   assert.match(hafiz.text, /فإنما في القلة المنجح$/);
   assert.deepEqual(groupPoets(poems).find(group => group.id === 'hafiz-ibrahim').poems.map(poem => poem.id), [hafiz.id]);
 });
+test('Qābāḍū originals retain historical boundaries, source rights and complete readings', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/qabadu-tunis-reviewed.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/qabadu-tunis-reviewed.txt', import.meta.url), 'utf8');
+  const sections = source.split(/^=== ([a-z-]+) ===\n/gm);
+  assert.equal(sections.shift(), '');
+  const readings = new Map();
+  while (sections.length) readings.set(sections.shift(), sections.shift().trim().replaceAll(' | ', '\n'));
+  assert.deepEqual(manifest.scanSha256, {
+    'tunis-library-1877-candidate.pdf': '818f0a31586b2d97efd3b199ab3e5c6acf96852289a2fe1e6d510c246c2a5cbd',
+    'bsb-v1-p21.jpg': '5497dbd0b65c4f7969077492fb076664167fc463cb8bdbab0c58adbc7a538246',
+    'bsb-v1-p22.jpg': '4f6ce9e5cd867dd9d5e5cee9f3ffe53edb2335fc021320c71c2e70ae4a3d5571',
+    'bsb-v1-p23.jpg': 'aec13e8650e330e5db5af3ae7035b361aec9411e2b9a6ab0d50aaad2bdc984dd',
+    'bsb-v1-p50.jpg': 'e07fbd66dbc324ffcf4149632ec863b8d0bc74e5b0acca00b430ba09a2327510',
+    'bsb-v1-p51.jpg': '516d98295a9bc0cf8914e263a6fbab9962871a675bec30db25e8c7809c703f06',
+  });
+  const cases = [
+    ['reward', 4, [22], '128cb523211720b93ea22dec40d2540918fcfc2e70a9e89173668523c311ae42'],
+    ['toothache', 10, [22], '3f9bd9ee2df858222123a83bc9877c482624631411562e57812f948a7c2315ca'],
+    ['messenger', 5, [22, 23], '7b864f97340038af7403ed09ee9b4b3a79c5175645efefcee877ebc66a81def3'],
+    ['couscous', 7, [23], '80ad31d18408a8a25e826647e8cf9308fb662c3c6a410f06024bb08e87cd8f57'],
+    ['birth-chronogram', 3, [50], 'ca98820efe4bb4ad21e4bef6199b666895f52547109d132ec8d565f725a00e55'],
+    ['visit', 4, [51], 'ea76b0cf14e4ff6628a2841ba39c57b980e160823702689ce777844aeb2fed88'],
+    ['almonds', 4, [51], 'ed687e5a3c1f4a6a334d70d4f08b002052c2214f87d59ffda23b0be19f3713a6'],
+    ['seal-chronogram', 2, [51], 'e896014961e22ed5a3f05c43e31c69a83cc03d9780454e9fc07c9edf549fb6e6'],
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), cases.map(([slug]) => slug));
+  const image = page => `https://api.digitale-sammlungen.de/iiif/image/v2/bsb11368507_${String(177 - page).padStart(5, '0')}/full/full/0/default.jpg`;
+  for (const [index, [slug, couplets, pages, hash]] of cases.entries()) {
+    const item = manifest.poems[index];
+    const poem = poems.find(p => p.id === `qabadu-tunis-${slug}`);
+    assert.ok(poem, slug);
+    assert.deepEqual(item.printedPages, pages);
+    assert.deepEqual(item.tunisPdfPages, pages.map(page => page + 4));
+    assert.deepEqual(item.bsbImages, pages.map(page => 177 - page));
+    assert.equal(item.couplets, couplets);
+    assert.equal(item.textSha256, hash);
+    assert.equal(poem.text, readings.get(slug));
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(lineCount(poem), couplets * 2);
+    assert.equal(poem.title, poem.text.split('\n')[0]);
+    assert.equal(poem.author, 'Mahmud Qabadu');
+    assert.equal(poem.authorOriginal, 'محمود قابادو');
+    assert.equal(poem.authorYears, 'c. 1815–1871');
+    assert.deepEqual(associatedPlaces(poem), ['Tunisia']);
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.source, image(pages[0]));
+    assert.equal(poem.contextSource, pages.length > 1 ? image(pages[1]) : item.comparison);
+    assert.match(poem.context, /same typesetting, not independent editions/);
+    assert.match(poem.context, /source edition is not established/);
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /digital images NoC-NC; the scans are linked, not republished/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    for (const query of [poem.title, 'محمود قابادو', 'Mahmud Qabadu']) {
+      assert.ok(filterPoems(poems, { language: 'Arabic', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const bySlug = slug => poems.find(poem => poem.id === `qabadu-tunis-${slug}`);
+  assert.match(bySlug('toothache').text, /وجعا بضرسي قد أطال عناء/);
+  assert.match(bySlug('toothache').context, /عناء.*شفاء.*عنائي.*شفائي/);
+  assert.match(bySlug('messenger').text, /حيث انقضى أجل للاستعفاء/);
+  assert.match(bySlug('messenger').context, /للاستعفاء.*بلا استعفاء/);
+  assert.match(bySlug('couscous').context, /half-line by another writer/);
+  assert.match(bySlug('couscous').text, /يكسكس ما تلا صبحا مساء$/);
+  assert.match(bySlug('seal-chronogram').context, /not independently asserted as a composition date/);
+  assert.ok(filterPoems(poems, { query: 'يكسكس ما تلا صبحا مساء' }).includes(bySlug('couscous')));
+  assert.equal(groupPoets(poems).find(group => group.id === 'mahmud-qabadu').poems.length, cases.length);
+});
 test('al-Maʿarrī originals retain reviewed readings, source boundaries and variants', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/al-maarri-1901-reviewed.json', import.meta.url), 'utf8'));
   const source = await readFile(new URL('../scripts/sources/al-maarri-1901-reviewed.txt', import.meta.url), 'utf8');
