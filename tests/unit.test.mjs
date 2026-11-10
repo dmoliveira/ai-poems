@@ -314,6 +314,78 @@ test('Italian classics retain reviewed texts, edition caveats and complete disco
     assert.ok(poet.poems.some(p => p.id === id), id);
   }
 });
+test('Petrarch sonnets retain reviewed 1739 readings, boundaries and distinct numbering', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/petrarch-rime-1739.json', import.meta.url), 'utf8'));
+  const expected = [...Array.from({ length: 56 }, (_, i) => i + 1), 69, 98, 126];
+  assert.deepEqual(manifest.poems.map(item => item.number), expected);
+  assert.equal(Object.keys(manifest.scanSha256).length, 37);
+  const selected = manifest.poems.map(item => {
+    const id = `petrarch-rime-${String(item.number).padStart(3, '0')}`;
+    const poem = poems.find(entry => entry.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, 'Petrarch');
+    assert.equal(poem.authorOriginal, 'Francesco Petrarca');
+    assert.equal(poem.authorId, 'francesco-petrarca');
+    assert.equal(poem.authorYears, '1304–1374');
+    assert.equal(poem.language, 'Italian');
+    assert.equal(poem.lang, 'it');
+    assert.equal(poem.form, 'Sonnet');
+    assert.deepEqual(associatedPlaces(poem), ['Italy']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.equal(new URL(poem.contextSource).pathname, `/details/ScansionePIII200MiscellaneaOpal/page/n${item.scanPage - 1}/mode/1up`);
+    assert.ok(manifest.scanSha256[`scan-${String(item.scanPage).padStart(3, '0')}.jp2`]);
+    assert.match(poem.context, /sonnet-only numbering is not the modern Canzoniere sequence/);
+    assert.match(poem.context, /punctuation may follow the Wikisource transcription/);
+    assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*check local law/);
+    assert.equal(lineCount(poem), 14);
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 3, 3]);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.deepEqual(poem.themes, item.number === 48 ? ['Faith'] : []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Italian', author: 'Petrarch' }).includes(poem));
+    assert.ok(filterPoems(poems, { query: 'Francesco Petrarca' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    const lines = poem.text.split('\n').filter(Boolean);
+    assert.equal(poem.title, lines[0].replace(/[.,;:?!]+$/, ''));
+    for (const edit of item.corrections) {
+      assert.equal(lines[edit.line - 1], edit.after);
+      assert.ok(poem.context.includes(edit.before));
+      assert.ok(poem.context.includes(edit.after));
+    }
+    return poem;
+  });
+  const byNumber = number => selected.find(p => p.id === `petrarch-rime-${String(number).padStart(3, '0')}`);
+  const line = (number, index) => byNumber(number).text.split('\n').filter(Boolean)[index - 1];
+  assert.equal(line(1, 1), 'Voi ch’ascoltate in rime sparse il suono');
+  assert.equal(line(2, 1), 'Per far una leggiadra sua vendetta,');
+  assert.equal(line(8, 10), 'Condotte dalla vita altra serena,');
+  assert.equal(line(10, 3), 'Ch’ancor non torse dal vero cammino');
+  assert.equal(line(12, 11), 'Poco prezzando quel ch’ogni uom desia:');
+  assert.equal(line(25, 1), 'Quanto più m’avvicino al giorno estremo');
+  assert.equal(line(28, 3), 'E gli occhi porto per fuggir intenti');
+  assert.equal(line(41, 7), 'Sempre più fredda; e se parole fai,');
+  assert.equal(line(42, 1), 'Poco era ad appressarsi agli occhi miei');
+  assert.equal(line(47, 13), 'Ov’io fama le acquisto: e ’l pensier mio,');
+  assert.equal(line(48, 13), 'Riduci i pensier vaghi a miglior luogo:');
+  assert.equal(line(56, 5), 'Non me n’avvidi, lasso, se non quando');
+  assert.equal(line(98, 7), 'Quel pietoso pensier ch’altri non scerse:');
+  assert.equal(line(126, 2), 'Era l’esempio onde Natura tolse');
+  assert.match(byNumber(28).context, /fuggire.*Ove vestigio uman l’arena/);
+  assert.match(byNumber(69).context, /a l’aura.*meraviglia.*all’aura.*maraviglia/);
+  assert.match(byNumber(98).context, /sì come.*fusse.*siccome.*fosse/);
+  assert.deepEqual(manifest.poems.filter(item => item.comparison).map(item => item.number), [1, 7, 28, 69, 98, 126]);
+  assert.ok(filterPoems(poems, { query: 'pensoso i piu deserti campi' }).includes(byNumber(28)));
+  assert.ok(filterPoems(poems, { query: 'benedetto sia' }).includes(byNumber(47)));
+  assert.ok(filterPoems(poems, { query: 'padre del ciel' }).includes(byNumber(48)));
+  const poet = groupPoets(poems).find(group => group.id === 'francesco-petrarca');
+  assert.equal(poet.poems.length, expected.length);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+  assert.ok(poems.filter(poem => poem.language === 'Italian').length >= 100);
+});
 test('Machado originals retain scan-reviewed readings, credits and discovery', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/machado-reviewed.json', import.meta.url), 'utf8'));
   assert.equal(manifest.length, 23);
