@@ -274,6 +274,84 @@ test('Alphonsus originals retain the reviewed 1923 readings and complete works',
   assert.equal(titleAttributes({ ...byId('ysmalia'), displayTitleLang: 'pt" onmouseover="x' }), ' lang="pt&quot; onmouseover=&quot;x" dir="auto"');
 });
 
+test('Camões sonnets retain reviewed 1843 readings, attribution caveats and the existing record', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('camoes-soneto-1843-'));
+  const numbers = [9, 10, 12, 15, 16, 17, 19, 20, 21, 23, 26, 28, 29, 30, 32, 33, 34, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 56, 58, 59, 60, 61, 63, 68, 69, 73, 92, 93, 98, 99, 211, 212, 220, 228];
+  assert.deepEqual(selected.map(poem => Number(poem.id.slice(-3))), numbers);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), 'cff20401935a18800b9b71f183e4866b2c09818010cf48f8b755b47136d4b316');
+  for (const poem of selected) {
+    assert.equal(poem.author, 'Luís de Camões');
+    assert.equal(poem.authorId, 'luis-de-camoes');
+    assert.equal(poem.authorYears, 'c. 1524–1580');
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.form, 'Sonnet');
+    assert.deepEqual(associatedPlaces(poem), ['Portugal']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.equal(lineCount(poem), 14);
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 3, 3]);
+    assert.doesNotMatch(poem.text, /\[~[eu]\]|_/);
+    assert.match(poem.context, /48-sonnet minimum/);
+    assert.match(poem.context, /not proof of unanimous attribution/);
+    assert.match(poem.context, /compared in order with OCR/);
+    assert.match(poem.context, /silently corrected some typographical errors/);
+    assert.match(poem.context, /not a diplomatic transcription/);
+    assert.match(poem.context, /not a claim about the poem's place or exact date/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /Pedro Saborano and the Online Distributed Proofreading Team/);
+    const page = Number(poem.source.match(/#pag_(\d+)$/)[1]);
+    assert.equal(poem.source, `https://www.gutenberg.org/files/31509/31509-h/31509-h.htm#pag_${page}`);
+    assert.equal(poem.contextSource, `https://archive.org/download/obrascompletasd00montgoog/obrascompletasd00montgoog.pdf#page=${page + 79}`);
+    assert.equal(poem.contextSourceTitle, `Internet Archive · 1843 scan, p. ${page}`);
+    assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Portugal', query: 'luis de camoes' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    if (poem.displayTitle) assert.equal(poem.displayTitleLang, 'pt');
+  }
+  const byNumber = n => selected.find(poem => poem.id === `camoes-soneto-1843-${String(n).padStart(3, '0')}`);
+  assert.equal(byNumber(19).contextSource.split('#page=')[1], '89');
+  assert.match(byNumber(19).text, /^Alma minha gentil, que te partiste[\s\S]*Algũa cousa a dor que me ficou[\s\S]*Quão cedo de meus olhos te levou\.$/);
+  assert.equal(byNumber(23).contextSource.split('#page=')[1], '91');
+  assert.match(byNumber(23).context, /scan appears to print XXXIII/);
+  assert.match(byNumber(29).text, /^Sete annos de pastor Jacob servia[\s\S]*Para tão longo amor tão curta a vida\.$/);
+  assert.deepEqual(byNumber(29).themes, []);
+  assert.match(byNumber(29).context, /does not classify it as devotional/);
+  assert.match(byNumber(44).context, /1595 Rhythmas begins ‘Pellos estremos raros’/);
+  assert.match(byNumber(47).context, /1595 Rhythmas begins ‘Se algũa hora/);
+  assert.match(byNumber(49).text, /\nAh dura lei de Amor, que não consente\n/);
+  assert.doesNotMatch(byNumber(49).text, /Ali dura lei/);
+  assert.match(byNumber(49).context, /scan reads ‘Ah dura lei’; Gutenberg has ‘Ali dura lei’/);
+  assert.match(byNumber(211).context, /list begins ‘Ficou-se’; this printing has ‘Fiou-se’/);
+  assert.match(byNumber(228).context, /colonial expansion/);
+  assert.match(byNumber(228).context, /1576 printing/);
+  assert.deepEqual(selected.filter(poem => poem.textLanguageOverrides).map(poem => poem.id), ['camoes-soneto-1843-043']);
+  assert.deepEqual(byNumber(43).textLanguageOverrides, [{ line: 14, lang: 'es' }]);
+  assert.match(byNumber(43).text, /La vuestra falsa fe, y el amor mio\.$/);
+  assert.match(byNumber(43).context, /final line is in Spanish/);
+  const old = poems.find(poem => poem.id === 'amor-e-fogo-camoes');
+  assert.equal(createHash('sha256').update(JSON.stringify(old)).digest('hex'), '767af002c6bc4d7d1108cf48bc4f33b6e5eaedeb43b50e12c5c99ff0459db219');
+  assert.equal(groupPoets(poems).find(group => group.id === 'luis-de-camoes').poems.length, 49);
+  for (const [query, number] of [['alma minha gentil', 19], ['sete anos de pastor jaco', 29], ['pelos extremos raros', 44], ['se alguma hora em vos a piedade', 47], ['razao e ja que minha confianca', 49]]) {
+    assert.deepEqual(filterPoems(selected, { query }).map(poem => poem.id), [byNumber(number).id]);
+  }
+  assert.equal(selected.some(poem => /Mudão-se os tempos|Todo animal da calma/.test(poem.text)), false);
+});
+
+test('original verse language overrides preserve text and reject invalid markup', () => {
+  const poem = poems.find(item => item.id === 'camoes-soneto-1843-043');
+  const html = renderPoem(poem, poems, '/ai-poems/');
+  assert.ok(html.includes('<span lang="es" dir="auto">La vuestra falsa fe, y el amor mio.</span>'));
+  const sample = { ...poem, text: 'Primeira & <linha>\n\nSegunda & <línea>', textLanguageOverrides: [{ line: 2, lang: 'es' }] };
+  assert.ok(renderPoem(sample, poems, '/ai-poems/').includes('Primeira &amp; &lt;linha&gt;\n\n<span lang="es" dir="auto">Segunda &amp; &lt;línea&gt;</span>'));
+  for (const overrides of [null, {}, [{ line: 0, lang: 'es' }], [{ line: 3, lang: 'es' }], [{ line: 1, lang: 'es" onmouseover="x' }], [{ line: 1, lang: 'es' }, { line: 1, lang: 'pt' }]]) {
+    assert.throws(() => renderPoem({ ...sample, textLanguageOverrides: overrides }, poems, '/ai-poems/'), /verse language/i);
+  }
+  assert.ok(renderPoem({ ...sample, textLanguageOverrides: undefined }, poems, '/ai-poems/').includes('Primeira &amp; &lt;linha&gt;\n\nSegunda &amp; &lt;línea&gt;'));
+});
+
 test('Bécquer Rimas preserve the 1912 selection, source caveats and existing works', () => {
   const selected = poems.filter(poem => poem.id.startsWith('becquer-rima-'));
   const expectedNumbers = Array.from({ length: 76 }, (_, i) => i + 1).filter(i => i !== 7 && i !== 73);
