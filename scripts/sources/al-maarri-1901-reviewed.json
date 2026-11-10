@@ -1,0 +1,87 @@
+{
+  "scanSha256": {
+    "siqt-hindiyya-1901.pdf": "9001ba79fd4800b6cf66314e1bb5202f8ac0ace49d11efd81dc43d7fab0c597e",
+    "siqt-bulaq-1869.pdf": "989b3e8f4cf0cf1fd81b9417707f1090f8c466e131eeb0327884c44bebd77743",
+    "shuruh-1948-vol4.pdf": "1ec50b0f5a3500e7b0bda75d02fa92ae7926e0b6bbe0986bf1c48afea1ed878e"
+  },
+  "poems": [
+    {
+      "slug": "farewell",
+      "printedPages": [132],
+      "pdfPages": [136],
+      "bulaqPrintedPages": [136],
+      "bulaqPdfPages": [97],
+      "criticalPrintedPages": [1721],
+      "criticalPdfPages": [275],
+      "criticalNumber": 70,
+      "couplets": 3,
+      "textSha256": "4f05560a0894df0fe55d8a5b3880f9040bcdabf19d0396a8610d8c89f9e10d78",
+      "note": "The 1901 heading presents the poem in the voice of al-Balkhī; that heading is not proof of an autobiographical event. The 1948 apparatus records عن instead of من in al-Khwārazmī's commentary."
+    },
+    {
+      "slug": "candle",
+      "printedPages": [132, 133],
+      "pdfPages": [136, 137],
+      "bulaqPrintedPages": [136, 137],
+      "bulaqPdfPages": [97, 96],
+      "criticalPrintedPages": [1723, 1724],
+      "criticalPdfPages": [277, 278],
+      "criticalNumber": 71,
+      "couplets": 4,
+      "textSha256": "4eb8d8bc869d53b5be15adba875bc12b2698a6eba542ea5d73602fec952697f6",
+      "note": "The heading identifies the subject as a candle; the first couplet is on p. 132 and three continue on p. 133. The 1948 apparatus records على غير الأيام in al-Baṭalyawsī's commentary against the printed على نوب الأيام. Ṣalāḥ Kazzāra reports that the 1884 Beirut edition omitted the last two couplets; four are printed in the 1869, 1901 and 1948 editions."
+    },
+    {
+      "slug": "mother-elegy",
+      "printedPages": [133],
+      "pdfPages": [137],
+      "bulaqPrintedPages": [137, 138],
+      "bulaqPdfPages": [96, 95],
+      "criticalPrintedPages": [1725, 1726, 1727, 1728, 1729, 1730, 1731],
+      "criticalPdfPages": [279, 280, 281, 282, 283, 284, 285],
+      "criticalNumber": 72,
+      "couplets": 10,
+      "textSha256": "869c990a378ebabaf1ef33f036844d298aae84d0c49167e294b66e0af285e33c",
+      "note": "The 1901 heading describes this as an elegy for the poet's mother. The 1901 scan appears to read الشأم, while the 1948 edition prints الشام; the small mark in the earlier scan is uncertain. Ṣalāḥ Kazzāra reports that the 1884 Beirut printing omitted the elegy; its absence there is not evidence that the ten-couplet version was complete in every tradition."
+    },
+    {
+      "slug": "gifts",
+      "printedPages": [133, 134],
+      "pdfPages": [137, 138],
+      "bulaqPrintedPages": [138, 139],
+      "bulaqPdfPages": [95, 94],
+      "criticalPrintedPages": [1732, 1733, 1734, 1735],
+      "criticalPdfPages": [286, 287, 288, 289],
+      "criticalNumber": 73,
+      "couplets": 8,
+      "textSha256": "5e68c20ae08e3b65bb8ae6b61651c63022980fde5190495567a4f11784af0167",
+      "note": "The 1901 heading addresses a jurist. The 1948 apparatus records تفتش for تكشف, بجدة for نجدة and وأهلها for وإنسها in particular commentaries."
+    },
+    {
+      "slug": "past-endeavors",
+      "printedPages": [134, 135],
+      "pdfPages": [138, 139],
+      "bulaqPrintedPages": [139, 140, 141],
+      "bulaqPdfPages": [94, 93, 92],
+      "criticalPrintedPages": [1736, 1737, 1738, 1739, 1740, 1741, 1742, 1743],
+      "criticalPdfPages": [290, 291, 292, 293, 294, 295, 296, 297],
+      "criticalNumber": 74,
+      "couplets": 15,
+      "textSha256": "8ab1cff7dd47630fe43052b24c718fb220f6252708170edf87871327b0c16bbc",
+      "note": "The 1901 and Bulāq printings read الشعر and أحيا; the 1948 main text reads الجزء and أعيا. The 1948 apparatus says al-Baṭalyawsī did not transmit the sixth couplet, though it appears in the 1901, Bulāq and 1948 texts. That apparatus also reports كالنوء for كالنجم, رسولا for سؤالا, وظل for فظل, طال for مد, and يجاورني for تجاوزني in particular witnesses."
+    },
+    {
+      "slug": "armor",
+      "printedPages": [135],
+      "pdfPages": [139],
+      "bulaqPrintedPages": [141, 142],
+      "bulaqPdfPages": [92, 91],
+      "criticalPrintedPages": [1747, 1748, 1749, 1750, 1751],
+      "criticalPdfPages": [301, 302, 303, 304, 305],
+      "criticalNumber": 75,
+      "couplets": 10,
+      "textSha256": "8e12a1a2667e9cf7c32f05395bf34a5fe68cc9b24ef28f5d49ee1270999e5873",
+      "note": "The 1901 heading places this first armor poem in the voice of a man who gave up wearing armor in old age; it is not presented here as established autobiography. The 1948 edition reports that al-Baṭalyawsī did not include this poem; its composite text draws on other commentaries, and the 1869, 1901 and 1948 printings present ten couplets. The two occurrences of الكر have different vowel marks in the print, omitted in this reading."
+    }
+  ]
+}
