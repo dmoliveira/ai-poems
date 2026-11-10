@@ -1021,6 +1021,77 @@ test('Mutran magazine readings retain their boundaries, dates, variants and attr
   assert.equal(poet.poems.length, 8);
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
 });
+test('Sabri magazine originals retain their complete printings, variants and provenance', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/sabri-magazines-reviewed.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/sabri-magazines-reviewed.txt', import.meta.url), 'utf8');
+  const sections = source.split(/^=== ([a-z]+) ===\n/gm);
+  assert.equal(sections.shift(), '');
+  const readings = new Map();
+  while (sections.length) readings.set(sections.shift(), sections.shift().trim().replaceAll(' | ', '\n'));
+  const expected = [
+    ['tear', 24, 'ecbf9127cea7b7834af0d7aff5fa1a95cbec3d01435ea8773bc67d250ecaf675'],
+    ['saba', 18, '0b258b49b18c1dcbd2dd0553ee942e93837e9906f7eeb01f7f6308d26f297ed4'],
+    ['thaman', 10, 'f50e6b7604361f36e803b77dd8053cf5d4471ed25f0ce89d255fabf8229e3f6d'],
+    ['opposition', 28, 'eadf293a9de51db64de10f0f5607b54f6bf958e94c8676bf2d0f8494fbd67ac5'],
+    ['friend', 38, '96e85464c4322c54186a2fbf2b08a8e52d41c545337c81159e5d7c3e230123df'],
+    ['tusun', 30, 'fe3361ba7d5f88d5c16be681da7e60a69740b3feb51929e4a6d4fbf5dcdea46e'],
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), expected.map(([slug]) => slug));
+  assert.deepEqual(Object.fromEntries(Object.entries(manifest.witnesses).map(([name, item]) => [name, item.sha256])), {
+    'zouhour-1910.pdf': '71cf0a2ee277c5c63be8472e1bdea892e107802517d7446e4006de7ab46811aa',
+    'zouhour-1911.pdf': '0c8cd4f16ab9db5b4b756efc2dc73e264cf863a7ee8d0fdd2c5bdbd8a8d70979',
+    'zouhour-1913.pdf': '82a41ee469834f30ff5973a6d62048c6124126c921dd269d81009c91cffcc95b',
+    'sabri-1357.pdf': '01dd164683cc34fd5736cb92b1c14dbfffe059637c226a31ae705079bca790ba',
+  });
+  const selected = expected.map(([slug, lines, hash], index) => {
+    const item = manifest.poems[index];
+    const poem = poems.find(entry => entry.id === `sabri-magazines-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, 'Ismail Sabri');
+    assert.equal(poem.authorOriginal, 'إسماعيل صبري');
+    assert.equal(poem.authorId, 'ismail-sabri');
+    assert.equal(poem.authorYears, '1854–1923');
+    assert.deepEqual(associatedPlaces(poem), ['Egypt']);
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.text, readings.get(slug));
+    assert.equal(lineCount(poem), lines);
+    assert.equal(lines, item.couplets * 2);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.ok(poem.source.includes(`/download/${manifest.witnesses[item.sourceFile].archiveId}/`));
+    assert.match(poem.source, new RegExp(`#page=${item.pdfPages[0]}$`));
+    assert.match(poem.contextSource, new RegExp(`#page=${item.comparisonPdfPages[0]}$`));
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /1938 edition is linked for comparison, not reproduced/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: poem.title }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: 'إسماعيل صبري' }).includes(poem));
+    assert.ok(filterPoems(poems, { country: 'Egypt', author: poem.author }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  const bySlug = slug => selected.find(poem => poem.id === `sabri-magazines-${slug}`);
+  assert.match(bySlug('tear').text, /ويحفظ العهد كما شاءه\nأحمد سمحا واسع المشرع/);
+  assert.match(bySlug('tear').context, /ويأخذ البر وآي الوفا.*ويحفظ العهد كما شاءه/);
+  assert.match(bySlug('saba').context, /distinct poem from Khalil Mutran/);
+  assert.notEqual(bySlug('saba').text, poems.find(poem => poem.id === 'mutran-magazines-saba').text);
+  assert.match(bySlug('thaman').text, /من لؤلؤ بالنهى/);
+  assert.match(bySlug('thaman').context, /عن لؤلؤ.*في أوجه.*من لؤلؤ.*في أفقه/);
+  assert.match(bySlug('opposition').context, /not a translation/);
+  assert.match(bySlug('friend').text, /برغمي أن تقاص منك ظل/);
+  assert.match(bySlug('friend').context, /تقاص منك ظل.*تقلص منك ظل/);
+  assert.match(bySlug('tusun').context, /prose reply, which is not part of the poem/);
+  assert.ok(filterPoems(poems, { query: 'تقاص منك ظل' }).includes(bySlug('friend')));
+  assert.equal(poems.filter(poem => poem.authorId === 'ismail-sabri').length, 6);
+  const poet = groupPoets(poems).find(group => group.id === 'ismail-sabri');
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
 test('Francis and Jacopone originals retain reviewed editions and separate witnesses', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/francis-jacopone-reviewed.json', import.meta.url), 'utf8'));
   const francis = poems.find(p => p.id === 'francis-laudes-creaturarum');
