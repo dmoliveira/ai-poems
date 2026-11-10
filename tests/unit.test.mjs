@@ -274,6 +274,72 @@ test('Alphonsus originals retain the reviewed 1923 readings and complete works',
   assert.equal(titleAttributes({ ...byId('ysmalia'), displayTitleLang: 'pt" onmouseover="x' }), ' lang="pt&quot; onmouseover=&quot;x" dir="auto"');
 });
 
+test('Narcisa Amália originals retain scan readings, printed boundaries and provenance', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/narcisa-nebulosas-reviewed.json', import.meta.url), 'utf8'));
+  assert.deepEqual(manifest.sourceSha256, {
+    'nebulosas-ufsc.pdf': 'ec501f4b15fcdf08473d0265c090ab135c12844205b1498d502746d4e3dad0bf',
+    'nebulosas-archive.pdf': '06146ba5b5b5aba7ee9db2db06ede1ddce317301cd0728842b20224f7c6a7028',
+  });
+  assert.deepEqual(manifest.poems.map(item => item.id), [
+    'voto', 'saudades', 'afflicta', 'aspiracao', 'confidencia', 'agonia', 'scisma',
+    'recordacao', 'amor-de-violeta', 'o-africano-e-o-poeta', 'sadness',
+  ]);
+  const selected = manifest.poems.map(item => {
+    const poem = poems.find(entry => entry.id === `narcisa-nebulosas-${item.id}`);
+    assert.ok(poem, item.id);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, 'Narcisa Amália');
+    assert.equal(poem.authorId, 'narcisa-amalia');
+    assert.equal(poem.authorYears, '1852?–1924');
+    assert.deepEqual(associatedPlaces(poem), ['Brazil']);
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(new URL(poem.source).searchParams.get('id'), '153383');
+    assert.equal(new URL(poem.source).hash, `#page=${item.ufsc[0]}`);
+    assert.match(poem.sourceTitle, new RegExp(`${item.pages[0]}–${item.pages.at(-1)}`));
+    assert.equal(poem.contextSource, 'https://literaturabrasileira.ufsc.br/documentos?id=133827');
+    assert.match(poem.context, /1852.*1856/);
+    assert.match(poem.context, /boundary does not establish every other edition/);
+    assert.match(poem.context, /not a claim about this poem’s place of composition/);
+    assert.match(poem.rights, /public domain in the United States; check local law/);
+    assert.equal(poem.text, item.text);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), item.stanzas);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, item.themes);
+    assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Brazil', query: 'narcisa amalia' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), '30758c5f4d3ef81f834d3ab52d4a99a8eac9293e1238df3a72f74a9689b1b3b2');
+  const byId = id => selected.find(poem => poem.id === `narcisa-nebulosas-${id}`);
+  assert.deepEqual(byId('voto').themes, ['Faith']);
+  assert.equal(selected.filter(poem => poem.themes.includes('Faith')).length, 1);
+  assert.match(byId('voto').context, /epigraph is attributed to Álvares de Azevedo/);
+  assert.match(byId('afflicta').text, /afflijas, volta rei, descança/);
+  assert.match(byId('afflicta').context, /spacing is retained provisionally/);
+  assert.equal(byId('afflicta').displayTitle, 'Aflita');
+  assert.equal(byId('scisma').displayTitle, 'Cisma');
+  assert.match(byId('agonia').context, /Consolação.*J\. Ezequiel Freire/);
+  assert.match(byId('recordacao').context, /endnote.*early composition/);
+  assert.match(byId('amor-de-violeta').text, /labios lúbricos/);
+  assert.match(byId('amor-de-violeta').text, /melancolica[\s\S]*precípites/);
+  assert.deepEqual(byId('o-africano-e-o-poeta').text.split('\n\n').map(stanza => stanza.split('\n').length), [12, 12, 12, 12, 12, 12]);
+  assert.match(byId('o-africano-e-o-poeta').text, /Sulcado de dôr,/);
+  assert.match(byId('o-africano-e-o-poeta').context, /enslaved African.*historical language/i);
+  assert.match(byId('sadness').context, /English title.*Portuguese/);
+  assert.ok(!selected.some(poem => /^(Consolação|Os dous trophéos|Fragmentos|Desalento)$/i.test(poem.title)));
+  for (const query of ['aflita', 'afflicta']) assert.ok(filterPoems(selected, { query }).includes(byId('afflicta')));
+  for (const query of ['cisma', 'scisma']) assert.ok(filterPoems(selected, { query }).includes(byId('scisma')));
+  assert.deepEqual(filterPoems(selected, { query: 'sulcado de dor' }).map(poem => poem.id), [byId('o-africano-e-o-poeta').id]);
+  const poet = groupPoets(poems).find(group => group.id === 'narcisa-amalia');
+  assert.equal(poet.poems.length, 11);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
+
 test('Francisca Júlia originals retain reviewed first-edition readings and distinct works', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/francisca-julia-marmores-reviewed.json', import.meta.url), 'utf8'));
   const numbers = [...Array.from({ length: 21 }, (_, i) => i + 1), 23, 24, 36];
