@@ -947,6 +947,80 @@ test('Taymur readings retain complete historical boundaries, variants and Arabic
   assert.equal(poet.poems.length, 7);
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
 });
+test('Mutran magazine readings retain their boundaries, dates, variants and attribution', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/mutran-magazines-reviewed.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/mutran-magazines-reviewed.txt', import.meta.url), 'utf8');
+  const sections = source.split(/^=== ([a-z]+) ===\n/gm);
+  assert.equal(sections.shift(), '');
+  const readings = new Map();
+  while (sections.length) readings.set(sections.shift(), sections.shift().trim().replaceAll(' | ', '\n'));
+  const expected = [
+    ['baalbek', 118, '71907e02005dd9157680f0d4dbd2144c5a5988bb0fcaf51c850c912492f42a19'],
+    ['flowers', 44, '569744cf36aefe0bb1484bb3d36cee9235fe8ddf336103032b5ab9b4983e0f52'],
+    ['musset', 16, 'fe2305bead40c636c28ae9a50c8e44f57ed53b837b7226414b43ef78cf86488d'],
+    ['jasmine', 4, '3a10ba191880be1a2b073e2ca69decf9c7a3b3ee80ee095f8efccd58775e31f5'],
+    ['blood', 4, '4af404533c7b92af77d38e9439cb00372d8665147f471471234719d4dc0dd4bf'],
+    ['saba', 32, '568dfe3f6a6b09865be7e83631d30af25d664cada044a8f0d81f33b9e5564d66'],
+    ['zurayq', 24, 'b818264add5ac2ae015ebc5bde5aa83f90439747d664184544bf09d4767ebe9d'],
+    ['tears', 4, 'f7b161e0152e20ce47ab069dde336b0fd16cdeab572669dbab0085df642510d0'],
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), expected.map(([slug]) => slug));
+  assert.equal(Object.keys(manifest.witnesses).length, 9);
+  const selected = expected.map(([slug, lines, hash], index) => {
+    const item = manifest.poems[index];
+    const poem = poems.find(entry => entry.id === `mutran-magazines-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, 'Khalil Mutran');
+    assert.equal(poem.authorOriginal, 'خليل مطران');
+    assert.equal(poem.authorId, 'khalil-mutran');
+    assert.equal(poem.authorYears, '1872–1949');
+    assert.deepEqual(associatedPlaces(poem), ['Lebanon', 'Egypt']);
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.text, readings.get(slug));
+    assert.equal(lineCount(poem), lines);
+    assert.equal(lines, item.couplets * 2);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.match(poem.source, new RegExp(`#page=${item.pdfPages[0]}$`));
+    assert.ok(poem.source.includes(`/download/${manifest.witnesses[item.sourceFile].archiveId}/`));
+    if (item.comparisonFile) assert.match(poem.contextSource, new RegExp(`#page=${item.comparisonPdfPages[0]}$`));
+    else assert.match(poem.contextSource, /catalogue\.bnf\.fr/);
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.rights, /public domain in the United States/);
+    for (const [page, revision] of item.wikiRevisions) {
+      assert.match(poem.rights, /CC BY-SA 4\.0/);
+      assert.ok(poem.rights.includes(`curid=${page}&oldid=${revision}`));
+    }
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: poem.title }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: 'خليل مطران' }).includes(poem));
+    assert.ok(filterPoems(poems, { country: 'Lebanon', query: 'Khalil Mutran' }).includes(poem));
+    assert.ok(filterPoems(poems, { country: 'Egypt', author: poem.author }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  const bySlug = slug => selected.find(poem => poem.id === `mutran-magazines-${slug}`);
+  assert.match(bySlug('baalbek').text, /وتحلت من الليال بشامات/);
+  assert.match(bySlug('baalbek').context, /الليالي.*1949/);
+  assert.match(bySlug('flowers').text, /تاج عهن/);
+  assert.match(bySlug('flowers').context, /one poem.*تاج قطن/);
+  assert.match(bySlug('musset').text, /دمع عينه/);
+  assert.match(bySlug('musset').context, /1977.*same eight couplets.*دمع عينيه/);
+  assert.match(bySlug('blood').text, /في شكل قلب/);
+  assert.match(bySlug('saba').text, /ماد نسيم به فمات وفي\nمعطفه رقة من الميد/);
+  assert.match(bySlug('saba').context, /16 couplets.*15-couplet.*ساهمتك.*شاركتك/);
+  assert.ok(filterPoems(poems, { query: 'معطفه رقة من الميد' }).includes(bySlug('saba')));
+  assert.match(bySlug('zurayq').context, /separates this elegy/);
+  assert.match(bySlug('tears').context, /after a rule/);
+  const poet = groupPoets(poems).find(group => group.id === 'khalil-mutran');
+  assert.equal(poet.poems.length, 8);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
 test('Francis and Jacopone originals retain reviewed editions and separate witnesses', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/francis-jacopone-reviewed.json', import.meta.url), 'utf8'));
   const francis = poems.find(p => p.id === 'francis-laudes-creaturarum');
