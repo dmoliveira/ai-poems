@@ -566,6 +566,58 @@ test('Apollinaire originals support complete discovery, saved data and static mo
   await staticContext.close();
 });
 
+test('Desbordes-Valmore originals support full-text search, saved data and static reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'marceline-desbordes-valmore');
+  assert.equal(selected.length, 14);
+  const seed = { saved: ['demain-des-laube-hugo'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=French&country=France#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'French', country: 'France' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('Marceline Desbordes-Valmore');
+  await page.getByText('14 poems found', { exact: true }).waitFor();
+  await page.getByLabel('Search the poetry library').fill('lointain hameau');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  const fiancee = selected.find(poem => poem.id.endsWith('-fiancee'));
+  await page.locator(`#results a[href$="/poems/${fiancee.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), fiancee.text);
+  assert.equal(await page.getByRole('link', { name: fiancee.sourceTitle }).getAttribute('href'), fiancee.source);
+  assert.equal(await page.getByRole('link', { name: `${fiancee.contextSourceTitle} ↗` }).getAttribute('href'), fiancee.contextSource);
+  assert.ok((await page.locator('.story').textContent()).includes('partly ink-obscured'));
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes(seed.saved[0]));
+  assert.ok(stored.saved.includes(fiancee.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-French a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const item of selected) {
+    await staticPage.goto(`${base}poems/${item.id}/`);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), item.text);
+    assert.equal(await verse.getAttribute('lang'), 'fr');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${item.contextSourceTitle} ↗` }).getAttribute('href'), item.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(item.rights));
+    assert.ok((await staticPage.locator('.story').textContent()).includes(item.context));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.goto(`${base}poets/marceline-desbordes-valmore/`);
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('expanded Italian classics support search, attribution and static reading', async () => {
   const selected = poems.filter(p => p.id.startsWith('leopardi-canti-'));
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });

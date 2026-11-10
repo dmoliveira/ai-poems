@@ -1,0 +1,417 @@
+{
+  "scanSha256": {
+    "fiancee-memorial-1831.jpg": "cc04e55ccffcf43fdfb1a839fabdf328c72ec367829eb9665e257ea1f77e0f28",
+    "leaf-001.jpg": "b5aab34b20a4d7d154fb3cbf7405c5184c68dfeee0674950d44b1a93e2db8cda",
+    "leaf-027.jpg": "0931359669f2afc887132a0d17aa7f92cd3ce019f8be84e92922792ceeac0959",
+    "leaf-029.jpg": "0e5f5bf5a1fe98e0c5028b8add06263dcccd9ea97ed500c595566a491b9138e5",
+    "leaf-030.jpg": "ab446f1d6ca985cd0c61658b1085b8aee0d373ae76fdcbe039ca1d84d28e044c",
+    "leaf-031.jpg": "a7f8fbc971b4066f4920595736c520f26523d6341f936e07d17f20cce9fcbd15",
+    "leaf-033.jpg": "732e8be9fce43f8d5c7ee71ae03bcb2284b9ab3bb85216e6b99a9dee1a5544da",
+    "leaf-034.jpg": "a47ca7265d774492a557a1056270d638ee11c8bc2bd808d5f7e208ba010df290",
+    "leaf-035.jpg": "a052cc90b6d994eaca5a0dca3bb4cec53aef6e882dffa18d374dc4d7dc48e125",
+    "leaf-037.jpg": "13ebdb9469320b41731f46024a188e49fc4ff40def5ce7ddc0929a5070a1b200",
+    "leaf-038.jpg": "8eb2eb8ca059b3462eb83c5591d8e565d5308d79b57342ac1b034bacf376ac4b",
+    "leaf-039.jpg": "19011aa891b56ca5b7b7c199f53442212f3f8aed64d470707f0bbaa228b807c9",
+    "leaf-041.jpg": "5e9f4526b1c63e2dc02016e4d78ac4c844711433806ea90879bb33cfbe716bc1",
+    "leaf-042.jpg": "affe4f9abea93494181d745b53c7f566d02afa5fd757d5f5b0544790ddf1c581",
+    "leaf-043.jpg": "70d76825430d131b2c4465de6f9207c30f85c401102f4c9b25b80ba36c59ba47",
+    "leaf-044.jpg": "91314320562ccc9349e977ab25bc4ff365bd53ba3834f922b2f89065b20048c1",
+    "leaf-111.jpg": "644a9ded4a0363154f2403c93e770b6d9f1b8a8708dee0edaf758fc2af281295",
+    "leaf-113.jpg": "465e34b1b922456ea9c4a06821e929a6076b3f6bb60ab05e35be5c1b4518a287",
+    "leaf-114.jpg": "0a75ad8241c683e735b1ea8ff92b8f94e39662ee7eefdb73704fedc1c56b9494",
+    "leaf-115.jpg": "408ce40a071f0cac55e8b5d7e6118f71ab673fa2e1469126e51e761f78dad007",
+    "leaf-116.jpg": "036ef37558d66d4e16a6ec7fc17c97e6767c3a4e569a2715eac98025b0b65519",
+    "leaf-117.jpg": "5d1d2e881e398f85dd42ddd82c24b0a3af668144e4710bfc0c4053fd5eafca6d",
+    "leaf-119.jpg": "0a185e80fa2f568f3954ba02e0596ef024ee855585ac027b09e2b949e9614fb8",
+    "leaf-120.jpg": "e4c7134b434086eeb6690e4ab7ee4bdb4ae90befd01a8a4bcaea938603f90f79",
+    "leaf-121.jpg": "3eb345e0d08e3f497d2703c9dcd818237c827a6a2ed41b67e6ba5a1d14453b50",
+    "leaf-139.jpg": "48aa2b4bb2ad4b526152427629c87e5bde2697d00c9f8b9f41becfadd29e835b",
+    "leaf-141.jpg": "e2f5bb8da148fb122e4f57d1f472c2a5bfdd062d313ae229603624b432fa177e",
+    "leaf-142.jpg": "c15b43e81ba62a43489db690eb132f816596c0e78708639588badf04973be1d4",
+    "leaf-143.jpg": "ec19b541c504699001010d7f55eb467cb69396eff955a51e4e5c2bb250f8c57f",
+    "leaf-167.jpg": "84a5e826a13a4b272fbbf407559a819d8e79ed13cc96a6d5d9fac1c9f59e8c32",
+    "leaf-169.jpg": "561c49cba5aef9d4c25c57c75e79c2381a4fecec7e1af30af8ac2e9d53bfed2b",
+    "leaf-170.jpg": "369fd7b294d24bf107d798a905c951944f08b60ba160268471aec5cd0227c23a",
+    "leaf-171.jpg": "281e22f4c7e0d67ee883f3d8e0f1f00f78d47b20e470cbf6041f16a6447014cf",
+    "leaf-177.jpg": "5b638e591c42987f79dce655c0c917a645a2bd742abd73cbc7e425bd9a00d9a4",
+    "leaf-179.jpg": "06a159ce433dfa182016643b85a62eca66c556258371fb137495532202eb1883",
+    "leaf-180.jpg": "d684edae21ca8ed5ca2312928cfc5598c51bcc33831c565ce6a4839cc1cd3657",
+    "leaf-181.jpg": "eab449022fb284a3b0b06ddc9ef7ff57681967cf77a05c327c5d9bbbf129fdc0",
+    "leaf-182.jpg": "cabc402aec34a7a0a0cb50bcf9f9cdfedb18af8655285cfe8abadcd28aa52b68",
+    "leaf-183.jpg": "f8df50a2dbda40124b9c4681843ca8190aff19229359411c495b700dadb2616b",
+    "leaf-185.jpg": "d479b15e52ec19dd16506371651f3954596816737fb9b2b93f9c05e6b5400025",
+    "leaf-186.jpg": "080f739a5031ae84824c98b337bf4a8ec3caefee8fa17285cb93e953318b17b1",
+    "leaf-187.jpg": "fad6abcae1f924a5bdc08da07c61a8698112ecbb244054540bcc6d7c0cd6d395",
+    "leaf-275.jpg": "52290ecff3db47331e912c711bd3e3968021e5874aab5618d23b9188d94b2fa9",
+    "leaf-277.jpg": "1311807cc5d53fdc8e07cc92ec4b9f2ec4358256873b9114988701d46a309cbc",
+    "leaf-278.jpg": "741c5df1544cb49495e14e449a1863220c60832f1b3b69205e314c0bc2fe5f06",
+    "leaf-279.jpg": "aff86a5ddc7baf9bebc382a46c686672627a1ccac574383ebad4236ece7d6427",
+    "leaf-301.jpg": "491233c4fb410d24b1728b3fab25cb6761fe0f62d143dae33983b5f8dd7ea196",
+    "leaf-303.jpg": "59386624c7de21576b2c84dfb616771453f9a1880b0f2596fef4740e665e5ad2",
+    "leaf-304.jpg": "d3dd15973fe5b1fac286b548419b6ba14d1550887e1bb1d95ab415ec3a50bede",
+    "leaf-305.jpg": "9692634961feaad20a20f4a1ad589bdaebd694f04bd37a766057ac9165666856",
+    "leaf-306.jpg": "2b431b5443320f3e0ad51f53fdb930a2076908d41eceb812c9cc74b2e33ecf3f",
+    "leaf-307.jpg": "e8227a1f4041a80ae7326d2d402e80dc76b564fdd7f5ecb24e0bc847a5e1278f",
+    "leaf-309.jpg": "4348c9db1635025ce2ea6563e31c27dc213d53062b48f8cad807d9903cf6d0dd",
+    "leaf-310.jpg": "0b036c615ba7c31595ca725370f2692adcbd78ebcf87134cf749955d0222b6de",
+    "leaf-311.jpg": "5cde4bc5e870a2852776c91274490177ab31030d15023431384b8865a66f430a",
+    "leaf-312.jpg": "f2c965bf067fca6734def15bbcb3812f0e0530561a0398cbecf5a8afda20cf72",
+    "leaf-331.jpg": "0a8d00837759693dd2de44b7def3c87b5b8b4f2c8a82841cf6eec10c3514c109",
+    "leaf-333.jpg": "4eafdb38ae4d6ba1a173ad3571db6bbe9bd3666862d02629c63bb09b789b93d0",
+    "leaf-334.jpg": "1c1961c33cf4d43a72aeeb9dd926dea2d8aa608a41109246a0f8a1c415b44656",
+    "leaf-335.jpg": "5b05f016666afd72f86090c062875644cf0c49f0adc1d22e82f64117cfb9b409",
+    "leaf-336.jpg": "64dc482208bee334a2d4b11e345f22c62232560025657c4dfaeb4762fe14fb6c",
+    "les-pleurs-1834.djvu": "13a98edaf06224a2c935357dcb89638c275c4bdef4cd4cffe5f7f68a98734cfd"
+  },
+  "poems": [
+    {
+      "slug": "attente",
+      "title": "L’Attente",
+      "roman": "III",
+      "heading": "L’ATTENTE.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/L%E2%80%99Attente&oldid=14163076",
+      "leaves": [
+        27,
+        29,
+        30
+      ],
+      "stanzas": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "note": "",
+      "lines": 20,
+      "sourceSha256": "1026a59e27b3f1c6a5d7a9c8f8661b21501af53f0b692c2ac495f957f7b1aa9b",
+      "corrections": [],
+      "sha256": "76ed7a6387f6ddb1ee21baf64e71ea7fd35bc8b1d7c0031083f90aff6f7b375b"
+    },
+    {
+      "slug": "dors-tu",
+      "title": "Dors-tu ?",
+      "roman": "IV",
+      "heading": "DORS-TU ?",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/Dors-tu_%3F&oldid=14163046",
+      "leaves": [
+        31,
+        33,
+        34
+      ],
+      "stanzas": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "note": "",
+      "lines": 16,
+      "sourceSha256": "26150010f690a395e23aa29b2417c1b31a17c1e4a0190c18bce65eed0b62dfe1",
+      "corrections": [],
+      "sha256": "c25f9922916889f38760490bf59748f772f474fec77e68656af287cb2cde2e23"
+    },
+    {
+      "slug": "amour",
+      "title": "Amour",
+      "roman": "V",
+      "heading": "AMOUR.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/Amour&oldid=14163042",
+      "leaves": [
+        35,
+        37,
+        38
+      ],
+      "stanzas": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "note": "The separately printed epigraph is credited to André Chénier and is not included in the poem text.",
+      "lines": 16,
+      "sourceSha256": "8b4c1de692333abe3b4b8d9f9489a2e6fc91c3e980b3c0b08fda8079a7de0322",
+      "corrections": [],
+      "sha256": "eac7f6c2a1a015e58b33a9fc21a56275532a2390c6a9f0e52643b1bf6a37a222"
+    },
+    {
+      "slug": "jumeau",
+      "title": "Le Jumeau pleuré",
+      "roman": "VI",
+      "heading": "LE JUMEAU PLEURÉ.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/Le_Jumeau_pleur%C3%A9&oldid=14163061",
+      "leaves": [
+        39,
+        41,
+        42,
+        43
+      ],
+      "stanzas": [
+        30,
+        16
+      ],
+      "note": "The title page dedicates the poem “À sa mère, Madame Henriette Duthillœil, à Douay”.",
+      "lines": 46,
+      "sourceSha256": "54fba202ba67463f520472d6c48966850c2f4f951e9e54b6ed2c7b27c5675fd3",
+      "corrections": [],
+      "sha256": "d87f46ebd3bc879f768d5b021adc9791490b45088a0d2e2b6dd58b9bb2200e71"
+    },
+    {
+      "slug": "adieu-tout-bas",
+      "title": "L’Adieu tout bas",
+      "roman": "XIX",
+      "heading": "L’ADIEU TOUT BAS.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/L%E2%80%99Adieu_tout_bas&oldid=14163075",
+      "leaves": [
+        111,
+        113,
+        114,
+        115
+      ],
+      "stanzas": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "note": "The separately printed epigraph is credited to Jean Polonius and is not included in the poem text.",
+      "lines": 32,
+      "sourceSha256": "818492c9e801b994ab6ae0645372e6d263476df4613da0ed695347995e6e1777",
+      "corrections": [],
+      "sha256": "e608e1dc0e8b98284f6d70275e8809ff375f8b1bd2b2614d91c7c329961283a3"
+    },
+    {
+      "slug": "ne-me-plains-pas",
+      "title": "Ne me plains pas !",
+      "roman": "XX",
+      "heading": "NE ME PLAINS PAS !",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/Ne_me_plains_pas&oldid=14163085",
+      "leaves": [
+        117,
+        119,
+        120
+      ],
+      "stanzas": [
+        8,
+        8,
+        8
+      ],
+      "note": "The separately printed epigraph is attributed in this edition to “Clotilde” and is not included in the poem text.",
+      "lines": 24,
+      "sourceSha256": "d8fd83ce591a642f07efacd99a7bf23042aa196907f180408d46c555be52a15c",
+      "corrections": [],
+      "sha256": "87cc0f63c1c5159e35232fd16ed13ce0e5038d699137deb87025a739aa4a6164"
+    },
+    {
+      "slug": "detachement",
+      "title": "Détachement",
+      "roman": "XXVI",
+      "heading": "DÉTACHEMENT.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/D%C3%A9tachement&oldid=14163047",
+      "leaves": [
+        139,
+        141,
+        142
+      ],
+      "stanzas": [
+        8,
+        6
+      ],
+      "note": "The title page prints separate English and French epigraphs, the latter labeled “Pauline”; they are not included in the poem text.",
+      "lines": 14,
+      "sourceSha256": "e44833f68acf67e2e9d2383f9957086c2e431ee1bfcf3e78d8821c91bd81934e",
+      "corrections": [
+        {
+          "line": 6,
+          "before": "De quel astre inclément s’est échappé l’orage",
+          "after": "De quel astre inclément s’est échappé l’orage."
+        }
+      ],
+      "sha256": "9170e9f8e0dbf7acaf2e62a51e178d0204835cc390aef91ac3dff79ef1c96d58"
+    },
+    {
+      "slug": "croix-belge",
+      "title": "Sous une Croix belge",
+      "roman": "XXXI",
+      "heading": "SOUS UNE CROIX BELGE.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/Sous_une_Croix_belge&oldid=14163094",
+      "leaves": [
+        167,
+        169,
+        170
+      ],
+      "stanzas": [
+        10,
+        8,
+        6
+      ],
+      "note": "The separately printed epigraph is credited to Auguste Barbier and is not included in the poem text.",
+      "lines": 24,
+      "sourceSha256": "0daba07ca2a2aa57629b2c7d89dea98315eb956518b850d998a02f46bd96ac2e",
+      "corrections": [],
+      "sha256": "b29aa632e67dfe18d6b63fea0284798c34ca3036f189a766bb84802b49c7967a"
+    },
+    {
+      "slug": "sincere",
+      "title": "La Sincère",
+      "roman": "XXXIII",
+      "heading": "LA SINCÈRE.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/La_Sinc%C3%A8re&oldid=14163054",
+      "leaves": [
+        177,
+        179,
+        180,
+        181
+      ],
+      "stanzas": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "note": "The separately printed epigraph credits Victor Hugo and is not included in the poem text. Wikisource adds “Hernani ! Doña Sol !” to the epigraph, words absent from this title-page scan.",
+      "lines": 32,
+      "sourceSha256": "e06fef1fc2b26b991e90e65e47c3a8d899f4be801bfcec3c97f099cb83882175",
+      "corrections": [],
+      "sha256": "46b103bac6481137cb21fae3f9a9dcd67a151d53442b17ec23d25c90733cc647"
+    },
+    {
+      "slug": "une-fleur",
+      "title": "Une Fleur",
+      "roman": "XXXIV",
+      "heading": "UNE FLEUR.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/Une_Fleur&oldid=14163100",
+      "leaves": [
+        183,
+        185,
+        186
+      ],
+      "stanzas": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "note": "The title page prints two separate epigraphs labeled “Ramond” and “Clément XIV et Carlo”; they are not included in the poem text.",
+      "lines": 16,
+      "sourceSha256": "3abbe200ee95390a5cc30c9bc0e15b71947067a1ecca79d9d1b70ebee3d91a4d",
+      "corrections": [],
+      "sha256": "d46108c90839c39f68e7e1172f41af04459167bb4a8fe2cf819dce195741703b"
+    },
+    {
+      "slug": "les-fleurs",
+      "title": "Les Fleurs",
+      "roman": "XLVII",
+      "heading": "LES FLEURS.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/Les_Fleurs&oldid=14163070",
+      "leaves": [
+        275,
+        277,
+        278
+      ],
+      "stanzas": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "note": "The separately printed epigraph is credited to M. H. de Latouche and is not included in the poem text.",
+      "lines": 16,
+      "sourceSha256": "3f97cf72d9ea8f9098d7ce016e22255f5024f585c5188edb941644d9608cce7f",
+      "corrections": [],
+      "sha256": "ee3294a3421406cfa75713b1fb12b233539c89f13bad9157c8f5b7978736a5e6"
+    },
+    {
+      "slug": "rameau",
+      "title": "L’Enfant au rameau",
+      "roman": "LII",
+      "heading": "L’ENFANT AU RAMEAU.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/L%E2%80%99Enfant_au_rameau&oldid=14163077",
+      "leaves": [
+        301,
+        303,
+        304,
+        305
+      ],
+      "stanzas": [
+        5,
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "note": "The separately printed epigraph is credited to Bernardin de Saint-Pierre and is not included in the poem text.",
+      "lines": 30,
+      "sourceSha256": "d788692c187ceef9a8be37db3888a695f0657dce4e3d097445e92cfb4f6c7608",
+      "corrections": [],
+      "sha256": "a99498ca9326c090a164caa6b6be61416c5e0e76d5f1bf4355683dead0573e13"
+    },
+    {
+      "slug": "fiancee",
+      "title": "La Fiancée polonaise",
+      "roman": "LIII",
+      "heading": "LA FIANCÉE POLONAISE.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/La_Fianc%C3%A9e_polonaise&oldid=14163051",
+      "leaves": [
+        307,
+        309,
+        310,
+        311
+      ],
+      "stanzas": [
+        8,
+        8,
+        8,
+        8,
+        8,
+        8
+      ],
+      "note": "The separately printed epigraph is credited to Delphine Gay (de Girardin) and is not included in the poem text. The 1834 opening is partly ink-obscured; the linked 1831 Mémorial de la Scarpe supports “Qui frappe à l’heure” and “De mon lointain hameau”. That earlier printing places a different “Des mânes sentinelles” stanza last; this edition places “Des anges sentinelles” second.",
+      "lines": 48,
+      "sourceSha256": "e478e6df028676f964dfb038ee445f1fb4bbc00306b6d6c642d5a0f3d3969789",
+      "corrections": [],
+      "sha256": "de13c0b70ca96639d0d5b9e763e59232341a2a154782a2cfb2b9e4ec5fa9c846",
+      "comparisonSource": "https://commons.wikimedia.org/wiki/File:Le_M%C3%A9morial_de_la_Scarpe,_6e_ann%C3%A9e,_n._097,_1831-08-13_-_p._3_-_La_Fianc%C3%A9e_polonaise.jpg",
+      "comparisonTitle": "Wikimedia Commons · Mémorial de la Scarpe, 1831 comparison"
+    },
+    {
+      "slug": "ondine",
+      "title": "Une Ondine",
+      "roman": "LVII",
+      "heading": "UNE ONDINE.",
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Pleurs/Une_Ondine&oldid=14163101",
+      "leaves": [
+        331,
+        333,
+        334,
+        335
+      ],
+      "stanzas": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "note": "The title page prints separate epigraphs credited to Goethe and M. H. de Latouche, omitted from the poem text; it does not identify the translator of the Goethe quotation.",
+      "lines": 32,
+      "sourceSha256": "8bdca2558773928a7d1b9827347292b910c48f3cc81eb93f2bafed100a43b608",
+      "corrections": [
+        {
+          "line": 26,
+          "before": "Par ses yeux fervens d’amour.",
+          "after": "Par ses yeux fervens d’amour,"
+        }
+      ],
+      "sha256": "71b7ef7e5999ecae1f0e0ed227162096a525e6b2c6d261dfed83e31fa750e7db"
+    }
+  ]
+}
