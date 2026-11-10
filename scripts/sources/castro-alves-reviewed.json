@@ -1,0 +1,235 @@
+{
+  "scanSha256": {
+    "espumas-1870.pdf": "8544efdd3e4d9f8e493bed1174e2f7abf07532f59894ddf1a5f54110f9478fa5",
+    "espumas-1913.pdf": "f4896d1e947e0d8a0d78803da77d9f68d1a983adc05ff0d5ca037b007b8a9f11"
+  },
+  "poems": [
+    {
+      "slug": "dedicatoria",
+      "title": "Dedicatoria",
+      "source": "https://pt.wikisource.org/w/index.php?title=Espumas_Flutuantes_(1913)/Dedicatoria&oldid=396609",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "laterPages": [
+        25,
+        26
+      ],
+      "firstPages": [
+        15,
+        16
+      ],
+      "sourceTextSha256": "0686f852900b496fe8a555a566760c7c8e8f9ee8e675f5661c56721b8d607add",
+      "corrections": [],
+      "breakAfter": [],
+      "lines": 24,
+      "textSha256": "0686f852900b496fe8a555a566760c7c8e8f9ee8e675f5661c56721b8d607add",
+      "note": "The separately printed date is omitted."
+    },
+    {
+      "slug": "hebrea",
+      "title": "Hebréa",
+      "source": "https://pt.wikisource.org/w/index.php?title=Espumas_Flutuantes_(1913)/Hebr%C3%A9a&oldid=396649",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "laterPages": [
+        33,
+        34
+      ],
+      "firstPages": [
+        21,
+        23
+      ],
+      "sourceTextSha256": "2d5c54a596b688627683ca69422372963c8901b71adba98d01ae43d44dec5248",
+      "corrections": [
+        {
+          "before": "Nào vês?",
+          "after": "Não vês?"
+        }
+      ],
+      "breakAfter": [
+        "Onde a oliveira no Jordão se inclina?"
+      ],
+      "lines": 36,
+      "textSha256": "0cdc5788953d908ad946821ca43cae917d4e7d247c739eebbd398e9f65950550",
+      "note": "The separately printed biblical epigraph and date are omitted."
+    },
+    {
+      "slug": "laco-de-fita",
+      "title": "O laço de fita",
+      "source": "https://pt.wikisource.org/w/index.php?title=Espumas_Flutuantes_(1913)/O_la%C3%A7o_de_fita&oldid=396681",
+      "quality": "3 páginas validadas, 0 página só revista e 0 página não revista",
+      "laterPages": [
+        39,
+        41
+      ],
+      "firstPages": [
+        29,
+        31
+      ],
+      "sourceTextSha256": "7b9a81245e2640dc9277d70ece33d4ef2e5d3aab6a6fba91eab94367199f4968",
+      "corrections": [
+        {
+          "before": "Ha pouco voaras",
+          "after": "Ha pouco voavas"
+        },
+        {
+          "before": "c′ròa",
+          "after": "c′rôa"
+        }
+      ],
+      "breakAfter": [
+        "No laço de fita."
+      ],
+      "lines": 40,
+      "textSha256": "2b4ad6e7e0c85578a887fcfc0b8153e99ed5178428d54462fef3d694db66471a",
+      "note": "The printed date is omitted; indentation is normalized."
+    },
+    {
+      "slug": "mocidade-e-morte",
+      "title": "Mocidade e morte",
+      "source": "https://pt.wikisource.org/w/index.php?title=Espumas_Flutuantes_(1913)/Mocidade_e_morte&oldid=396783",
+      "quality": "4 páginas validadas, 0 página só revista e 0 página não revista",
+      "laterPages": [
+        47,
+        50
+      ],
+      "firstPages": [
+        37,
+        39
+      ],
+      "sourceTextSha256": "e87b9fbdeb23b76f12d98963c97d60a73198aa91e8e4e6941877831cda571bca",
+      "corrections": [],
+      "breakAfter": [
+        "— Terás o somno sob a lagea fria.",
+        "O stylete de Deus quebra-me a taça."
+      ],
+      "lines": 70,
+      "textSha256": "b4da4a79209da71471b753e25f74a10fb31e080e5c1cd303a15b977d8764644f",
+      "note": "The separately printed epigraphs and date are omitted."
+    },
+    {
+      "slug": "tres-amores",
+      "title": "Os tres amores",
+      "source": "https://pt.wikisource.org/w/index.php?title=Espumas_Flutuantes_(1913)/Os_tres_amores&oldid=396789",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "laterPages": [
+        55,
+        56
+      ],
+      "firstPages": [
+        45,
+        46
+      ],
+      "sourceTextSha256": "35740c9c60262f273b63c83acef617a225bb49d8f56cfc7e92e0904f4c226e2c",
+      "corrections": [],
+      "breakAfter": [],
+      "lines": 24,
+      "textSha256": "35740c9c60262f273b63c83acef617a225bb49d8f56cfc7e92e0904f4c226e2c",
+      "note": "The three numbered sections form one poem; the printed date is omitted."
+    },
+    {
+      "slug": "fantasma-e-cancao",
+      "title": "O fantasma e a canção",
+      "source": "https://pt.wikisource.org/w/index.php?title=Espumas_Flutuantes_(1913)/O_Fantasma_e_a_Can%C3%A7%C3%A3o&oldid=396792",
+      "quality": "4 páginas validadas, 0 página só revista e 0 página não revista",
+      "laterPages": [
+        57,
+        60
+      ],
+      "firstPages": [
+        47,
+        49
+      ],
+      "sourceTextSha256": "c18d845ffd55921b44ec67661abbacba15e0366afb3d07fbd124b311c3b565f1",
+      "corrections": [],
+      "breakAfter": [
+        "— Mendigo! pódes passar!"
+      ],
+      "lines": 70,
+      "textSha256": "19ee6da9969ca1c0c792c5ec1cab429ad37ff218fafbc663dc543d4227cd8930",
+      "note": "The Garnier printing places “Tambem meu tumulo morreu” before “Silencio! De longe eu venho”; the 1870 first edition prints those two lines in the opposite order. The separately printed epigraph and date are omitted."
+    },
+    {
+      "slug": "adeus-de-thereza",
+      "title": "O «Adeus» de Thereza",
+      "source": "https://pt.wikisource.org/w/index.php?title=Espumas_Flutuantes_(1913)/O_%C2%ABAdeus%C2%BB_de_Thereza&oldid=396428",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "laterPages": [
+        77,
+        78
+      ],
+      "firstPages": [
+        63,
+        64
+      ],
+      "sourceTextSha256": "cd083a69be3eaa4adb824fa37d8ba124f4739b3d14adc8e94db01e2b043b453f",
+      "corrections": [],
+      "breakAfter": [
+        "E ella entre beijos murmurou-me: Adeus!"
+      ],
+      "lines": 24,
+      "textSha256": "14d0c3bb8bed362330722aac12f1e6173b010de748f184b45ef3cb1fcd3f7609",
+      "note": "The Garnier printing has “Era a a pallida Thereza”; the 1870 first edition has a single “a”. The printed date is omitted."
+    },
+    {
+      "slug": "volta-da-primavera",
+      "title": "A volta da primavera",
+      "source": "https://pt.wikisource.org/w/index.php?title=Espumas_Flutuantes_(1913)/A_Volta_da_Primavera&oldid=396432",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "laterPages": [
+        79,
+        80
+      ],
+      "firstPages": [
+        65,
+        66
+      ],
+      "sourceTextSha256": "0445784e5cf6161868e778c8f3933f0873c5e209c314a455d55b0bef1f9da61a",
+      "corrections": [
+        {
+          "before": "Respondo o ramo:",
+          "after": "Responde o ramo:"
+        },
+        {
+          "before": "me peneira n′alma",
+          "after": "me penetra n′alma"
+        },
+        {
+          "before": "Deus foz a neve",
+          "after": "Deus fez a neve"
+        }
+      ],
+      "breakAfter": [],
+      "lines": 32,
+      "textSha256": "e1dc2ae56d7949125599211a0f1d803834f155cb0f6ea5cf86b6f703c744aa21",
+      "note": "The separately printed epigraph and date are omitted."
+    },
+    {
+      "slug": "a-maciel-pinheiro",
+      "title": "A Maciel Pinheiro",
+      "source": "https://pt.wikisource.org/w/index.php?title=Espumas_Flutuantes_(1913)/A_Maciel_Pinheiro&oldid=396502",
+      "quality": "3 páginas validadas, 0 página só revista e 0 página não revista",
+      "laterPages": [
+        81,
+        83
+      ],
+      "firstPages": [
+        67,
+        69
+      ],
+      "sourceTextSha256": "864f8eb596ab27a2693a23c38d44e95a5276e57c9380c61d83f67acfd33393c6",
+      "corrections": [
+        {
+          "before": "antro de aguias.",
+          "after": "antro de aguias,"
+        },
+        {
+          "before": "deixa a lyrae ruge",
+          "after": "deixa a lyra e ruge"
+        }
+      ],
+      "breakAfter": [],
+      "lines": 48,
+      "textSha256": "5373915b0578ff1d330f41fe8fc9be714639af691320a0233ab451bc5f6cc1ad",
+      "note": "The separately printed epigraph and date are omitted."
+    }
+  ]
+}
