@@ -324,6 +324,55 @@ test('expanded French classics support search, attribution and static reading', 
   await staticContext.close();
 });
 
+test('Apollinaire originals support complete discovery, saved data and static mobile reading', async () => {
+  const selected = poems.filter(p => p.id.startsWith('apollinaire-alcools-'));
+  assert.equal(selected.length, 34);
+  const seed = { saved: ['demain-des-laube-hugo'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=French#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'French' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('Guillaume Apollinaire');
+  await page.getByText('34 poems found', { exact: true }).waitFor();
+  await page.getByLabel('Search the poetry library').fill('devant devant le zinc');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  const zone = selected.find(p => p.id === 'apollinaire-alcools-01');
+  await page.locator(`#results a[href$="/poems/${zone.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), zone.text);
+  assert.equal(await page.getByRole('link', { name: zone.sourceTitle }).getAttribute('href'), zone.source);
+  assert.equal(await page.getByRole('link', { name: `${zone.contextSourceTitle} ↗` }).getAttribute('href'), zone.contextSource);
+  assert.ok((await page.locator('.source-note').textContent()).includes('CC BY-SA 4.0'));
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes(seed.saved[0]));
+  assert.ok(stored.saved.includes(zone.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-French a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const item of selected) {
+    await staticPage.goto(`${base}poems/${item.id}/`);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), item.text);
+    assert.equal(await verse.getAttribute('lang'), 'fr');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.goto(`${base}poets/guillaume-apollinaire/`);
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('expanded Italian classics support search, attribution and static reading', async () => {
   const selected = poems.filter(p => p.id.startsWith('leopardi-canti-'));
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
