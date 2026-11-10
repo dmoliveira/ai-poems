@@ -274,6 +274,65 @@ test('Alphonsus originals retain the reviewed 1923 readings and complete works',
   assert.equal(titleAttributes({ ...byId('ysmalia'), displayTitleLang: 'pt" onmouseover="x' }), ' lang="pt&quot; onmouseover=&quot;x" dir="auto"');
 });
 
+test('Bécquer Rimas preserve the 1912 selection, source caveats and existing works', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('becquer-rima-'));
+  const expectedNumbers = Array.from({ length: 76 }, (_, i) => i + 1).filter(i => i !== 7 && i !== 73);
+  assert.deepEqual(selected.map(poem => Number(poem.id.slice(-3))), expectedNumbers);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), '2d369bd2d845d9a8bcc9c2e29831d244ea593d3e221e78c784e9f31695d63f1b');
+  for (const poem of selected) {
+    assert.equal(poem.author, 'Gustavo A. Bécquer');
+    assert.equal(poem.authorId, 'gustavo-a-becquer');
+    assert.equal(poem.authorOriginal, 'Gustavo Adolfo Bécquer');
+    assert.equal(poem.authorYears, '1836–1870');
+    assert.equal(poem.language, 'Spanish');
+    assert.equal(poem.lang, 'es');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['Spain']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.context, /numbering belongs to this edition/);
+    assert.match(poem.context, /compared in order with OCR/);
+    assert.match(poem.context, /Completeness refers to this printing, not every witness/);
+    assert.match(poem.context, /silently corrected obvious printing errors and normalized inconsistent spellings/);
+    assert.match(poem.context, /not a diplomatic transcription/);
+    assert.match(poem.context, /not an assertion of this poem's composition place or date/);
+    assert.match(poem.source, /^https:\/\/www\.gutenberg\.org\/files\/53552\/53552-h\/53552-h\.htm#Rima_[IVXL]+$/);
+    assert.match(poem.contextSource, /^https:\/\/archive\.org\/download\/obrasescogidas00bcqu\/obrasescogidas00bcqu\.pdf#page=\d+$/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /Josep Cols Canals, Ramon Pajares Box and the Online Distributed Proofreading Team/);
+    assert.ok(filterPoems(poems, { language: 'Spanish', country: 'Spain', query: 'gustavo adolfo becquer' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const byNumber = n => selected.find(poem => poem.id === `becquer-rima-${String(n).padStart(3, '0')}`);
+  assert.equal(byNumber(1).contextSource.split('#page=')[1], '317');
+  assert.equal(byNumber(3).contextSource.split('#page=')[1], '318');
+  assert.match(byNumber(3).context, /printed section divider is represented by a blank line/);
+  assert.doesNotMatch(byNumber(3).text, /\*\s+\*/);
+  assert.equal(byNumber(21).text, '—¿Qué es poesía?—dices mientras clavas\nEn mi pupila tu pupila azul;—\n¿Qué es poesía? ¿Y tú me lo preguntas?\nPoesía... eres tú.');
+  assert.equal(byNumber(53).title, 'Rima LIII · Volverán las oscuras golondrinas');
+  assert.equal(byNumber(53).contextSource.split('#page=')[1], '351');
+  assert.deepEqual(byNumber(53).text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 4, 4, 4, 4]);
+  assert.match(byNumber(53).text, /¡Así no te querrán!$/);
+  assert.match(byNumber(29).text, /Mas guardábamos entrambos/);
+  assert.match(byNumber(29).context, /1912 text reads ‘entrambos’; the 1885 printing has ‘ambos’/);
+  assert.deepEqual(selected.filter(poem => /\. \. \. \. \. \./.test(poem.text)).map(poem => Number(poem.id.slice(-3))), [29, 40, 71, 72, 76]);
+  for (const number of [29, 40, 71, 72, 76]) assert.match(byNumber(number).context, /Dotted rows.*1885 edition; their significance is not established/);
+  assert.match(byNumber(72).text, /^PRIMERA VOZ[\s\S]*SEGUNDA VOZ[\s\S]*TERCERA VOZ[\s\S]*Así los barqueros[\s\S]*La ropa en la playa tendida á secar\.$/);
+  assert.match(byNumber(72).context, /voice headings are retained as part of this single poem/);
+  assert.match(byNumber(76).text, /¡Qué sueño el del sepulcro tan tranquilo!$/);
+  for (const [id, expected] of [
+    ['castellana-095', '2f8826865439bf72fec5eb67335ad82fbac74baa7d163f24baa1420544b2edb6'],
+    ['castellana-096', 'f1caea7b615cac53ed5248795edda174bf69e7d4fc63ddcf1ed21e2a75ff8c3a'],
+  ]) assert.equal(createHash('sha256').update(JSON.stringify(poems.find(poem => poem.id === id))).digest('hex'), expected);
+  assert.equal(groupPoets(poems).find(group => group.id === 'gustavo-a-becquer').poems.length, 76);
+  assert.equal(filterPoems(poems, { query: 'gustavo a. becquer' }).length, 76);
+  for (const [query, number] of [['volverán las oscuras golondrinas', 53], ['poesia... eres tu', 21], ['mas guardabamos entrambos', 29]]) {
+    assert.deepEqual(filterPoems(selected, { query }).map(poem => poem.id), [byNumber(number).id]);
+  }
+});
+
 test('Maria Firmina originals retain reviewed historical texts and explicit page mappings', async () => {
   const source = await readFile(new URL('../scripts/sources/firmina-historical-readings.txt', import.meta.url), 'utf8');
   assert.equal(createHash('sha256').update(source).digest('hex'), '6f9607a3ad8a67e39ab8f1ed33984af359dce4b950bc6974f4eebe25a27e2bc3');
