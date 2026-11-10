@@ -11,7 +11,7 @@ import { renderFeed } from '../scripts/feed.mjs';
 import { groupPoets } from '../scripts/poets.mjs';
 import { relatedPoems } from '../scripts/recommendations.mjs';
 import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
-import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, yearRangeCounts } from '../src/catalog.mjs';
+import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
 test('catalogue has distinct, sourced records in all eight original languages', () => {
@@ -214,6 +214,64 @@ test('Castro Alves originals preserve scan-reviewed readings and edition variant
   assert.match(bySlug('volta-da-primavera').text, /Responde o ramo:[\s\S]*me penetra n′alma[\s\S]*Deus fez a neve/);
   assert.match(bySlug('a-maciel-pinheiro').text, /deixa a lyra e ruge/);
   assert.equal(groupPoets(poems).find(group => group.id === 'castro-alves').poems.length, 9);
+});
+
+test('Alphonsus originals retain the reviewed 1923 readings and complete works', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/alphonsus-pastoral-reviewed.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.scanSha256, '8b447a98b191d11a5d856e5a1f41b029b8deb38e47a72a71ec8f8e0e9974ce9b');
+  assert.deepEqual(manifest.poems.map(item => item.articleNumber), [1, 2, 3, 4, 5, 6, 7, 8]);
+  const selected = manifest.poems.map(item => {
+    const poem = poems.find(entry => entry.id === `alphonsus-${item.slug}`);
+    assert.ok(poem, item.slug);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.displayTitle, item.displayTitle || undefined);
+    assert.equal(poem.displayTitleLang, item.displayTitle ? 'pt' : undefined);
+    assert.equal(poem.author, 'Alphonsus de Guimaraens');
+    assert.equal(poem.authorYears, '1870–1921');
+    assert.deepEqual(associatedPlaces(poem), ['Brazil']);
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.yearLabel, item.yearLabel);
+    assert.equal(poem.form, item.form);
+    assert.deepEqual(poem.themes, item.themes);
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.equal(new URL(poem.contextSource).hash, `#page=${item.pages[0]}`);
+    assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*all-rights-reserved notice.*scan is linked, not reproduced/);
+    assert.match(poem.context, /posthumous.*1923.*place of composition is not established/);
+    if (item.restoredBreaks.length) assert.match(poem.context, /page turn follows the surrounding pattern; the page turn alone does not establish it/);
+    assert.equal(lineCount(poem), item.lines);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Brazil', query: 'alphonsus de guimaraens' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(`<h1${titleAttributes(poem)}>${escapeHtml(poem.displayTitle || poem.title)}</h1>`));
+    assert.ok(poemCard(poem, '/ai-poems/').includes(`<h3${titleAttributes(poem)}>${escapeHtml(poem.displayTitle || poem.title)}</h3>`));
+    return poem;
+  });
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), '0bb97531f086cecebbbd37d5d1a7f53775f514081ad76b53bdd25d17baac85d8');
+  const byId = suffix => selected.find(poem => poem.id === `alphonsus-${suffix}`);
+  assert.match(byId('olhos').text, /Rôxas violetas impassiveis/);
+  assert.doesNotMatch(byId('olhos').text, /impassoveis/);
+  assert.deepEqual(byId('olhos').text.split('\n\n').map(stanza => stanza.split('\n').length), Array(6).fill(4));
+  assert.deepEqual(byId('cysnes-brancos').text.split('\n\n').map(stanza => stanza.split('\n').length), Array(6).fill(4));
+  assert.deepEqual(byId('minhalma-torre').text.split('\n\n').map(stanza => stanza.split('\n').length), Array(8).fill(4));
+  assert.deepEqual(byId('ysmalia').text.split('\n\n').map(stanza => stanza.split('\n').length), Array(5).fill(4));
+  for (const poem of selected.filter(entry => entry.form === 'Sonnet')) assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 3, 3]);
+  const cathedral = byId('a-cathedral');
+  assert.deepEqual(cathedral.text.split('\n\n').map(stanza => stanza.split('\n').length), [6, 2, 6, 2, 6, 2, 6, 2]);
+  assert.doesNotMatch(cathedral.text, /Julho.*1914/);
+  assert.match(cathedral.context, /separately dates the poem July 14, 1914.*omitted from the verse/);
+  assert.match(cathedral.context, /not an inferred denomination/);
+  for (const query of ['ismalia', 'ysmalia']) assert.deepEqual(filterPoems(selected, { query }).map(p => p.id), ['alphonsus-ysmalia']);
+  for (const query of ['a catedral', 'a cathedral']) assert.deepEqual(filterPoems(selected, { query }).map(p => p.id), ['alphonsus-a-cathedral']);
+  assert.equal(groupPoets(poems).find(group => group.id === 'alphonsus-de-guimaraens').poems.length, 8);
+  assert.equal(titleAttributes(byId('ysmalia')), ' lang="pt" dir="auto"');
+  assert.equal(titleAttributes({ ...byId('ysmalia'), displayTitleLang: undefined }), '');
+  assert.equal(titleAttributes({ ...byId('ysmalia'), displayTitleLang: 'pt" onmouseover="x' }), ' lang="pt&quot; onmouseover=&quot;x" dir="auto"');
 });
 
 test('Francisca Júlia originals retain reviewed first-edition readings and distinct works', async () => {

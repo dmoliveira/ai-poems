@@ -326,6 +326,95 @@ test('Castro Alves originals support Brazilian search, sources and static readin
   await staticContext.close();
 });
 
+test('Alphonsus originals support historical and modern-title search and static reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'alphonsus-de-guimaraens');
+  assert.equal(selected.length, 8);
+  const seed = { saved: ['cancao-do-exilio-goncalves-dias'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Portuguese&country=Brazil#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Portuguese', country: 'Brazil' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('Alphonsus de Guimaraens');
+  await page.getByText('8 poems found', { exact: true }).waitFor();
+  for (const poem of selected) {
+    const heading = page.locator(`#results a[href$="/poems/${poem.id}/"] h3`);
+    assert.equal(await heading.textContent(), poem.displayTitle || poem.title);
+    assert.equal(await heading.getAttribute('lang'), 'pt');
+    assert.equal(await heading.getAttribute('dir'), poem.displayTitle ? 'auto' : 'ltr');
+  }
+  const cardIds = await page.locator('#results .poem-card-link').evaluateAll(links => links.map(link => new URL(link.href).pathname.split('/').filter(Boolean).at(-1)));
+  const nextIndex = cardIds.findIndex((id, index) => index > 0 && selected.find(poem => poem.id === id)?.displayTitleLang);
+  assert.ok(nextIndex > 0);
+  await page.locator('#results .poem-card-link').nth(nextIndex - 1).click();
+  const nextTitle = page.locator('[data-journey-next] strong');
+  await nextTitle.waitFor({ state: 'visible' });
+  assert.equal(await nextTitle.textContent(), selected.find(poem => poem.id === cardIds[nextIndex]).displayTitle);
+  assert.equal(await nextTitle.getAttribute('lang'), 'pt');
+  assert.equal(await nextTitle.getAttribute('dir'), 'auto');
+  await page.goBack();
+  await page.getByText('8 poems found', { exact: true }).waitFor();
+  const ysmalia = selected.find(poem => poem.id === 'alphonsus-ysmalia');
+  for (const query of ['Ismália', 'Ysmalia']) {
+    await page.getByLabel('Search the poetry library').fill(query);
+    await page.getByText('1 poem found', { exact: true }).waitFor();
+    assert.equal(await page.locator(`#results a[href$="/poems/${ysmalia.id}/"]`).count(), 1);
+  }
+  await page.locator(`#results a[href$="/poems/${ysmalia.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), ysmalia.text);
+  assert.ok((await page.locator('main').textContent()).includes('Ysmalia'));
+  assert.equal(await page.getByRole('link', { name: ysmalia.sourceTitle }).getAttribute('href'), ysmalia.source);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes(seed.saved[0]));
+  assert.ok(stored.saved.includes(ysmalia.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  for (const section of ['#shelf-items', '#recent-items']) {
+    const title = page.locator(`${section} a[href$="/poems/${ysmalia.id}/"] strong`);
+    assert.equal(await title.textContent(), 'Ismália');
+    assert.equal(await title.getAttribute('lang'), 'pt');
+    assert.equal(await title.getAttribute('dir'), 'auto');
+  }
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) {
+    const link = staticPage.locator(`#index-original-Portuguese a[href$="/poems/${item.id}/"]`);
+    assert.equal(await link.count(), 1);
+    assert.equal(await link.locator('span').first().getAttribute('lang'), 'pt');
+  }
+  for (const item of selected) {
+    await staticPage.goto(`${base}poems/${item.id}/`);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await staticPage.locator('.reader-intro h1').getAttribute('lang'), 'pt');
+    assert.equal(await staticPage.locator('.reader-intro h1').getAttribute('dir'), item.displayTitle ? 'auto' : 'ltr');
+    assert.equal(await verse.textContent(), item.text);
+    assert.equal(await verse.getAttribute('lang'), 'pt');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${item.contextSourceTitle} ↗` }).getAttribute('href'), item.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(item.rights));
+    assert.ok((await staticPage.locator('.story').textContent()).includes(item.context));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.goto(`${base}poets/alphonsus-de-guimaraens/`);
+  for (const item of selected) {
+    const link = staticPage.locator(`a[href$="/poems/${item.id}/"]`);
+    assert.equal(await link.count(), 1);
+    assert.equal(await link.locator('strong').getAttribute('lang'), 'pt');
+  }
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Francisca Júlia originals support discovery, preserved saves and static reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'francisca-julia');
   assert.equal(selected.length, 24);
