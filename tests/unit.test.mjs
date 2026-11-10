@@ -888,7 +888,77 @@ test('Warda al-Yazijī readings retain their printed boundaries, sources and Ara
   assert.match(bySlug('marun-naqqash-elegy').text, /واليوم في العرش لاقى حسن مختتم$/);
   assert.ok(!poems.some(poem => poem.authorId === 'warda-al-yaziji' && poem.title.startsWith('الجهل شاع')));
   const poet = groupPoets(poems).find(group => group.id === 'warda-al-yaziji');
-  assert.equal(poet.poems.length, 9);
+  assert.equal(poet.poems.length, 18);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
+test('Further Warda readings preserve distinct printings, corrected readings and credits', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/warda-yaziji-1887-more.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/warda-yaziji-1887-more.txt', import.meta.url), 'utf8');
+  const sections = source.split(/^=== ([a-z-]+) ===\n/gm);
+  assert.equal(sections.shift(), '');
+  const readings = new Map();
+  while (sections.length) readings.set(sections.shift(), sections.shift().trim().replaceAll(' | ', '\n'));
+  assert.deepEqual(manifest.scanSha256, {
+    'warda-1887.pdf': '9670ac4b3e64cc0c1eef2f6a4390f321fc28e4be2e100a01775334d8a1aa3a37',
+    'warda-cairo.pdf': 'ff15c19e69fd162401258599bf23308eca769edd01f859b3ea3ae982534183d6',
+  });
+  const expected = [
+    ['patriarch', 22, '0ac0975418a26f71cb3fd76fa944c3da2e9b0d7fc0d9e12b6cb6b81dddf0cb2c'],
+    ['friend-letter', 12, 'f32532dbf18578fdb126f44b0b5f22f82d7d261eb1cbac28947b1e011de1dd07'],
+    ['palm-praise', 22, '6038ca162e96676607707446b6d2a373c57cb19c911552cffcd2ec244ed7d808'],
+    ['taj-visit', 4, '11b00de5e7960d43a29d6152a5a602a03e350f301367166597df5b5724f0002d'],
+    ['smith-return', 22, '0a2eec6f0ad40d125a423aac391ba57fec09dda1b2c3cc9e2220223fdc90487c'],
+    ['taj-greeting', 20, 'b950351a4ece66695f1e587b0d987466ff0607734dd9d8e279e62af594adb88f'],
+    ['taj-return', 4, '303686d95660423e71b56c19e8714d9ccac2d037f01538184763ae3aca77e533'],
+    ['smith-elegy', 32, '47efe1b9d9f6ea1a482a69ab38e933913d25c4436335793987b667f970669e8e'],
+    ['congratulations', 22, '4f1ac6d5ec4531e99fcf84eba23f773f324047f4e70514671851aab2764f7aac'],
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), expected.map(([slug]) => slug));
+  const selected = expected.map(([slug, lines, hash], index) => {
+    const item = manifest.poems[index];
+    const poem = poems.find(entry => entry.id === `warda-yaziji-more-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.author, 'Warda al-Yazijī');
+    assert.equal(poem.authorId, 'warda-al-yaziji');
+    assert.equal(poem.authorOriginal, 'وردة اليازجي');
+    assert.deepEqual(associatedPlaces(poem), ['Lebanon']);
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.text, readings.get(slug));
+    assert.equal(poem.title, poem.text.split('\n')[0]);
+    assert.equal(lineCount(poem), lines);
+    assert.equal(lines, item.couplets * 2);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.match(poem.source, new RegExp(`#page=${63 - item.printedPages[0]}$`));
+    assert.match(poem.contextSource, new RegExp(`#page=${item.comparisonPrintedPages[0] + 4}$`));
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.context, /not every tradition/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /CC BY-SA 4\.0/);
+    assert.ok(poem.rights.includes(`curid=${item.wikiPageId}&oldid=${item.wikiRevision}`));
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Arabic', author: poem.author, query: poem.title }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: 'وردة اليازجي' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  const bySlug = slug => selected.find(poem => poem.id === `warda-yaziji-more-${slug}`);
+  assert.match(bySlug('patriarch').context, /not classified as devotional/);
+  assert.match(bySlug('friend-letter').text, /ذابت عليها بالصبابة مهجتي/);
+  assert.match(bySlug('friend-letter').text, /في الحي حي ما برحت كميت$/);
+  assert.match(bySlug('palm-praise').text, /إن هز أقلامه في كفه خجلت/);
+  assert.match(bySlug('taj-greeting').text, /أو انتقلت عن الأحياء لا عجب/);
+  assert.match(bySlug('taj-greeting').context, /الأحياء.*الأوطان/);
+  assert.match(bySlug('taj-greeting').text, /لا تحسبوا أن كل الفضل للرجل/);
+  assert.match(bySlug('taj-visit').context, /not a fragment/);
+  assert.match(bySlug('taj-return').context, /distinguish it from the longer preceding greeting/);
+  assert.match(bySlug('congratulations').text, /رآه في الأنام جليل شان/);
+  assert.ok(filterPoems(poems, { query: 'ذابت عليها بالصبابة مهجتي' }).includes(bySlug('friend-letter')));
+  const poet = groupPoets(poems).find(group => group.id === 'warda-al-yaziji');
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
 });
 test('Taymur readings retain complete historical boundaries, variants and Arabic identity', async () => {

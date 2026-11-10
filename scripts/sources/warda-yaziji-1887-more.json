@@ -1,0 +1,89 @@
+{
+  "scanSha256": {
+    "warda-1887.pdf": "9670ac4b3e64cc0c1eef2f6a4390f321fc28e4be2e100a01775334d8a1aa3a37",
+    "warda-cairo.pdf": "ff15c19e69fd162401258599bf23308eca769edd01f859b3ea3ae982534183d6"
+  },
+  "poems": [
+    {
+      "slug": "patriarch",
+      "printedPages": [9],
+      "comparisonPrintedPages": [8, 9],
+      "couplets": 11,
+      "wikiPageId": 101170,
+      "wikiRevision": 474196,
+      "note": "The 1887 headnote marks the elevation of Patriarch Clement Bahouth in 1855; it does not establish the precise composition date. This occasional poem is not classified as devotional merely because its subject is a patriarch."
+    },
+    {
+      "slug": "friend-letter",
+      "printedPages": [9, 10],
+      "comparisonPrintedPages": [9],
+      "couplets": 6,
+      "wikiPageId": 100996,
+      "wikiRevision": 474028,
+      "note": "The headnote calls this a letter to a friend. The final couplet continues onto p. 10. The scans give ذابت عليها بالصبابة مهجتي and في الحي حي ما برحت كميت, correcting the consulted Wikisource transcription's garbled half-line and omission."
+    },
+    {
+      "slug": "palm-praise",
+      "printedPages": [10],
+      "comparisonPrintedPages": [9, 10],
+      "couplets": 11,
+      "wikiPageId": 101108,
+      "wikiRevision": 474135,
+      "note": "The headnote introduces a poem of praise; the following two-couplet birth chronogram is separately headed and is not included. Both scans read أقلامه, correcting the consulted Wikisource أفلامه."
+    },
+    {
+      "slug": "taj-visit",
+      "printedPages": [11],
+      "comparisonPrintedPages": [10],
+      "couplets": 2,
+      "wikiPageId": 101140,
+      "wikiRevision": 474166,
+      "note": "The headnote describes the arrival of Princess Tāj al-Shihābiyya in Beirut for treatment. Both printings separately head and close these two couplets; they are not a fragment of the following poem."
+    },
+    {
+      "slug": "smith-return",
+      "printedPages": [11, 12],
+      "comparisonPrintedPages": [11],
+      "couplets": 11,
+      "wikiPageId": 101030,
+      "wikiRevision": 474062,
+      "note": "The headnote marks the return from travel of the American Eli Smith. The 1887 poem continues over the page and ends before the separately headed greeting to Princess Tāj."
+    },
+    {
+      "slug": "taj-greeting",
+      "printedPages": [12],
+      "comparisonPrintedPages": [11, 12],
+      "couplets": 10,
+      "wikiPageId": 101147,
+      "wikiRevision": 474173,
+      "note": "The 1887 headnote addresses Princess Tāj al-Shihābiyya after her departure to al-Wādī. The 1887 closing couplet reads أو انتقلت عن الأحياء; the third printing instead reads أو انتقلت عن الأوطان. The 1887 reading is retained. The second couplet reads واد له الشوق, not the consulted Wikisource وأدله الشوق."
+    },
+    {
+      "slug": "taj-return",
+      "printedPages": [12, 13],
+      "comparisonPrintedPages": [12],
+      "couplets": 2,
+      "wikiPageId": 101128,
+      "wikiRevision": 474154,
+      "note": "The headnote introduces a separate greeting after Princess Tāj returned to Beirut. Its second and final couplet continues onto p. 13; the two printings both distinguish it from the longer preceding greeting."
+    },
+    {
+      "slug": "smith-elegy",
+      "printedPages": [13, 14],
+      "comparisonPrintedPages": [13, 14],
+      "couplets": 16,
+      "wikiPageId": 101166,
+      "wikiRevision": 474192,
+      "note": "Both printings separately head this elegy for the previously mentioned American Eli Smith. The 1887 opening couplet is at the bottom of p. 13; the remaining fifteen end before the next headed poem."
+    },
+    {
+      "slug": "congratulations",
+      "printedPages": [14, 15],
+      "comparisonPrintedPages": [14],
+      "couplets": 11,
+      "wikiPageId": 101213,
+      "wikiRevision": 474239,
+      "note": "The headnote addresses congratulations to the mother of Amir Bashir Ahmad al-Lamʿī on his appointment in Mount Lebanon. The 1887 print reads جليل شان where the consulted Wikisource has جلل شان."
+    }
+  ]
+}

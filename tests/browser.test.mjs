@@ -1009,7 +1009,7 @@ test('al-Khansāʾ originals support Arabic search, source notes and static RTL 
 
 test('Warda al-Yazijī originals support Arabic search, saved data and static RTL reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'warda-al-yaziji');
-  assert.equal(selected.length, 9);
+  assert.equal(selected.length, 18);
   const seed = { saved: ['let-the-days-do-as-they-will'], recent: [], extra: { keep: true } };
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -1017,11 +1017,15 @@ test('Warda al-Yazijī originals support Arabic search, saved data and static RT
   await page.getByText(`${filterPoems(poems, { language: 'Arabic' }).length} poems found`, { exact: true }).waitFor();
   await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
   await page.getByLabel('Search the poetry library').fill('وردة اليازجي');
-  await page.getByText('9 poems found', { exact: true }).waitFor();
+  await page.getByText('18 poems found', { exact: true }).waitFor();
+  await page.getByRole('button', { name: /Show more poems/ }).click();
   await page.getByRole('button', { name: /Show more poems/ }).click();
   for (const item of selected) assert.equal(await page.locator(`#results a[href$="/poems/${item.id}/"]`).count(), 1);
+  await page.getByLabel('Search the poetry library').fill('ذابت عليها بالصبابة مهجتي');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  assert.equal(await page.locator('#results a[href$="/poems/warda-yaziji-more-friend-letter/"]').count(), 1);
   const poem = selected.find(item => item.id === 'warda-yaziji-1887-friend-away');
-  await page.getByLabel('Search the poetry library').fill(poem.title);
+  await page.getByLabel('Search the poetry library').fill('فجرت دموعي كالسحائب عندما');
   await page.getByText('1 poem found', { exact: true }).waitFor();
   await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
   const verse = page.locator('#original-panel .verse');
