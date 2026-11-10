@@ -274,6 +274,77 @@ test('Alphonsus originals retain the reviewed 1923 readings and complete works',
   assert.equal(titleAttributes({ ...byId('ysmalia'), displayTitleLang: 'pt" onmouseover="x' }), ' lang="pt&quot; onmouseover=&quot;x" dir="auto"');
 });
 
+test('May Ziadé originals retain scan readings, attribution and separate printed works', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/may-ziade-fleurs-reviewed.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.scanSha256, 'cb19a354da073f305bc8855aa575b2f405120f04cd2f52abccd4523b397e0086');
+  const expected = [
+    ['a-la-lune', [25]], ['a-pauline', [26]], ['superstition', [27, 28]],
+    ['apres-le-travail', [33, 34]], ['a-mon-cousin', [35]], ['immortelles', [41]],
+    ['un-matin', [42, 43]], ['acte-de-foi', [51]], ['a-la-muse', [52]],
+    ['automne', [53, 54]], ['a-mademoiselle-c', [55]], ['balance-toi', [60, 61, 62]],
+    ['le-printemps-sendort', [68, 69]], ['abord', [76]], ['en-foret', [79, 80]],
+    ['ennui', [83]], ['crepuscule', [84, 85]], ['espoir', [96]],
+  ];
+  assert.deepEqual(manifest.poems.map(item => [item.id, item.pages]), expected);
+  assert.deepEqual(Object.keys(manifest.pageSnapshots).map(Number).sort((a, b) => a - b), expected.flatMap(([, pages]) => pages).sort((a, b) => a - b));
+  const revisionSet = Object.entries(manifest.pageSnapshots).map(([number, page]) => [Number(number), page.revision, page.sha256]).sort((a, b) => a[0] - b[0]);
+  assert.equal(createHash('sha256').update(JSON.stringify(revisionSet)).digest('hex'), '631ed1ffd0bc957e338a065bb06552d8c16a496a7c8b2fe1ddfb1693b015fe49');
+  for (const page of Object.values(manifest.pageSnapshots)) {
+    assert.ok(Number.isInteger(page.revision));
+    assert.equal(createHash('sha256').update(page.wikitext).digest('hex'), page.sha256);
+  }
+  const selected = manifest.poems.map(item => {
+    const poem = poems.find(entry => entry.id === `may-ziade-fleurs-${item.id}`);
+    assert.ok(poem, item.id);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, 'May Ziadé');
+    assert.equal(poem.authorOriginal, 'مي زيادة');
+    assert.equal(poem.authorYears, '1886–1941');
+    assert.deepEqual(associatedPlaces(poem), ['Palestine', 'Lebanon', 'Egypt']);
+    assert.equal(poem.language, 'French');
+    assert.equal(poem.lang, 'fr');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    const source = new URL(poem.source);
+    assert.equal(source.searchParams.get('title'), `Page:Isis Copia - Fleurs de rêve, 1911.pdf/${item.pages[0]}`);
+    assert.equal(Number(source.searchParams.get('oldid')), manifest.pageSnapshots[item.pages[0]].revision);
+    assert.equal(poem.contextSource, 'https://poets.org/poet/may-ziadeh');
+    assert.match(poem.context, /pseudonym Isis Copia/);
+    assert.match(poem.context, /completeness refers to that printing/);
+    assert.match(poem.context, /not claims about this poem’s place of composition/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /Wikisource contributors under CC BY-SA 4\.0/);
+    assert.match(poem.rights, /page histories for contributors/);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), item.stanzas);
+    assert.deepEqual(poem.themes, item.themes);
+    assert.deepEqual(poem.translations, []);
+    for (const country of associatedPlaces(poem)) assert.ok(filterPoems(poems, { language: 'French', country, query: 'may ziade' }).includes(poem));
+    for (const query of ['مي زيادة', 'isis copia']) assert.ok(filterPoems(poems, { language: 'French', query }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), '43f4935f480340f4496b8ff02e4622eb7f3cb71e32f6d43bd54d4a1441105c69');
+  const byId = id => selected.find(poem => poem.id === `may-ziade-fleurs-${id}`);
+  assert.match(byId('a-pauline').text, /n’oubIie[\s\S]*pourqoui/);
+  assert.match(byId('a-pauline').context, /n’oublie and pourquoi/);
+  assert.match(byId('superstition').context, /Araignée du soir \/ Espoir/);
+  assert.match(byId('automne').text, /Et des cœurs de regret souillés/);
+  assert.match(byId('automne').context, /Et de cœurs/);
+  assert.match(byId('balance-toi').text, /Quand à l’entour[\s\S]*Balance-toi, dance, petite/);
+  assert.match(byId('balance-toi').context, /Wikisource corrects it to “danse”/);
+  assert.deepEqual(byId('balance-toi').text.split('\n\n').map(stanza => stanza.split('\n').length), Array(8).fill(6));
+  assert.deepEqual(selected.filter(poem => poem.themes.includes('Faith')).map(poem => poem.id), [
+    byId('apres-le-travail').id, byId('acte-de-foi').id, byId('balance-toi').id, byId('espoir').id,
+  ]);
+  for (const query of ['frisson de baiser', 'mon dieu, je crois', 'pourqoui']) assert.equal(filterPoems(selected, { query }).length, 1);
+  assert.ok(!selected.some(poem => /^(Fragment|Les oiseaux du Nil|Au moukattam|Qui conduit la lune)/i.test(poem.title)));
+  const poet = groupPoets(poems).find(group => group.id === 'may-ziade');
+  assert.equal(poet.poems.length, 18);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
+
 test('Narcisa Amália originals retain scan readings, printed boundaries and provenance', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/narcisa-nebulosas-reviewed.json', import.meta.url), 'utf8'));
   assert.deepEqual(manifest.sourceSha256, {
