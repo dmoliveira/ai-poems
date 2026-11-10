@@ -274,6 +274,84 @@ test('Alphonsus originals retain the reviewed 1923 readings and complete works',
   assert.equal(titleAttributes({ ...byId('ysmalia'), displayTitleLang: 'pt" onmouseover="x' }), ' lang="pt&quot; onmouseover=&quot;x" dir="auto"');
 });
 
+test('Sor Juana originals retain the 1689 readings, boundaries and disclosed variants', async () => {
+  const source = await readFile(new URL('../scripts/sources/sor-juana-1689-readings.txt', import.meta.url), 'utf8');
+  assert.equal(createHash('sha256').update(source).digest('hex'), 'e647ffb2a19987c5dbe056a0d0c1153d612c907bee22ce3a6bea7f980089074a');
+  const sections = source.split(/^=== ([a-z0-9-]+) ===\n/gm);
+  assert.equal(sections.shift(), '');
+  const readings = new Map();
+  while (sections.length) readings.set(sections.shift(), sections.shift().trim());
+  const pages = [
+    ['hijo-esclava', 1, 1], ['engano-colorido', 3, 3], ['fabio-sylvio', 3, 4],
+    ['ingrato-amante', 4, 4], ['feliciano-lysardo', 5, 5], ['fabio-beldades', 5, 6],
+    ['perseguirme-mundo', 6, 6], ['tan-grande-hado', 6, 7], ['miro-celia-rosa', 7, 7],
+    ['famosa-lucrecia', 8, 8], ['tarquino-artificio', 8, 9], ['esposa-pompeyo', 9, 9],
+    ['passion-porcia', 9, 10], ['funesto-moral', 10, 10], ['vesme-alcino', 11, 11],
+    ['mandas-anarda', 11, 12], ['ausente-zeloso', 12, 12], ['hombres-necios', 85, 86],
+    ['encarnacion-romance', 205, 205], ['san-jose-romance', 209, 209],
+    ['san-pedro-romance', 209, 209], ['pilatos-soneto', 210, 210],
+  ];
+  assert.deepEqual([...readings.keys()], pages.map(([id]) => id));
+  const selected = pages.map(([id, first, last]) => {
+    const poem = poems.find(item => item.id === `sor-juana-1689-${id}`);
+    assert.ok(poem, id);
+    assert.equal(poem.text, readings.get(id));
+    assert.equal(poem.title, poem.text.split('\n')[0].replace(/[.,;:!?]+$/, ''));
+    assert.equal(poem.author, 'Sor Juana Inés de la Cruz');
+    assert.equal(poem.authorYears, '1648 or 1651–1695');
+    assert.equal(poem.language, 'Spanish');
+    assert.equal(poem.lang, 'es');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['Mexico']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.source, `https://archive.org/details/A086A273/page/n${first + (first <= 12 ? 19 : 21)}/mode/1up`);
+    assert.ok(poem.sourceTitle.endsWith(`pp. ${first === last ? first : `${first}–${last}`}`));
+    assert.match(poem.context, /completeness here refers to this printing/);
+    assert.match(poem.context, /birth year is disputed between 1648 and 1651/);
+    assert.match(poem.context, /not a claim about this poem’s composition place/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.deepEqual(poem.translations, []);
+    const stanzas = poem.text.split('\n\n').map(stanza => stanza.split('\n').length);
+    if (poem.form === 'Sonnet') assert.deepEqual(stanzas, [4, 4, 3, 3]);
+    else if (poem.form === 'Redondillas') assert.deepEqual(stanzas, Array(17).fill(4));
+    else assert.deepEqual(stanzas, Array(id === 'encarnacion-romance' ? 8 : 6).fill(4));
+    assert.ok(filterPoems(poems, { language: 'Spanish', country: 'Mexico', query: 'sor juana ines' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), '14209c1d48aff06ac14a2969da071a6c94fa24c8d17fc3ee1121f3fb57dab9ae');
+  const byId = id => selected.find(poem => poem.id === `sor-juana-1689-${id}`);
+  assert.match(byId('engano-colorido').text, /con falsos sylogismos/);
+  assert.match(byId('engano-colorido').context, /1901 anthology[\s\S]*Son falsos silogismos/);
+  assert.match(byId('fabio-beldades').text, /en viendo a muchos/);
+  assert.match(byId('fabio-beldades').context, /1901 anthology[\s\S]*muchas/);
+  assert.match(byId('perseguirme-mundo').text, /poner riquezas en mi entendimiento,\nque no mi entendimiento/);
+  assert.match(byId('perseguirme-mundo').context, /later editions use ‘pensamiento’/);
+  for (const id of ['feliciano-lysardo', 'miro-celia-rosa', 'famosa-lucrecia', 'esposa-pompeyo', 'passion-porcia', 'vesme-alcino']) {
+    assert.match(byId(id).context, /1873/);
+  }
+  assert.match(byId('passion-porcia').text, /no acabes con tu vida su sossiego/);
+  assert.match(byId('passion-porcia').context, /con tu muerte/);
+  assert.match(byId('vesme-alcino').text, /passo, en sus hierros aerrojada/);
+  assert.match(byId('hombres-necios').text, /que obre bien,[\s\S]*juntáis diablo, carne, y mundo\.$/);
+  assert.match(byId('hombres-necios').context, /1873 transcription reads ‘obren bien’/);
+  assert.equal(byId('hombres-necios').source, 'https://archive.org/details/A086A273/page/n106/mode/1up');
+  assert.equal(byId('san-pedro-romance').source, 'https://archive.org/details/A086A273/page/n230/mode/1up');
+  assert.match(byId('san-pedro-romance').text, /un gallo Pedro os avisa/);
+  assert.match(byId('pilatos-soneto').text, /que en la agena firméis vuestras sentencias\.$/);
+  assert.deepEqual(selected.filter(poem => poem.themes.includes('Faith')).map(poem => poem.id), [
+    byId('encarnacion-romance').id, byId('san-jose-romance').id,
+    byId('san-pedro-romance').id, byId('pilatos-soneto').id,
+  ]);
+  for (const query of ['al que ingrato me deja', 'en perseguirme, mundo, que interesas', 'despojo civil', 'firma pilatos', 'que hoy bajo dios', 'hombres necios']) {
+    assert.equal(filterPoems(selected, { query }).length, 1, query);
+  }
+  assert.equal(byId('perseguirme-mundo').displayTitleLang, 'es');
+  assert.match(byId('perseguirme-mundo').context, /modernized display title is a discovery aid/);
+  assert.equal(groupPoets(poems).find(group => group.id === 'sor-juana-ines-de-la-cruz').poems.length, 22);
+});
+
 test('May Ziadé originals retain scan readings, attribution and separate printed works', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/may-ziade-fleurs-reviewed.json', import.meta.url), 'utf8'));
   assert.equal(manifest.scanSha256, 'cb19a354da073f305bc8855aa575b2f405120f04cd2f52abccd4523b397e0086');

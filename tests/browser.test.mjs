@@ -415,6 +415,65 @@ test('Alphonsus originals support historical and modern-title search and static 
   await staticContext.close();
 });
 
+test('Sor Juana originals support Mexican discovery, saved data and static reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'sor-juana-ines-de-la-cruz');
+  assert.equal(selected.length, 22);
+  const seed = { saved: ['may-ziade-fleurs-automne'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Spanish&country=Mexico#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Spanish', country: 'Mexico' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  const search = page.getByLabel('Search the poetry library');
+  await search.fill('Sor Juana Ines');
+  await page.getByText('22 poems found', { exact: true }).waitFor();
+  const showMore = page.getByRole('button', { name: /Show more poems/ });
+  while (await showMore.isVisible()) await showMore.click();
+  for (const item of selected) assert.equal(await page.locator(`#results a[href$="/poems/${item.id}/"]`).count(), 1);
+  const poem = selected.find(item => item.id === 'sor-juana-1689-perseguirme-mundo');
+  for (const query of ['en perseguirme, mundo, que interesas', 'despojo civil']) {
+    await search.fill(query);
+    await page.getByText('1 poem found', { exact: true }).waitFor();
+    assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1);
+  }
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  assert.equal(await page.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+  assert.ok((await page.locator('.story').textContent()).includes('later editions use ‘pensamiento’'));
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes(seed.saved[0]));
+  assert.ok(stored.saved.includes(poem.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-Spanish a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const item of selected) {
+    const response = await staticPage.goto(`${base}poems/${item.id}/`);
+    assert.equal(response.status(), 200);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), item.text);
+    assert.equal(await verse.getAttribute('lang'), 'es');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${item.contextSourceTitle} ↗` }).getAttribute('href'), item.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(item.rights));
+    assert.ok((await staticPage.locator('.story').textContent()).includes(item.context));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.goto(`${base}poets/sor-juana-ines-de-la-cruz/`);
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('May Ziadé originals support multilingual discovery, saved data and static reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'may-ziade');
   assert.equal(selected.length, 18);
