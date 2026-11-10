@@ -1,0 +1,104 @@
+{
+  "witnesses": {
+    "zouhour-1910.pdf": {
+      "sha256": "71cf0a2ee277c5c63be8472e1bdea892e107802517d7446e4006de7ab46811aa",
+      "archiveId": "ar411zouh01",
+      "archiveFile": "مجلة الزهور مصر سنة 1910.pdf"
+    },
+    "zouhour-1911.pdf": {
+      "sha256": "0c8cd4f16ab9db5b4b756efc2dc73e264cf863a7ee8d0fdd2c5bdbd8a8d70979",
+      "archiveId": "ar411zouh01",
+      "archiveFile": "مجلة الزهور مصر سنة 1911.pdf"
+    },
+    "zouhour-1913.pdf": {
+      "sha256": "82a41ee469834f30ff5973a6d62048c6124126c921dd269d81009c91cffcc95b",
+      "archiveId": "ar411zouh01",
+      "archiveFile": "مجلة الزهور مصر سنة 1913.pdf"
+    },
+    "sabri-1357.pdf": {
+      "sha256": "01dd164683cc34fd5736cb92b1c14dbfffe059637c226a31ae705079bca790ba",
+      "archiveId": "3235pdf1357",
+      "archiveFile": "3235 كتاب اقرا اونلاين    pdf   ديوان إسماعيل صبري باشا - ط 1357.pdf"
+    }
+  },
+  "poems": [
+    {
+      "slug": "tear",
+      "title": "دمعة",
+      "couplets": 12,
+      "sourceFile": "zouhour-1910.pdf",
+      "printedPages": [55],
+      "pdfPages": [59],
+      "sourceLabel": "al-Zuhūr, year 1, April 1910",
+      "yearLabel": "Published April 1910 · composition date not independently established",
+      "comparisonPdfPages": [263, 264],
+      "comparisonPrintedPages": [218, 219],
+      "note": "The magazine separately titles and signs this elegy for Butrus Ghali. The 1938 dīwān heads a 12-couplet elegy with the same opening and ending, but prints ويأخذ البر وآي الوفا where the magazine has ويحفظ العهد كما شاءه. The two versions are not combined; the reason for this difference is not established. The first-person reference to a Muslim mourner and a Coptic eye is part of the poem, not a classification of its author or readers."
+    },
+    {
+      "slug": "saba",
+      "title": "إلى سابا باشا",
+      "couplets": 9,
+      "sourceFile": "zouhour-1911.pdf",
+      "printedPages": [533],
+      "pdfPages": [537],
+      "sourceLabel": "al-Zuhūr, year 2, February 1912",
+      "yearLabel": "Published February 1912 · composition date not independently established",
+      "comparisonPdfPages": [266, 267],
+      "comparisonPrintedPages": [221, 222],
+      "note": "The magazine separately titles and signs these nine couplets addressed to Yusuf Saba on the death of his son Farid; the 1938 dīwān separately heads the same nine couplets. This is a distinct poem from Khalil Mutran's elegy for the same family."
+    },
+    {
+      "slug": "thaman",
+      "title": "عبد بلا ثمن",
+      "couplets": 5,
+      "sourceFile": "zouhour-1910.pdf",
+      "printedPages": [546],
+      "pdfPages": [550],
+      "sourceLabel": "al-Zuhūr, year 1, February 1911",
+      "yearLabel": "Published February 1911 · composition date not independently established",
+      "comparisonPdfPages": [169],
+      "comparisonPrintedPages": [124],
+      "note": "The magazine separately titles and signs these five couplets. The 1938 dīwān separately prints the same five; it reads عن لؤلؤ and في أوجه where the magazine has من لؤلؤ and في أفقه. The magazine title is retained rather than the dīwān's generic heading."
+    },
+    {
+      "slug": "opposition",
+      "title": "أقريب من دنف غده",
+      "couplets": 14,
+      "sourceFile": "zouhour-1910.pdf",
+      "printedPages": [326, 327],
+      "pdfPages": [330, 331],
+      "sourceLabel": "al-Zuhūr, year 1 (1910–11)",
+      "yearLabel": "Published by February 1911 · composition date not independently established",
+      "comparisonPdfPages": [159, 160],
+      "comparisonPrintedPages": [114, 115],
+      "note": "The magazine introduces three poetic responses to the old poem يا ليل الصب متى غده, numbers them and signs this first one Ismail Sabri; a response by another poet follows. The 1938 dīwān separately heads the same 14 couplets as a response to al-Ḥuṣrī. This is a new Arabic poem in an established poetic form, not a translation. The title here is the opening half-line."
+    },
+    {
+      "slug": "friend",
+      "title": "بكاء صديق",
+      "couplets": 19,
+      "sourceFile": "zouhour-1910.pdf",
+      "printedPages": [389, 390],
+      "pdfPages": [393, 394],
+      "sourceLabel": "al-Zuhūr, year 1 (1910–11)",
+      "yearLabel": "Published by February 1911 · composition date not independently established",
+      "comparisonPdfPages": [264, 265, 266],
+      "comparisonPrintedPages": [219, 220, 221],
+      "note": "The magazine introduces this elegy for Ismail Mahir as Sabri's and ends it before a new headed work. The 1938 dīwān separately heads the same 19 couplets; the magazine prints تقاص منك ظل where the later book reads تقلص منك ظل. The source reading is retained, not silently replaced."
+    },
+    {
+      "slug": "tusun",
+      "title": "إلى الأمير عمر باشا طوسون",
+      "couplets": 15,
+      "sourceFile": "zouhour-1913.pdf",
+      "printedPages": [306, 307],
+      "pdfPages": [310, 311],
+      "sourceLabel": "al-Zuhūr, year 4, October 1913",
+      "yearLabel": "Published October 1913 · composition date not independently established",
+      "comparisonPdfPages": [123, 124, 125],
+      "comparisonPrintedPages": [78, 79, 80],
+      "note": "The magazine introduces and signs these 15 couplets addressed to Prince Umar Tusun, describing his relief work during the Balkan wars. The 1938 dīwān separately heads the same 15 couplets before a prose reply, which is not part of the poem."
+    }
+  ]
+}
