@@ -39,6 +39,11 @@
       "sha256": "c2e68abf586fc7b0e578bf613efa371280740ed35bda9e903de8d188e464879e",
       "archiveId": "3_20250825_20250825_2355",
       "archiveFile": "ديوان الخليل للشاعر خليل مطران ـ 3 الجزء الثالث.pdf"
+    },
+    "mutran-complete-vol3.pdf": {
+      "sha256": "14f00794b1360f69586981031398f848b16ba87906bcf4e71c8747a248141023",
+      "archiveId": "BBib-Alex-02946",
+      "archiveFile": "ديوان_الخليل_03_02946_مطران،_خليل،.pdf"
     }
   },
   "poems": [
@@ -81,11 +86,11 @@
       "pdfPages": [267],
       "sourceLabel": "al-Zuhūr, year 2 (1911–12)",
       "yearLabel": "Published by February 1912 · composition date not independently established",
-      "comparisonFile": null,
-      "comparisonPdfPages": [],
-      "comparisonLabel": null,
+      "comparisonFile": "mutran-complete-vol3.pdf",
+      "comparisonPdfPages": [521, 522],
+      "comparisonLabel": "Dīwān al-Khalīl, 1977, volume 3, pp. 517–518",
       "wikiRevisions": [[96354, 469031]],
-      "note": "The magazine attributes these eight couplets to Mutran and presents them as an inscription in a volume of Alfred de Musset's poetry; a different article follows. The title here is the opening half-line. Its boundaries are those of the magazine's printed inscription; a wider textual history is not established. The magazine has دمع عينه and واعجبي where the consulted Wikisource transcription has دمع عينيه and واجبي, and attributes the work to Gibran."
+      "note": "The magazine attributes these eight couplets to Mutran and presents them as an inscription in a volume of Alfred de Musset's poetry; a different article follows. A 1977 collected edition separately heads the same eight couplets إهداء الديوان. These matching boundaries apply to the two printings; their textual relationship and completeness in every tradition are not established. The title here is the opening half-line. The magazine has دمع عينه and ذاك القلب where the 1977 printing has دمع عينيه and ذلك القلب. The consulted Wikisource transcription attributes the work to Gibran and also has دمع عينيه and واجبي where the magazine reads واعجبي. The 1977 edition is linked for comparison, not reproduced."
     },
     {
       "slug": "jasmine",

@@ -965,7 +965,7 @@ test('Mutran magazine readings retain their boundaries, dates, variants and attr
     ['tears', 4, 'f7b161e0152e20ce47ab069dde336b0fd16cdeab572669dbab0085df642510d0'],
   ];
   assert.deepEqual(manifest.poems.map(item => item.slug), expected.map(([slug]) => slug));
-  assert.equal(Object.keys(manifest.witnesses).length, 8);
+  assert.equal(Object.keys(manifest.witnesses).length, 9);
   const selected = expected.map(([slug, lines, hash], index) => {
     const item = manifest.poems[index];
     const poem = poems.find(entry => entry.id === `mutran-magazines-${slug}`);
@@ -1010,6 +1010,7 @@ test('Mutran magazine readings retain their boundaries, dates, variants and attr
   assert.match(bySlug('flowers').text, /تاج عهن/);
   assert.match(bySlug('flowers').context, /one poem.*تاج قطن/);
   assert.match(bySlug('musset').text, /دمع عينه/);
+  assert.match(bySlug('musset').context, /1977.*same eight couplets.*دمع عينيه/);
   assert.match(bySlug('blood').text, /في شكل قلب/);
   assert.match(bySlug('saba').text, /ماد نسيم به فمات وفي\nمعطفه رقة من الميد/);
   assert.match(bySlug('saba').context, /16 couplets.*15-couplet.*ساهمتك.*شاركتك/);

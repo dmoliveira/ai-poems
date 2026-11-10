@@ -23,6 +23,7 @@ EXPECTED_SCANS = {
     "mutran-volume1.pdf",
     "mutran-vol2.pdf",
     "mutran-vol3.pdf",
+    "mutran-complete-vol3.pdf",
 }
 EXPECTED_SLUGS = (
     "baalbek", "flowers", "musset", "jasmine", "blood", "saba", "zurayq", "tears"
@@ -155,7 +156,7 @@ def make_records(directory):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("directory", type=Path, help="directory containing the eight reviewed PDFs")
+    parser.add_argument("directory", type=Path, help="directory containing the nine reviewed PDFs")
     parser.add_argument("--check", action="store_true", help="compare without writing")
     args = parser.parse_args()
     rendered = json.dumps(make_records(args.directory), ensure_ascii=False, indent=2) + "\n"
