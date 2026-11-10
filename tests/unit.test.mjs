@@ -274,6 +274,67 @@ test('Alphonsus originals retain the reviewed 1923 readings and complete works',
   assert.equal(titleAttributes({ ...byId('ysmalia'), displayTitleLang: 'pt" onmouseover="x' }), ' lang="pt&quot; onmouseover=&quot;x" dir="auto"');
 });
 
+test('Dante Vita nuova poems retain complete 1903 readings and distinct work boundaries', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('dante-vita-nuova-'));
+  const numbers = Array.from({ length: 31 }, (_, index) => index + 1).filter(number => number !== 20);
+  assert.deepEqual(selected.map(poem => Number(poem.id.slice(-3))), numbers);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), '3c18540948c5bc2aeac2152e33e75b2935224769113bc0b61ba3b3e70ce9dfff');
+  const pages = [39, 45, 48, 50, 54, 61, 66, 71, 74, 77, 83, 89, 91, 96, 98, 105, 112, 119, 121, 131, 136, 139, 142, 144, 146, 149, 153, 156, 160, 163];
+  const leaves = [49, 55, 58, 60, 66, 77, 82, 87, 88, 91, 97, 103, 105, 110, 112, 125, 136, 147, 149, 165, 170, 173, 178, 180, 182, 189, 193, 196, 200, 207];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.author, 'Dante Alighieri');
+    assert.equal(poem.authorId, 'dante-alighieri');
+    assert.equal(poem.authorYears, '1265–1321');
+    assert.equal(poem.language, 'Italian');
+    assert.equal(poem.lang, 'it');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['Italy']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.context, /compared in order with OCR/);
+    assert.match(poem.context, /separate scanned 1903 second edition/);
+    assert.match(poem.context, /not a diplomatic transcription/);
+    assert.match(poem.context, /not a claim about this poem's exact composition place or date/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /Barbara Magni and the Online Distributed Proofreading Team/);
+    assert.equal(poem.source, `https://www.gutenberg.org/files/71218/71218-h/71218-h.htm#Page_${pages[index]}`);
+    assert.equal(poem.contextSource, `https://archive.org/download/lavitanuova04aliggoog/lavitanuova04aliggoog.pdf#page=${leaves[index]}`);
+    assert.ok(filterPoems(poems, { language: 'Italian', country: 'Italy', query: 'dante alighieri' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    if (poem.displayTitle) assert.equal(poem.displayTitleLang, 'it');
+  }
+  const item = n => selected.find(poem => poem.id === `dante-vita-nuova-${String(n).padStart(3, '0')}`);
+  for (const n of [2, 4]) {
+    assert.equal(lineCount(item(n)), 20);
+    assert.deepEqual(item(n).text.split('\n\n').map(stanza => stanza.split('\n').length), [6, 6, 4, 4]);
+    assert.match(item(n).context, /complete 20-line sonetto doppio/);
+  }
+  assert.equal(lineCount(item(6)), 44);
+  assert.deepEqual(item(6).text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 10, 10, 10, 10]);
+  assert.equal(item(6).form, 'Ballata');
+  assert.equal(lineCount(item(11)), 70);
+  assert.equal(lineCount(item(16)), 84);
+  assert.deepEqual(item(16).text.split('\n\n').map(stanza => stanza.split('\n').length), [14, 14, 14, 14, 14, 14]);
+  assert.match(item(16).text, /Mort’è la donna tua, ch’era sì bella\.\n\nLevava gli occhi miei/);
+  assert.doesNotMatch(item(16).text, /Illustrazione/);
+  assert.deepEqual(item(21).text.split('\n\n').map(stanza => stanza.split('\n').length), [14, 14, 14, 14, 14, 6]);
+  assert.match(item(21).text, /Vattene sconsolata a star con elle\.$/);
+  assert.deepEqual(item(23).text.split('\n\n').map(stanza => stanza.split('\n').length), [13, 13]);
+  assert.match(item(23).context, /two stanzas for two voices/);
+  assert.match(item(24).text, /^Era venuta nella mente mia\nQuella donna gentil/);
+  assert.doesNotMatch(item(24).text, /La gentil donna, che per suo valore|COMINCIAMENTO/);
+  assert.equal(lineCount(item(24)), 14);
+  assert.match(item(24).context, /two alternative first quatrains/);
+  assert.match(item(24).context, /not counted as another work/);
+  assert.equal(selected.some(poem => /Sì lungamente m’ha tenuto Amore/.test(poem.text)), false);
+  assert.equal(groupPoets(poems).find(group => group.id === 'dante-alighieri').poems.length, 30);
+  for (const [query, number] of [['tanto gentile e tanto onesta pare', 18], ['ne li occhi porta la mia donna amore', 13], ['li occhi dolenti per pieta del core', 21], ['era venuta ne la mente mia', 24], ['face maravigliar; tanto e gentile', 23]]) {
+    assert.deepEqual(filterPoems(selected, { query }).map(poem => poem.id), [item(number).id]);
+  }
+});
+
 test('Camões sonnets retain reviewed 1843 readings, attribution caveats and the existing record', () => {
   const selected = poems.filter(poem => poem.id.startsWith('camoes-soneto-1843-'));
   const numbers = [9, 10, 12, 15, 16, 17, 19, 20, 21, 23, 26, 28, 29, 30, 32, 33, 34, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 56, 58, 59, 60, 61, 63, 68, 69, 73, 92, 93, 98, 99, 211, 212, 220, 228];
