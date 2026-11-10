@@ -168,6 +168,54 @@ test('Auta de Souza originals retain 1910 scan readings, boundaries and provenan
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
   assert.ok(!poems.some(poem => poem.id === 'auta-horto-oracao' || poem.id === 'auta-horto-leque'));
 });
+test('Castro Alves originals preserve scan-reviewed readings and edition variants', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/castro-alves-reviewed.json', import.meta.url), 'utf8'));
+  const expected = [
+    ['dedicatoria', 24], ['hebrea', 36], ['laco-de-fita', 40], ['mocidade-e-morte', 70],
+    ['tres-amores', 24], ['fantasma-e-cancao', 70], ['adeus-de-thereza', 24],
+    ['volta-da-primavera', 32], ['a-maciel-pinheiro', 48],
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), expected.map(([slug]) => slug));
+  const selected = expected.map(([slug, count]) => {
+    const item = manifest.poems.find(entry => entry.slug === slug);
+    const poem = poems.find(entry => entry.id === `castro-alves-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.author, 'Castro Alves');
+    assert.equal(poem.authorYears, '1847–1871');
+    assert.deepEqual(associatedPlaces(poem), ['Brazil']);
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.match(poem.contextSource, new RegExp(`#page=${item.firstPages[0]}$`));
+    assert.match(poem.context, /1913.*undated.*question mark/);
+    assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*check local law/);
+    assert.equal(lineCount(poem), count);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.textSha256);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Brazil', query: 'castro alves' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  const bySlug = slug => selected.find(poem => poem.id === `castro-alves-${slug}`);
+  assert.match(bySlug('hebrea').text, /inclina\?\n\nSonhas acaso/);
+  assert.match(bySlug('hebrea').text, /Não vês\?/);
+  assert.match(bySlug('laco-de-fita').text, /Ha pouco voavas/);
+  assert.match(bySlug('laco-de-fita').text, /c′rôa/);
+  assert.match(bySlug('mocidade-e-morte').text, /lagea fria\.\n\nMorrer/);
+  assert.match(bySlug('tres-amores').text, /^I\n[\s\S]*\nII\n[\s\S]*\nIII\n/);
+  assert.match(bySlug('fantasma-e-cancao').text, /Tambem meu tumulo morreu\.\n— «Silencio/);
+  assert.match(bySlug('fantasma-e-cancao').context, /opposite order/);
+  assert.match(bySlug('adeus-de-thereza').text, /Era eu\.\.\. Era a a pallida Thereza/);
+  assert.match(bySlug('adeus-de-thereza').context, /single “a”/);
+  assert.match(bySlug('volta-da-primavera').text, /Responde o ramo:[\s\S]*me penetra n′alma[\s\S]*Deus fez a neve/);
+  assert.match(bySlug('a-maciel-pinheiro').text, /deixa a lyra e ruge/);
+  assert.equal(groupPoets(poems).find(group => group.id === 'castro-alves').poems.length, 9);
+});
+
 test('French classics retain their proofread texts, edition credits and complete discovery', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/hugo-1911.json', import.meta.url), 'utf8'));
   assert.equal(manifest.length, 55);
