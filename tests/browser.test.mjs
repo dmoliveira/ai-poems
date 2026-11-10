@@ -417,6 +417,67 @@ test('Alphonsus originals support historical and modern-title search and static 
   await staticContext.close();
 });
 
+test('Bécquer Rimas support discovery, existing saves and JavaScript-free reading', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('becquer-rima-'));
+  assert.equal(selected.length, 74);
+  const seed = { saved: ['castellana-095'], recent: ['castellana-096'], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Spanish&country=Spain#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Spanish', country: 'Spain' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  const search = page.getByLabel('Search the poetry library');
+  await search.fill('Becquer');
+  await page.getByText('76 poems found', { exact: true }).waitFor();
+  const showMore = page.getByRole('button', { name: /Show more poems/ });
+  while (await showMore.isVisible()) await showMore.click();
+  for (const item of selected) assert.equal(await page.locator(`#results a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const id of ['castellana-095', 'castellana-096']) assert.equal(await page.locator(`#results a[href$="/poems/${id}/"]`).count(), 1);
+  const poem = selected.find(item => item.id === 'becquer-rima-053');
+  for (const query of ['volveran las oscuras golondrinas', 'como yo te he querido']) {
+    await search.fill(query);
+    await page.getByText('1 poem found', { exact: true }).waitFor();
+    assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1);
+  }
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  assert.equal(await page.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+  assert.ok((await page.locator('.source-note').textContent()).includes('Online Distributed Proofreading Team'));
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes(seed.saved[0]));
+  assert.ok(stored.saved.includes(poem.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-Spanish a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const item of selected) {
+    const response = await staticPage.goto(`${base}poems/${item.id}/`);
+    assert.equal(response.status(), 200);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), item.text);
+    assert.equal(await verse.getAttribute('lang'), 'es');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${item.contextSourceTitle} ↗` }).getAttribute('href'), item.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(item.rights));
+    assert.ok((await staticPage.locator('.story').textContent()).includes(item.context));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.goto(`${base}poets/gustavo-a-becquer/`);
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const id of ['castellana-095', 'castellana-096']) assert.equal(await staticPage.locator(`a[href$="/poems/${id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Maria Firmina originals support Brazilian discovery, saved data and static reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'maria-firmina-dos-reis');
   assert.equal(selected.length, 11);
