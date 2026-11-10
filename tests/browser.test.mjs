@@ -1465,6 +1465,69 @@ test('additional Arabic voices support complete-text search, saved data and stat
   await staticContext.close();
 });
 
+test('Labé sonnets support French and Italian discovery, saved data and static reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'louise-labe');
+  assert.equal(selected.length, 24);
+  const french = selected.filter(poem => poem.language === 'French');
+  const italian = selected.filter(poem => poem.language === 'Italian');
+  assert.equal(french.length, 23);
+  assert.equal(italian.length, 1);
+  const sonnet = selected.find(poem => poem.id === 'labe-1887-14');
+  const seed = { saved: ['chiyo-ni-1927-01'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=French#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'French' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('Louise Labé');
+  await page.getByText('23 poems found', { exact: true }).waitFor();
+  const showMore = page.getByRole('button', { name: /Show more poems/ });
+  while (await showMore.isVisible()) await showMore.click();
+  for (const poem of french) assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1);
+  await page.getByLabel('Search the poetry library').fill('larmes espandre');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  await page.locator(`#results a[href$="/poems/${sonnet.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), sonnet.text);
+  assert.ok((await page.locator('.story').textContent()).includes('Huchon'));
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes(seed.saved[0]));
+  assert.ok(stored.saved.includes(sonnet.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  await page.goto(`${base}?language=Italian#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Italian' }).length} poems found`, { exact: true }).waitFor();
+  await page.getByLabel('Search the poetry library').fill('Louise Labé');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  assert.equal(await page.locator(`#results a[href$="/poems/${italian[0].id}/"]`).count(), 1);
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) {
+    assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1);
+  }
+  for (const poem of selected) {
+    const response = await staticPage.goto(`${base}poems/${poem.id}/`);
+    assert.equal(response.status(), 200);
+    const original = staticPage.locator('#original-panel .verse');
+    assert.equal(await original.textContent(), poem.text);
+    assert.equal(await original.getAttribute('lang'), poem.lang);
+    assert.equal(await original.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(poem.rights));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.goto(`${base}poets/louise-labe/`);
+  for (const poem of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${poem.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Italian women sonnets support discovery, saved data and static reading', async () => {
   const stampa = poems.filter(poem => poem.authorId === 'gaspara-stampa');
   const colonna = poems.filter(poem => poem.authorId === 'vittoria-colonna');
