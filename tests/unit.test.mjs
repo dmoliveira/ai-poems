@@ -618,6 +618,59 @@ test('al-Mutanabbī poems retain their reviewed scan readings, comparison notes 
   const existing = poems.find(p => p.id === 'let-the-days-do-as-they-will');
   assert.equal(createHash('sha256').update(existing.text).digest('hex'), 'a03835cb05af40ff28c11f5887acf29c18fda7cfe0272774b0826aa8c74d7809');
 });
+test('Abū Firās poems retain historical readings, comparison boundaries and RTL identity', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/abu-firas-1895-reviewed.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.poems.length, 10);
+  assert.deepEqual(manifest.scanSha256, {
+    'dvorak-1895.pdf': '0d400e3ae355612f6dea79627dec6c9ca429876d5358400cfe9deeb1a628677d',
+    'abu-firas-1910.pdf': '1615dcbbe3b94fe57d8ee25509ea9cb9da87079a19f4fa0b078b05e12ac161fd',
+    'ahlwardt-1859.pdf': '9568a82c8b6e4ce7a2e72859e0e3163078ad0c7391d7d77254aa625a0a90859d',
+  });
+  const selected = manifest.poems.map(item => {
+    const id = `abu-firas-1895-${item.slug}`;
+    const poem = poems.find(entry => entry.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.author, 'Abū Firās al-Ḥamdānī');
+    assert.equal(poem.authorId, 'abu-firas-al-hamdani');
+    assert.equal(poem.authorOriginal, 'أبو فراس الحمداني');
+    assert.equal(poem.authorYears, 'c. 932–968');
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.deepEqual(associatedPlaces(poem), ['Not established']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.title, item.text.split('\n')[0]);
+    assert.equal(poem.text, item.text);
+    assert.equal(lineCount(poem), item.couplets * 2);
+    assert.equal(poem.source, `https://archive.org/download/abfirseinara00abfi/abfirseinara00abfi.pdf#page=${item.pages[0] + 6}`);
+    const comparisonId = item.comparison === 'ahlwardt' ? 'chalefelahmarsq00ahlwgoog' : 'diwanabifiras00abufuoft';
+    assert.equal(poem.contextSource, `https://archive.org/download/${comparisonId}/${comparisonId}.pdf#page=${item.comparisonPages[0]}`);
+    assert.ok(poem.contextSourceTitle.includes(String(item.comparisonPrintedPages[0])));
+    assert.match(poem.context, /other traditions may differ.*not claimed to have independent manuscript descent/);
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.rights, /public domain in the United States.*Check local law/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Arabic', author: poem.author, query: poem.title }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  assert.equal(new Set(selected.map(poem => poem.id)).size, 10);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), 'eacbd7444a440f126eed0284bedfb2a9310fb4563f5e8a5d1ba390b4c4150628');
+  const bySlug = slug => selected.find(poem => poem.id === `abu-firas-1895-${slug}`);
+  assert.equal(lineCount(bySlug('dove')), 14);
+  assert.match(bySlug('dove').context, /1859.*seven couplets.*1910.*five couplets/);
+  assert.match(bySlug('dove').text, /معا ذا الهوى.*\nولا خطرت منك الهموم ببال\n/);
+  assert.match(bySlug('dove').context, /ببال.*ببالي/);
+  assert.match(bySlug('eid').context, /في كل حسن فيك مكذوب.*عن كل حسن فيك محجوب/);
+  assert.match(bySlug('bridge').text, /لما تهيأ العبر\nأسرة موسى حين شق البحر/);
+  assert.match(bySlug('mortal').contextSourceTitle, /127–128/);
+  assert.match(bySlug('messenger').context, /تطرفا.*تظرفا/);
+  const poet = groupPoets(poems).find(group => group.id === 'abu-firas-al-hamdani');
+  assert.equal(poet.poems.length, 10);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
 test('Francis and Jacopone originals retain reviewed editions and separate witnesses', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/francis-jacopone-reviewed.json', import.meta.url), 'utf8'));
   const francis = poems.find(p => p.id === 'francis-laudes-creaturarum');
