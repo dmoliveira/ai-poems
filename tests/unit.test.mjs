@@ -109,6 +109,65 @@ test('Brazilian originals retain their reviewed edition texts, evidence and disc
   assert.ok(home.includes('/ai-poems/assets/flags/br.svg'));
   assert.ok(home.includes(`Brazil</strong><small>${placeCounts(poems).find(p => p.place === 'Brazil').count} poems`));
 });
+test('Auta de Souza originals retain 1910 scan readings, boundaries and provenance', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/auta-horto-reviewed.json', import.meta.url), 'utf8'));
+  const expected = [
+    ['cantiga', 16, 'c4d2e06b7f353ca3c8d368030ef8f09341ec5e036246454e61954d2b3fcdc4cc'],
+    ['caminho', 14, 'b952aba2e87f299bbc0daff04789714d384d451a07d6548819dc7e2560915cc0'],
+    ['nunca-mais', 20, '09a947ae5f313681692b2d41b8dd326c55d01c14d9af6b9d1292700ee7a7d074'],
+    ['bohemias', 32, 'dc721f9a4a6419359de5137932a737228dad7afdf21a2956fa2441bae0554ad4'],
+    ['regina', 48, '7a5cfcc50ec5496f9dd4d2001b814484eb293ec7aa51b93b6ca7e8b61bf97d58'],
+    ['supplica', 14, '211b81ccd1c9b682ff265164fbe5782db0b464eec6e490e6708f0dfd02d29808'],
+    ['fio-partido', 25, '8df338268638f86b2eb1a4274cd3b26a04fabfb8d72ccd683d61ef3affcdebe5'],
+  ];
+  assert.deepEqual(manifest.poems.map(p => p.slug), expected.map(([slug]) => slug));
+  const selected = expected.map(([slug, lines, hash]) => {
+    const item = manifest.poems.find(entry => entry.slug === slug);
+    const poem = poems.find(entry => entry.id === `auta-horto-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.author, 'Auta de Souza');
+    assert.equal(poem.authorOriginal, 'Auta de Sousa');
+    assert.equal(poem.authorId, 'auta-de-souza');
+    assert.equal(poem.authorYears, '1876–1901');
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.deepEqual(associatedPlaces(poem), ['Brazil']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.equal(poem.text, item.text);
+    assert.equal(lineCount(poem), lines);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*check local law/);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Brazil', author: poem.author, query: poem.title }).includes(poem));
+    assert.ok(filterPoems(poems, { query: 'auta de sousa' }).includes(poem));
+    assert.match(renderPoem(poem, poems, '/ai-poems/'), /<dt>Created in<\/dt><dd>Not established<\/dd>/);
+    return poem;
+  });
+  const [cantiga, caminho, nunca, bohemias, regina, supplica, fio] = selected;
+  assert.deepEqual(cantiga.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 4, 4]);
+  assert.deepEqual(caminho.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 3, 3]);
+  assert.deepEqual(nunca.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 4, 4, 4]);
+  assert.equal(bohemias.text.split('\n\n').length, 8);
+  assert.match(bohemias.text, /Que faz desbrochar as rosas\./);
+  assert.match(bohemias.text, /Responde, se não chorasses\?/);
+  assert.match(bohemias.context, /comparison stops after five/);
+  assert.deepEqual(regina.text.split('\n\n').map(stanza => stanza.split('\n').length), Array(12).fill(4));
+  assert.match(supplica.text, /^Se tudo foge e tudo desparece,/);
+  assert.match(supplica.context, /desparece.*desaparece/);
+  assert.match(fio.text, /Será morrer\?\n\nII\n\nLá vai a pomba voando/);
+  assert.match(fio.text, /Aqui, n’amplidão liberta/);
+  assert.doesNotMatch(fio.text, /Janeiro, 1901/);
+  for (const poem of [regina, supplica, fio]) assert.deepEqual(poem.themes, ['Faith']);
+  for (const poem of [cantiga, caminho, nunca, bohemias]) assert.deepEqual(poem.themes, []);
+  const poet = groupPoets(poems).find(group => group.id === 'auta-de-souza');
+  assert.equal(poet.poems.length, 7);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+  assert.ok(!poems.some(poem => poem.id === 'auta-horto-oracao' || poem.id === 'auta-horto-leque'));
+});
 test('French classics retain their proofread texts, edition credits and complete discovery', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/hugo-1911.json', import.meta.url), 'utf8'));
   assert.equal(manifest.length, 55);
