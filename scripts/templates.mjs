@@ -54,6 +54,25 @@ function disambiguation(poem) {
   return poem.disambiguation ? `<span lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.disambiguation)}</span>` : '';
 }
 
+// Overrides use one-based nonblank verse lines, so stanza breaks stay intact.
+function originalVerse(poem) {
+  if (poem.textLanguageOverrides === undefined) return e(poem.text);
+  if (!Array.isArray(poem.textLanguageOverrides)) throw new Error(`Invalid verse language overrides: ${poem.id}`);
+  const languages = new Map();
+  for (const item of poem.textLanguageOverrides) {
+    if (!item || !Number.isSafeInteger(item.line) || item.line < 1 || typeof item.lang !== 'string' || !/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(item.lang) || languages.has(item.line)) throw new Error(`Invalid verse language override: ${poem.id}`);
+    languages.set(item.line, item.lang);
+  }
+  let lineNumber = 0;
+  const html = poem.text.split('\n').map(line => {
+    if (!line.trim()) return e(line);
+    const language = languages.get(++lineNumber);
+    return language ? `<span lang="${e(language)}" dir="auto">${e(line)}</span>` : e(line);
+  }).join('\n');
+  if ([...languages.keys()].some(line => line > lineNumber)) throw new Error(`Verse language line out of range: ${poem.id}`);
+  return html;
+}
+
 const flags = new Map([['China', 'cn'], ['Spain', 'es'], ['United States', 'us'], ['Portugal', 'pt'], ['Brazil', 'br'], ['France', 'fr'], ['Jamaica', 'jm'], ['Cuba', 'cu'], ['Japan', 'jp'], ['Italy', 'it'], ['Venezuela', 've'], ['England', 'gb-eng'], ['Canada', 'ca'], ['Chile', 'cl']]);
 function flag(place, base) {
   const code = flags.get(place);
@@ -232,7 +251,7 @@ export function renderPoem(poem, poems, base) {
     <p id="static-reading-note" class="static-reading-note">Saving and display controls need JavaScript. ${translations ? '<a href="#translations">Read the available translations and reading aids ↓</a>' : 'This poem is available in the original only.'}</p>
     <p id="preferred-note" class="preferred-note" aria-live="polite" hidden></p><div class="reading-toolbar js-required" aria-label="Reading controls">${viewSwitch}
       <div class="reading-options">${translations ? `<label class="translation-picker">Translation <select id="translation-select" aria-label="Translation language" disabled>${translations}</select></label>` : ''}<label class="focus-preferred">Preferred <select data-preferred-language aria-label="Preferred reading language in focus mode" disabled>${languageOptions}</select></label><label class="focus-theme">Theme <select data-theme-select aria-label="Focus theme" disabled>${themeOptions}</select></label><details class="typeface-control" hidden><summary>Typeface</summary><label><span class="sr-only">Poem typeface</span><select data-typeface-select disabled><option value="literary">Literary serif</option><option value="clear">Clear sans</option></select></label></details><div class="font-controls" role="group" aria-label="Poem text size"><button type="button" data-font="down" aria-label="A− Decrease poem text size" disabled>A−</button><button type="button" data-font="up" aria-label="A+ Increase poem text size" disabled>A+</button></div></div></div>
-    <div class="reader-layout"><article class="reading-paper"><div class="poem-columns" id="poem-columns"><section id="original-panel"><span class="language-pill">ORIGINAL · ${e(poem.language.toUpperCase())}</span><h2 class="sr-only">Original text</h2><p class="verse" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.text)}</p></section><section id="translation-panel" hidden aria-live="polite"></section></div>
+    <div class="reader-layout"><article class="reading-paper"><div class="poem-columns" id="poem-columns"><section id="original-panel"><span class="language-pill">ORIGINAL · ${e(poem.language.toUpperCase())}</span><h2 class="sr-only">Original text</h2><p class="verse" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${originalVerse(poem)}</p></section><section id="translation-panel" hidden aria-live="polite"></section></div>
       <div class="story"><p class="eyebrow">THE STORY BEHIND THE POEM</p><h2>A little context <span aria-hidden="true">✳</span></h2><p>${e(poem.context)}</p><a href="${e(poem.source)}" target="_blank" rel="noopener noreferrer">Explore the text source <span aria-hidden="true">↗</span></a> ${contextSource}</div>${translationIndex}</article>
       <aside class="context-card"><p class="eyebrow">GET TO KNOW THE POEM</p><h2>At a glance</h2><dl><dt>Poet</dt><dd>${e(poem.author)}<br><small>${e(poem.authorYears)}</small></dd><dt>Year</dt><dd>${e(poem.yearLabel)}</dd><dt>Associated place</dt><dd>${e(poem.country)}</dd><dt>Created in</dt><dd>${e(poem.creationPlace || 'Not established')}</dd><dt>Era</dt><dd>${e(poem.era)}</dd><dt>Form</dt><dd>${e(poem.form)}</dd><dt>Lines</dt><dd>${lineCount(poem)}</dd><dt>Collection</dt><dd>${e(collectionLabel(poem.collection))}</dd><dt>Themes</dt><dd>${e(poem.themes.join(', ') || 'Not yet classified')}</dd><dt>Original</dt><dd>${e(poem.language)}</dd></dl>
         <div class="source-note"><strong>↗ Source &amp; rights</strong><p><a href="${e(poem.source)}" target="_blank" rel="noopener noreferrer">${e(poem.sourceTitle)}</a></p><p>${e(poem.rights)}</p></div></aside></div>

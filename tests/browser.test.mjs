@@ -417,6 +417,76 @@ test('Alphonsus originals support historical and modern-title search and static 
   await staticContext.close();
 });
 
+test('Camões sonnets support Portuguese discovery, existing saves and static mixed-language reading', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('camoes-soneto-1843-'));
+  assert.equal(selected.length, 48);
+  const seed = { saved: ['amor-e-fogo-camoes'], recent: ['castellana-095'], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Portuguese&country=Portugal#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Portuguese', country: 'Portugal' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  const search = page.getByLabel('Search the poetry library');
+  await search.fill('Luis de Camoes');
+  await page.getByText('49 poems found', { exact: true }).waitFor();
+  const showMore = page.getByRole('button', { name: /Show more poems/ });
+  while (await showMore.isVisible()) await showMore.click();
+  for (const item of selected) assert.equal(await page.locator(`#results a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.equal(await page.locator('#results a[href$="/poems/amor-e-fogo-camoes/"]').count(), 1);
+  for (const [query, id] of [['sete anos de pastor jaco', 'camoes-soneto-1843-029'], ['razao e ja que minha confianca', 'camoes-soneto-1843-049'], ['algua cousa a dor que me ficou', 'camoes-soneto-1843-019']]) {
+    await search.fill(query);
+    await page.getByText('1 poem found', { exact: true }).waitFor();
+    assert.equal(await page.locator(`#results a[href$="/poems/${id}/"]`).count(), 1);
+  }
+  await search.fill('sete anos de pastor jaco');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  const poem = selected.find(item => item.id === 'camoes-soneto-1843-029');
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  assert.equal(await page.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes(seed.saved[0]));
+  assert.ok(stored.saved.includes(poem.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  await page.goto(`${base}poems/camoes-soneto-1843-043/`);
+  const foreignLine = page.locator('#original-panel .verse span[lang="es"]');
+  assert.equal(await foreignLine.textContent(), 'La vuestra falsa fe, y el amor mio.');
+  assert.equal(await foreignLine.getAttribute('dir'), 'auto');
+  await page.getByRole('button', { name: 'Focus mode' }).click();
+  await page.getByRole('button', { name: 'Exit focus mode' }).waitFor();
+  assert.equal(await foreignLine.textContent(), 'La vuestra falsa fe, y el amor mio.');
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-Portuguese a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const item of selected) {
+    const response = await staticPage.goto(`${base}poems/${item.id}/`);
+    assert.equal(response.status(), 200, item.id);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), item.text);
+    assert.equal(await verse.getAttribute('lang'), 'pt');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${item.contextSourceTitle} ↗` }).getAttribute('href'), item.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(item.rights));
+    assert.ok((await staticPage.locator('.story').textContent()).includes(item.context));
+    if (item.id === 'camoes-soneto-1843-043') assert.equal(await verse.locator('span[lang="es"]').textContent(), 'La vuestra falsa fe, y el amor mio.');
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.goto(`${base}poets/luis-de-camoes/`);
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.equal(await staticPage.locator('a[href$="/poems/amor-e-fogo-camoes/"]').count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Bécquer Rimas support discovery, existing saves and JavaScript-free reading', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('becquer-rima-'));
   assert.equal(selected.length, 74);
