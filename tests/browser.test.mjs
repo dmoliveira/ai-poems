@@ -947,6 +947,61 @@ test('Abū Firās poems support Arabic search, RTL, saved data and static readin
   await staticContext.close();
 });
 
+test('al-Khansāʾ originals support Arabic search, source notes and static RTL reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'al-khansa');
+  assert.equal(selected.length, 8);
+  const seed = { saved: ['let-the-days-do-as-they-will'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Arabic#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Arabic' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('الخنساء');
+  await page.getByText('8 poems found', { exact: true }).waitFor();
+  for (const item of selected) assert.equal(await page.locator(`#results a[href$="/poems/${item.id}/"]`).count(), 1);
+  const poem = selected.find(item => item.id === 'khansa-1895-women-say');
+  await page.getByLabel('Search the poetry library').fill(poem.title);
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  const verse = page.locator('#original-panel .verse');
+  assert.equal(await verse.textContent(), poem.text);
+  assert.equal(await verse.getAttribute('lang'), 'ar');
+  assert.equal(await verse.getAttribute('dir'), 'rtl');
+  assert.equal(await page.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+  assert.equal(await page.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes('let-the-days-do-as-they-will'));
+  assert.ok(stored.saved.includes(poem.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-Arabic a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const item of selected) {
+    await staticPage.goto(`${base}poems/${item.id}/`);
+    const original = staticPage.locator('#original-panel .verse');
+    assert.equal(await original.textContent(), item.text);
+    assert.equal(await original.getAttribute('lang'), 'ar');
+    assert.equal(await original.getAttribute('dir'), 'rtl');
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${item.contextSourceTitle} ↗` }).getAttribute('href'), item.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(item.rights));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.getByRole('link', { name: 'al-Khansāʾ', exact: true }).click();
+  assert.equal(new URL(staticPage.url()).pathname, '/ai-poems/poets/al-khansa/');
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Francis and Jacopone originals support search, sources, saved data and static reading', async () => {
   const selected = poems.filter(p => p.id === 'francis-laudes-creaturarum' || p.id.startsWith('jacopone-ferri-'));
   assert.equal(selected.length, 6);

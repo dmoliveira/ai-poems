@@ -790,6 +790,57 @@ test('Abū Firās poems retain historical readings, comparison boundaries and RT
   assert.equal(poet.poems.length, 10);
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
 });
+test('al-Khansāʾ readings retain their printed boundaries, variants and RTL identity', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/khansa-1895-reviewed.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.poems.length, 8);
+  assert.deepEqual(manifest.scanSha256, {
+    'khansa-1895.pdf': '61bded8a868bad0617816587b2bbd2a9f67000a3dc2dc59ff71b136e672552a4',
+    'khansa-1929.pdf': '2e0f0964d3181688708610a0b360912d81dba04c0c89d4239868072bfec6ef67',
+  });
+  const selected = manifest.poems.map(item => {
+    const id = `khansa-1895-${item.slug}`;
+    const poem = poems.find(entry => entry.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.author, 'al-Khansāʾ');
+    assert.equal(poem.authorId, 'al-khansa');
+    assert.equal(poem.authorOriginal, 'الخنساء');
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(associatedPlaces(poem), ['Not established']);
+    assert.equal(poem.title, item.text.split('\n')[0]);
+    assert.equal(poem.text, item.text);
+    assert.equal(lineCount(poem), item.couplets * 2);
+    assert.equal(poem.source, `https://archive.org/download/ansaljulasfmulak00khan/ansaljulasfmulak00khan.pdf#page=${157 - item.printedPages[0]}`);
+    assert.match(poem.contextSource, new RegExp(`#page=${item.comparisonPrintedPages[0] + 4}$`));
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.context, /not claimed as independent manuscript witnesses.*other traditions may differ/);
+    assert.match(poem.rights, /public domain in the United States/);
+    if (item.wikiPageId) {
+      assert.match(poem.rights, /CC BY-SA 4\.0/);
+      assert.ok(poem.rights.includes(`curid=${item.wikiPageId}&oldid=${item.wikiRevision}`));
+    } else assert.doesNotMatch(poem.rights, /Wikisource/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Arabic', author: poem.author, query: poem.title }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: 'الخنساء' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), 'a7f440469497010471f6d1b0fb3edc504c54d841090fb17c12d20fcde7c77c5a');
+  const bySlug = slug => selected.find(poem => poem.id === `khansa-1895-${slug}`);
+  assert.match(bySlug('women-say').text, /ويقصم عود النصب وهو صليب$/);
+  assert.match(bySlug('women-say').context, /النبع.*النصب/);
+  assert.match(bySlug('reply-to-salma').text, /معانا بإذن الله يزجي مصمما\nسوانح لا تكبو له وبوارحا\nنعوا مالكا بالتاج لما هبطنه/);
+  assert.match(bySlug('bird-omen').text, /لوقعتها يبيض سود المسائح/);
+  assert.match(bySlug('bird-omen').context, /يسود بيض المسائح/);
+  assert.match(bySlug('wakeful-companions').context, /not proof of the original extent/);
+  const poet = groupPoets(poems).find(group => group.id === 'al-khansa');
+  assert.equal(poet.poems.length, 8);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
 test('Francis and Jacopone originals retain reviewed editions and separate witnesses', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/francis-jacopone-reviewed.json', import.meta.url), 'utf8'));
   const francis = poems.find(p => p.id === 'francis-laudes-creaturarum');

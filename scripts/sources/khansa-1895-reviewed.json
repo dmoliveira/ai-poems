@@ -1,0 +1,84 @@
+{
+  "scanSha256": {
+    "khansa-1895.pdf": "61bded8a868bad0617816587b2bbd2a9f67000a3dc2dc59ff71b136e672552a4",
+    "khansa-1929.pdf": "2e0f0964d3181688708610a0b360912d81dba04c0c89d4239868072bfec6ef67"
+  },
+  "poems": [
+    {
+      "slug": "wakeful-companions",
+      "printedPages": [5, 6],
+      "comparisonPrintedPages": [9, 10],
+      "couplets": 3,
+      "wikiPageId": 66762,
+      "wikiRevision": 438716,
+      "text": "أرقت ونام عن سهري صحابي\nكأن النار مشعلة ثيابي\nإذا نجم تغور كلفتني\nخوالد ما تؤوب إلى مآب\nفقد خلى أبو أوفى خلالا\nعلي فكلها دخلت شعابي",
+      "note": "Both printings separately head these three couplets. Cheikho's note identifies Abū Awfā as Ṣakhr's byname. A short complete selection in these editions is not proof of the original extent of the poem."
+    },
+    {
+      "slug": "streaming-tears",
+      "printedPages": [6, 7],
+      "comparisonPrintedPages": [7, 8],
+      "couplets": 9,
+      "wikiPageId": 66763,
+      "wikiRevision": 438717,
+      "text": "ما بال عينيك منها دمعها سرب\nأراعها حزن أم عادها طرب\nأم ذكر صخر بعيد النوم هيجها\nفالدمع منها عليه الدهر ينسكب\nيا لهف نفسي على صخر إذا ركبت\nخيل لخيل تنادي ثم تضطرب\nقد كان حصنا شديد الركن ممتنعا\nليثا إذا نزل الفتيان أو ركبوا\nأغر أزهر مثل البدر صورته\nصاف عتيق فما في وجهه ندب\nيا فارس الخيل إذ شدت رحائلها\nومطعم الجوع الهلكى إذا سغبوا\nكم من ضرائك هلاك وأرملة\nحلوا لديك فزالت عنهم الكرب\nسقيا لقبرك من قبر ولا برحت\nجود الرواعد تسقيه وتحتلب\nماذا تضمن من جود ومن كرم\nومن خلائق ما فيهن مقتضب",
+      "note": "The comparison printing also has nine couplets. Cheikho's note cites another opening reading, أعارها, but this text retains the printed أراعها."
+    },
+    {
+      "slug": "women-say",
+      "printedPages": [7, 8],
+      "comparisonPrintedPages": [7],
+      "couplets": 8,
+      "wikiPageId": 66764,
+      "wikiRevision": 438718,
+      "text": "تقول نساء شبت من غير كبرة\nوأيسر مما قد لقيت يشيب\nأقول أبا حسان لا العيش طيب\nوكيف وقد أفردت منك يطيب\nفتى السن كهل الحلم لا متسرع\nولا جامد جعد اليدين جديب\nأخو الفضل لا باغ عليه بفضله\nولا هو خرق في الوجوه قطوب\nإذا ذكر الناس السماح من امرئ\nوأكرم أو قال الصواب خطيب\nذكرتك فاستعبرت والصدر كاظم\nعلى غصة منها الفؤاد يذوب\nلعمري لقد أوهيت قلبي عن العزا\nوطأطأت رأسي والفؤاد كئيب\nلقد قصمت مني قناة صليبة\nويقصم عود النصب وهو صليب",
+      "note": "The comparison has eight couplets but reads أبو الفضل and لفضله where 1895 prints أخو الفضل and بفضله. It also has النبع where 1895 prints النصب; Cheikho's note records النبع as an alternative."
+    },
+    {
+      "slug": "reply-to-salma",
+      "printedPages": [19],
+      "comparisonPrintedPages": [21],
+      "couplets": 5,
+      "wikiPageId": 66769,
+      "wikiRevision": 438723,
+      "text": "ذري عنك أقوال الضلال كفى بنا\nلكبش الوغى في اليوم والأمس ناطحا\nفخالد أولى بالتعذر منكم\nغداة علا نهجا من الحق واضحا\nمعانا بإذن الله يزجي مصمما\nسوانح لا تكبو له وبوارحا\nنعوا مالكا بالتاج لما هبطنه\nعوابس في هابي الغبار كوالحا\nفإن تك قد أبكتك سلمى بمالك\nتركنا عليه نائحات ونائحا",
+      "note": "The 1895 headnote presents these five couplets as al-Khansāʾ's reply to Salmā; the comparison also prints five. The 1895 reading معانا بإذن الله يزجي and له differs from عليكم بإذن الله يرجى and لها in the comparison."
+    },
+    {
+      "slug": "bird-omen",
+      "printedPages": [20, 21],
+      "comparisonPrintedPages": [22],
+      "couplets": 10,
+      "text": "جرى لي طير في حمام حذرته\nعليك ابن عمرو من سنيح وبارح\nفلم ينج صخرا ما حذرت وغاله\nمواقع غاد للمنون ورائح\nرهينة رمس قد تجر ذيولها\nعليه سوافي الرامسات البوارح\nفيا عين بكي لامرئ طار ذكره\nله تبكي عين الراكضات السوابح\nوكل طويل المتن أسمر ذابل\nوكل عتيق في جياد الصفائح\nوكل دلاص كالأضاة مذالة\nوكل جواد بين العتق قارح\nوكل ذمول كالفنيق شملة\nوكل سريع آخر الليل آزح\nوللجار يوما إن دعا لمضيفة\nدعا مستغيثا أولا بالجوانح\nأخو الحزم في الهيجاء والعزم في التي\nلوقعتها يبيض سود المسائح\nحسيب لبيب متلف ما أفاده\nمبيح تلاد المستغش المكاشح",
+      "note": "Both printings give ten couplets. Cheikho prints يبيض سود المسائح; the comparison has يسود بيض المسائح, a reading Cheikho's note attributes to his exemplar and calls a likely mistake."
+    },
+    {
+      "slug": "tears-for-ibn-amr",
+      "printedPages": [33, 34, 35],
+      "comparisonPrintedPages": [13, 14],
+      "couplets": 12,
+      "wikiPageId": 66775,
+      "wikiRevision": 438729,
+      "text": "أهاج لك الدموع على ابن عمرو\nمصائب قد رزئت بها فجودي\nبسجل منك منحدر عليه\nفما ينفك مثل عرى الفريد\nعلى فرع رزئت به خناس\nطويل الباع فياض حميد\nجليد كان خير بني سليم\nكريمهم المسود والمسود\nأبو حسان كان ثمال قومي\nفأصبح ثاويا بين اللحود\nرهين بلى وكل فتى سيبلى\nفأذري الدمع بالسكب المجود\nفأقسم لو بقيت لكنت فينا\nعديدا لا يكاثر بالعديد\nولكن الحوادث طارقات\nلها صرف على الرجل الجليد\nفإن تك قد أتتك فلا تنادي\nفقد أودت بفياض مجيد\nجليد حازم قدما أتاه\nصروف الدهر بعد بني ثمود\nوعادا قد علاها الدهر قسرا\nوحمير والجنود مع الجنود\nفلا يبعد أبو حسان صخر\nوحل برمسه طير السعود",
+      "note": "The comparison also has twelve couplets. Cheikho prints عرى الفريد and notes the alternative عدا الفريد, which appears in the comparison."
+    },
+    {
+      "slug": "eyes-pour-tears",
+      "printedPages": [35, 36],
+      "comparisonPrintedPages": [14, 15],
+      "couplets": 9,
+      "wikiPageId": 66776,
+      "wikiRevision": 438730,
+      "text": "عيني جودا بدمع منكما جودا\nجودا ولا تعدا في اليوم موعودا\nهل تدريان على من ذا سبلتكما\nعلى ابن أمي أبيت الليل معمودا\nدارت بنا الأرض أو كادت تدور بنا\nيا لهف نفسي فقد لاقيت صنديدا\nيا عين فابكي فتى محضا ضرائبه\nصعبا مراقبه سهلا إذا ريدا\nلا يأخذ الخسف في قوم فيغضبهم\nولا تراه إذا ما قام محدودا\nولا يقوم إلى ابن العم يشتمه\nولا يدب إلى الجارات تخويدا\nكأنما خلق الرحمن صورته\nدينار عين يراه الناس منقودا\nاذهب حريبا جزاك الله جنته\nعنا وخلدت في الفردوس تخليدا\nقد عشت فينا ولا ترمى بفاحشة\nحتى توفاك رب الناس محمودا",
+      "note": "The comparison printing also gives nine couplets. The poem's prayers are part of its historical reading; no date of composition is established here."
+    },
+    {
+      "slug": "son-of-al-sharid",
+      "printedPages": [36, 37],
+      "comparisonPrintedPages": [16],
+      "couplets": 7,
+      "text": "يا ابن الشريد وخير قيس كلها\nخلفتني في حسرة وتبلد\nفلأبكينك ما سمعت حمامة\nتدعو هديلا في فروع الغرقد\nأنت المهند من سليم في العلى\nوالفرع لم يسب الكرام بمشهد\nقد كنت حصنا للعشيرة كلها\nوخطيبها عند الهمام الأصيد\nفاذهب ولا تبعد وكل معمر\nسيذوق كأس منية بتنكد\nلله در بني نهاسر إنهم\nهدموا العمود وأدركوا بالأسود\nضخم الدسيعة ماجدا أعراقه\nكالبدر أو في طلعة كالأسعد",
+      "note": "Both printings give seven couplets. This is not the separate poem beginning يا ابن الشريد على تنائي بيننا."
+    }
+  ]
+}
