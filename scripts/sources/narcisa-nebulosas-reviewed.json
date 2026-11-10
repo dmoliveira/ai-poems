@@ -1,0 +1,339 @@
+{
+  "sourceSha256": {
+    "nebulosas-ufsc.pdf": "ec501f4b15fcdf08473d0265c090ab135c12844205b1498d502746d4e3dad0bf",
+    "nebulosas-archive.pdf": "06146ba5b5b5aba7ee9db2db06ede1ddce317301cd0728842b20224f7c6a7028"
+  },
+  "poems": [
+    {
+      "id": "voto",
+      "title": "Voto",
+      "pages": [
+        33,
+        34
+      ],
+      "ufsc": [
+        43,
+        44
+      ],
+      "archive": [
+        37,
+        38
+      ],
+      "note": "The printed dedication is to her mother; the separately printed epigraph is attributed to Álvares de Azevedo and is not part of the verse here.",
+      "text": "A viração que brinca docemente\nNo leque das palmeiras,\nTraga á tu’alma inspirações sagradas,\nDelicias feiticeiras.\n\nA flôr gazil que expande-se contente\nNa gleba matizada,\nInveje-te a tranquilla e lêda vida,\nDos filhos sempre amada.\n\nSó teus olhos roreje délio pranto\nDe mystica ternura;\nComo sylphos de luz cerquem-te gozos,\nEnlace-te a ventura!\n\nOs filhos todos submissos junquem\nDe rosas tua estrada;\nE curvem-se os espinhos sob os passos\nDa Mãe idolatrada!\n\nTaes são as orações que aos céos envia\nA tua pobre filha;\nE Deus acolhe o incenso, embora emane\nDa branca maravilha!",
+      "sha256": "1cb57ae92690e3e85ef6830e5ecafd2a57267fb22c85d7878ceca6b26970caeb",
+      "stanzas": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "themes": [
+        "Faith"
+      ]
+    },
+    {
+      "id": "saudades",
+      "title": "Saudades",
+      "pages": [
+        35,
+        36
+      ],
+      "ufsc": [
+        45,
+        46
+      ],
+      "archive": [
+        39,
+        40
+      ],
+      "note": "The separately printed epigraph is attributed to Carlos Ferreira; it is not part of the verse here.",
+      "text": "Tenho saudades dos formosos lares\nOnde passei minha feliz infancia;\nDos valles de dulcissima fragrancia;\nDa fresca sombra dos gentis palmares.\n\nMinha plaga querida! Inda me lembro\nQuando atravez das névoas do occidente\nO sol nos acenava adeus languente\nNas balsamicas tardes de Setembro;\n\nLançava-me correndo na avenida\nQue a larangeira enchia de perfumes!\nComo escutava tremula os queixumes\nDas auras na lagôa adormecida!\n\nEu era de meu pae, pobre poeta,\nO astro que o porvir lhe illuminava;\nDe minha mãe, que louca me adorava,\nEra na vida a rosa predilecta!...\n\nMas...\n... tudo se acabou. A trilha olente\nNão mais percorrerei d’esses caminhos...\nNão mais verei os miseros anginhos\nQue aqueciam na minha a mão algente!\n\nCorrei, ó minhas lagrimas sentidas,\nDo passado no rórido sudario;\nBem longe está o cimo do Calvario\nE já as plantas sinto tão feridas!...\n\nAi! que seria do mortal afflicto\nQue tomba exangue á provação cruenta,\nSe no marco da estrada poeirenta\nNão divizasse os gozos do infinito?!...\n\nAbrem-me n’alma as dôres da saudade\nUm sulco de profundas agonias...\nMorreram-me p’ra sempre as alegrias...\nSó me resta um consolo... a eternidade!",
+      "sha256": "c19135dc4875b371d7eb99f3e0da12f3472674144c9149f01705e0bf92b5183b",
+      "stanzas": [
+        4,
+        4,
+        4,
+        4,
+        5,
+        4,
+        4,
+        4
+      ],
+      "themes": [
+        "Memory"
+      ]
+    },
+    {
+      "id": "afflicta",
+      "title": "Afflicta",
+      "pages": [
+        41,
+        42
+      ],
+      "ufsc": [
+        51,
+        52
+      ],
+      "archive": [
+        45,
+        46
+      ],
+      "note": "The printed dedication is ‘A J.’ and the separately printed Italian epigraph is attributed to Il Guarany. The scan prints ‘volta rei’ in the third stanza; the spacing is retained provisionally.",
+      "text": "Desde a hora fatal em que partiste,\nTurbou-se para mim o azul do céo!\nVelei-me na mantilha da tristeza,\nComo Sapho na espuma do escarcéo!\n\nAté então o archanjo da procella\nNão enluctára o lago das chimeras,\nOnde minh’alma, garça languorosa,\nBrincava á luz de ethereas primavéras.\n\nMas um dia attrahindo ao vasto peito\nMinha pallida fronte de creança,\nMurmuraste tremendo: — «Parto em breve;\nMas não te afflijas, volta rei, descança!»\n\nAi! Que epopéa turgida de lagrimas\nNa commoção d’aquella despedida!\nEu solluçava envolta em véo de prantos:\n«Quando voltares, já serei sem vida!»\n\nDesde então, comprimindo átras angustias,\nVou te esperar á beira do caminho;\nVoltam cantando ao sol as andorinhas,\nSó tu não volves ao dezerto ninho!...\n\nQuando a tribu inquieta das phalenas\nLiba philtros nas clicias da campina,\nBusco da redempção o augusto symbolo,\nE falleço de amor como Corinna!\n\nPois bem! Se emfim voltares d’esse exilio,\nAve errante, fugindo á quadra hyberna,\nVem á sombra do val: sob os cyprestes\nCommigo fruirás ventura eterna!",
+      "sha256": "03112781741690a6718291d7949a56693de32677b9b8fdcc43d8362b1b694e87",
+      "stanzas": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "themes": [],
+      "displayTitle": "Aflita"
+    },
+    {
+      "id": "aspiracao",
+      "title": "Aspiração",
+      "pages": [
+        43,
+        44
+      ],
+      "ufsc": [
+        53,
+        54
+      ],
+      "archive": [
+        47,
+        48
+      ],
+      "note": "The printed dedication is ‘A uma menina’; the epigraph is attributed to Gonçalves Dias and is omitted from the verse.",
+      "text": "Os lampejos azues de teus olhos\nFazem n’alma brotar a esperança;\nDão venturas, ó meiga creança,\n— Flôr celeste no mundo entre abrolhos! —\n\nOra pendes a fronte na scisma,\nFatigada dos jogos, contente,\nE mil sonhos, formosa innocente,\nPhantasias ás côres do prisma;\n\nOra vôas ligeira entre clicias\nSacudindo fulgores, anginho;\nE o favonio te envia um carinho,\nE as estrellas te offertam blandicias!...\n\nMas se pende dos fulgidos cilios\nAlva pérola que a face te róra,\nDe teus labios, na falla sonóra,\nChovem, rollam sublimes idyllios!\n\nDe tua bocca na rubra granada\nCaiam santos mil beijos felizes!\nTuas azas de lindos mátizes,\nAh! não rasgues do vicio na estrada!",
+      "sha256": "1ce1539aec5da151b026e5bee69476b89c94be7bc5dd04c3c29bc35858aa07f2",
+      "stanzas": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "themes": []
+    },
+    {
+      "id": "confidencia",
+      "title": "Confidencia",
+      "pages": [
+        45,
+        46
+      ],
+      "ufsc": [
+        55,
+        56
+      ],
+      "archive": [
+        49,
+        50
+      ],
+      "note": "The printed dedication names Joanna de Azevedo; the separate epigraph is attributed to Fagundes Varella and is omitted from the verse.",
+      "text": "Pensas tu, feiticeira, que te esqueço;\nQue olvido nossa infancia tão florida;\nQue á tuas meigas phrazes nego apreço...\n\nEsquecer-me de ti, minha querida!?...\nPosso acaso esquecer a luz divina\nQue rebrilha nas trevas d’esta vida?\n\nEra esquecer a lucida neblina,\nQue nas géllidas orlas de seu manto,\nExtingue a febre que meu sêr calcina.\n\nEsquecer o orvalho puro e santo,\nQue á campanula curva á calma ardente,\nDá mais viço e fulgôr, dá mais encanto.\n\nEsquecer o crystal liso ou tremente\nQue me retrata a fronte pensativa!\nEsquecer-me de ti, anjo temente!...\n\nOuço-te a voz na langue patativa\nQue em thrinos desfallece ao vir do inverno:\n— Contemplo-te na mimosa sensitiva.\n\nSem ti não tem o sol um raio terno;\nComtigo o mundo trêdo — é paraizo,\nE a taça do viver tem mel eterno!\n\nOh! envia-me ao menos um sorriso!\nDá-me um sonho dos teus doirado e bello,\nQue bem negro o porvir além diviso!\nQue a existencia sem ti, é um pezadello!...",
+      "sha256": "568ab7545515c92fdc2aa0e56ec23c0c75d3b0cd8a0ca6451b227d74f1295a9f",
+      "stanzas": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        4
+      ],
+      "themes": []
+    },
+    {
+      "id": "agonia",
+      "title": "Agonia",
+      "pages": [
+        51,
+        52
+      ],
+      "ufsc": [
+        61,
+        62
+      ],
+      "archive": [
+        55,
+        56
+      ],
+      "note": "The separately printed epigraph is attributed to Gilbert; the following response ‘Consolação’ is explicitly attributed to J. Ezequiel Freire and is not included in this poem.",
+      "text": "Como vergam as lindas açucenas\nAs petalas alvejantes\nQuando vôam do sul as brumas frias;\nQuando rolla o trovão nas serranias\nE os raios coruscantes;\n\nComo a rôlla das selvas, trespassada\nDe mortifera setta\nDespedida por barbaro selvagem,\nQue a debil fronte inclina e cahe á margem\nDa lagôa dilecta;\n\nComo a estrella gentil de um céo risonho,\nLuzindo aos pés de Deos;\nQue pouco á pouco triste empallidece,\nE cada vez mais pallida fallece\nEnvolta em negros véos;\n\nComo a gota de mél que entorna a aurora\nNa tremula folhagem,\nE brilha, e fulge ao prisma de mil côres;\nQue depois desparece aos esplendores\nDa doirada voragem;\n\nAssim foram-se as rosas de meu peito\nSem os rócios de outomno...\nVejo apenas a palma do martyrio\nConvidando-me a ir á luz do cirio\nDormir o eterno somno.",
+      "sha256": "20d4bac5f93824d18f3806c425c2a8dc600f7059e340b5d7efcf5d5f5d01aca9",
+      "stanzas": [
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "themes": [
+        "Grief"
+      ]
+    },
+    {
+      "id": "scisma",
+      "title": "Scisma",
+      "pages": [
+        61,
+        62
+      ],
+      "ufsc": [
+        71,
+        72
+      ],
+      "archive": [
+        65,
+        66
+      ],
+      "note": "The separately printed epigraph is attributed to Fagundes Varella and is omitted; the poem remembers, among other sounds, the songs of enslaved people.",
+      "text": "O’ aura merencoria do crepusculo,\nMais terna que o carpir de Siloé;\nÉs tu que embalas minha funda angustia;\nÉs tu que accendes no meu peito a fé.\n\nÉs tu que trazes-me a virginia endeixa\nQue os anjos gemem na celeste estancia;\nO sussurro dos plátanos do Libano,\nO frescôr dos rosaes de minha infancia!\n\nEstranha languidez gélla-me o seio;\nAbre-se além a campa glacial;\nMinha fronte que ao chão livida pende,\nLevanta com teu beijo divinal!\n\nEu tenho n’alma uma saudade infinda,\nMais profunda que o abysmo dos espaços...\n— Chóro meu berço que deixei creança;\n— Chóro o sol que aclarou meus debeis passos.\n\nRecorda-me as dolentes monodias\nQue na lagôa canta o pescador;\nE as tristonhas cantigas dos escravos\nQuando o céo se desata em luz de amor!\n\nE os campos de esmeraldas que s’enlaçam\nA’ opala radiante do infinito...\nE a pluma extensa dos bambús da matta,\nOnde echoava da araponga o grito...\n\nAi, não me fujas viração sentida!\nFalla-me ainda da estação feliz!\nDesfolha sobre a tumba de meus sonhos\nA grinalda dos risos infantis!\n\nEste ligeiro halito da patria\nComo desperta sensação tão pura!\nComo esta essencia dos folguedos idos,\nInfunde n’alma tão subtil ternura!\n\nO’ aura do crepusculo, mais suave\nQue o perfume das rosas de Stambul;\n— Leva á meu ninho meu gemer de alcyone!\n— Traz de meu ninho a primavéra azul!",
+      "sha256": "b8db58e633825b2e7e1d2ce7d37456e272c414bb497127061047ba5e83b0d35d",
+      "stanzas": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "themes": [
+        "Memory"
+      ],
+      "displayTitle": "Cisma"
+    },
+    {
+      "id": "recordacao",
+      "title": "Recordação",
+      "pages": [
+        145,
+        146
+      ],
+      "ufsc": [
+        157,
+        158
+      ],
+      "archive": [
+        151,
+        152
+      ],
+      "note": "The printed dedication names Adelaide Luz; the separate epigraph is attributed to Theophilo Braga. An endnote describes the poem as an early composition addressed to a childhood companion.",
+      "text": "Lembras-te ainda, Adelaide,\nDe nossa infancia querida?\nD’aquelle tempo ditoso,\nD’aquelle sol tão formoso\nQue dava encantos á vida?\n\nEu era como a flôrinha\nDesabrochando medrosa;\nTu, alva cecêm do valle,\nEntreabrias em teu caule\nDa aurora á luz d’ouro e rosa.\n\nNosso céo não tinha nuvens:\nNem uma aurora fulgia,\nNem uma ondina rolava,\nNem uma aragem passava\nQue não désse uma alegria!\n\nTu me contavas teus sonhos\nDe pureza immaculada;\nEffluvios de poesia,\nThrenos de maga harmonia...\nEras sibylla inspirada!...\n\nE á nossos sêres replectos\nD’esse amôr que não fenece,\nComo sorria a existencia!\nQuanto voto de innocencia\nLevava ao céo nossa prece!\n\nHoje que apenas scintilla\nAo longe a estrella da vida,\nVenho triste recordar-te\nEsse passado, abraçar-te,\nMinh’Adelaide querida!",
+      "sha256": "fd3445feac0d57807b3fe3042830b627a50137ed434257d698c49a64aeff880a",
+      "stanzas": [
+        5,
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "themes": [
+        "Memory"
+      ]
+    },
+    {
+      "id": "amor-de-violeta",
+      "title": "Amor de violeta",
+      "pages": [
+        151,
+        152
+      ],
+      "ufsc": [
+        163,
+        164
+      ],
+      "archive": [
+        157,
+        158
+      ],
+      "note": "The separately printed epigraph is attributed to Luiz Guimarães Junior and is omitted from the verse.",
+      "text": "Esquiva aos labios lúbricos\nDa louca borboleta,\nNa sombra da campina olente, formosissima\nVivia a violeta.\n\nMas uma virgem candida\nUm dia ante ella passa,\nE vai colher mais longe uma faceira hortencia\nQue á loira trança enlaça.\n\n«Ai! geme a flôr ignota:\nSe pela côr brilhante\nQue tinge a linda rosa, a tinta melancolica\nTrocasse um só instante;\n\nComo sentíra, ébria\nDe amôr, de mago enleio,\nDo coração virgineo as pulsações precípites,\nUnida ao casto seio!»\n\nDoudeja a creança pallida\nNa relva perfumosa,\nE a meiga violeta ao pé mimoso e célere\nEsmaga caprichosa.\n\nCurvando a fronte exanime\nSoluça a flôr singela:\n«Ah! como sou feliz! Perfumo a planta eburnea\nDa minha virgem bella!...»",
+      "sha256": "0f1c0c6a6436766a4feb3d585a095023f2d23e006def17accaf4f513c37dc268",
+      "stanzas": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "themes": [
+        "Love"
+      ]
+    },
+    {
+      "id": "o-africano-e-o-poeta",
+      "title": "O Africano e o Poeta",
+      "pages": [
+        153,
+        154,
+        155,
+        156
+      ],
+      "ufsc": [
+        165,
+        166,
+        167,
+        168
+      ],
+      "archive": [
+        159,
+        160,
+        161,
+        162
+      ],
+      "note": "Dedicated in print to Celso de Magalhães, the poem gives voice to an enslaved African and a poet; its separately printed French epigraph is attributed to Lamartine. Historical language and perspectives are retained.",
+      "text": "No canto tristonho\nDe pobre captivo\nQue elevo furtivo,\nDa lua ao clarão;\nNa lagrima ardente\nQue escalda-me o rosto,\nDe immenso desgosto\nSilente expressão;\nQuem pensa? — O poeta\nQue os carmes sentidos\nConcerta aos gemidos\nDe seu coração.\n\n— Deixei bem creança\nMeu patrio vallado,\nMeu ninho emballado\nDa Lybia no ardôr;\nMas esta saudade\nQue em tumido anceio\nLacera-me o seio\nSulcado de dôr,\nQuem sente? — O poeta\nQue o elysio descerra;\nQue vive na terra\nDe mystico amôr!\n\n— Roubaram-me féros\nÁ férvidos braços;\nEm rigidos laços\nSulquei vasto mar;\nMas este queixume\nDo triste mendigo,\nSem pae, sem abrigo,\nQuem quer escutar?...\n— Quem quer? O poeta\nQue os terreos mysterios\nAos paços sederios\nDeseja elevar.\n\n— Mais tarde entre as brenhas\nReguei mil ceáras\nCo’as bagas amáras\nDo pranto revél;\nDas mattas cahiram\nCem troncos, mil galhos;\nMas esses trabalhos\nDo braço novél,\nQuem vê? — O poeta\nQue expira em harpejos\nAos lugubres beijos\nDa fome cruél!\n\n— Depois, o castigo\nCruento, maldicto,\nCahiu no proscripto\nQue o simun crestou;\nCoberto de chagas,\nSem lár, sem amigos,\nSó tendo inimigos...\nQuem ha como eu sou?!...\n— Quem ha?.. O poeta\nQue a chamma divina\nQue o orbe illumina\nNa fronte encerrou!...\n\n— Meu Deos! ao precíto\nSem crenças na vida,\nSem patria querida,\nSó resta tombar!\nMas... quem uma prece\nNa campa do escravo\nQue outr’ora foi bravo\nTriste ha de rezar?!...\n— Quem ha de?... O poeta\nQue a lousa obscura,\nCom lagrima pura\nVae sempre orvalhar!?",
+      "sha256": "00d7feb385997e6feaed31af19c18d6118dd8aca2d55fbc90c0af009e33ada8e",
+      "stanzas": [
+        12,
+        12,
+        12,
+        12,
+        12,
+        12
+      ],
+      "themes": []
+    },
+    {
+      "id": "sadness",
+      "title": "Sadness",
+      "pages": [
+        157,
+        158
+      ],
+      "ufsc": [
+        169,
+        170
+      ],
+      "archive": [
+        163,
+        164
+      ],
+      "note": "Despite its English title, the original poem is Portuguese. Its separate English epigraph is attributed to James Thomson and is omitted; the poem retains historical language about Indigenous identity.",
+      "text": "Meu anjo inspiradôr não tem nas faces\nAs tintas coralineas da manhã;\nNem tem nos labios as canções vivaces\nDa cabocla pagã!\n\nNão lhe peza na fronte deslumbrante\nCorôa de explendôr e maravilhas,\nNem rouba ao nevoeiro fluctuante\nAs nitidas mantilhas.\n\nMeu anjo inspirador é frio e triste\nComo o sol que enrubésce o céo polar!\nTrahe-lhe o semblante pallido — do anthiste\nO acerbo meditar!\n\nTraz na cabeça estemma de saudades,\nTem no languido olhar a morbidezza;\nVeste a clamyde eril das tempestades,\nE chama-se — Tristeza!...",
+      "sha256": "f7894ebafb7f47075caae4eb9fec2168e417aa81a1365cc0ade11cc4f017d429",
+      "stanzas": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "themes": []
+    }
+  ]
+}
