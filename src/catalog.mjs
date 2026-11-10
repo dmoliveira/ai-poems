@@ -4,6 +4,13 @@ export const readingLanguages = ['English', 'Spanish', 'Portuguese', 'French', '
 // Discovery labels can be welcoming without rewriting historical source titles.
 export const collectionLabel = value => value === 'The Book of American Negro Poetry' ? 'American poetry · 1922 anthology' : value;
 
+// Display titles are normally English, but some are modern spellings in the
+// original language. Explicit metadata keeps both kinds accessible.
+export function titleAttributes(poem) {
+  if (poem.displayTitle) return poem.displayTitleLang ? ` lang="${escapeHtml(poem.displayTitleLang)}" dir="auto"` : '';
+  return ` lang="${escapeHtml(poem.lang)}" dir="${escapeHtml(poem.direction)}"`;
+}
+
 // Catalogue records are immutable after loading. Index each record only when
 // a text query first needs it, rather than normalizing every poem on each key.
 const searchIndex = new WeakMap();
@@ -129,5 +136,5 @@ export function poemCard(poem, base, reason = '') {
   const e = escapeHtml;
   const excerpt = poem.text.split('\n').filter(Boolean).slice(0, 2).join(' / ');
   const lines = lineCount(poem);
-  return `<article class="poem-card tone-${e(poem.mood)}"><div class="poem-card-top"><span class="eyebrow">${e(poem.language)} · ${e(poem.form)} · ${lines} ${lines === 1 ? 'line' : 'lines'}</span><button class="save-button js-required" type="button" data-save="${e(poem.id)}" aria-label="Save ${e(poem.displayTitle || poem.title)}" aria-pressed="false" disabled>♡</button></div><a class="poem-card-link" href="${e(base)}poems/${e(poem.id)}/">${reason ? `<p class="card-reason">${e(reason)}</p>` : ''}<h3${poem.displayTitle ? '' : ` lang="${e(poem.lang)}" dir="${e(poem.direction)}"`}>${e(poem.displayTitle || poem.title)}</h3>${poem.displayTitle ? `<p class="original-title" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}<p class="card-author">${e(poem.author)} <span>·</span> ${e(poem.yearLabel)}</p><p class="card-excerpt" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(excerpt)}</p><span class="card-read">Read poem <span aria-hidden="true">↗</span></span></a></article>`;
+  return `<article class="poem-card tone-${e(poem.mood)}"><div class="poem-card-top"><span class="eyebrow">${e(poem.language)} · ${e(poem.form)} · ${lines} ${lines === 1 ? 'line' : 'lines'}</span><button class="save-button js-required" type="button" data-save="${e(poem.id)}" aria-label="Save ${e(poem.displayTitle || poem.title)}" aria-pressed="false" disabled>♡</button></div><a class="poem-card-link" href="${e(base)}poems/${e(poem.id)}/">${reason ? `<p class="card-reason">${e(reason)}</p>` : ''}<h3${titleAttributes(poem)}>${e(poem.displayTitle || poem.title)}</h3>${poem.displayTitle ? `<p class="original-title" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}<p class="card-author">${e(poem.author)} <span>·</span> ${e(poem.yearLabel)}</p><p class="card-excerpt" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(excerpt)}</p><span class="card-read">Read poem <span aria-hidden="true">↗</span></span></a></article>`;
 }

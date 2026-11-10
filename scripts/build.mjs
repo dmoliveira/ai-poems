@@ -13,6 +13,7 @@ const ids = new Set();
 for (const poem of poems) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(poem.id) || ids.has(poem.id)) throw new Error(`Invalid or duplicate poem ID: ${poem.id}`);
   if (['title', 'author', 'authorId', 'authorYears', 'country', 'language', 'lang', 'direction', 'yearLabel', 'era', 'form', 'collection', 'mood', 'context', 'sourceTitle', 'source', 'rights', 'text'].some(key => typeof poem[key] !== 'string' || !poem[key].trim()) || !Array.isArray(poem.themes) || !poem.themes.every(theme => typeof theme === 'string' && theme.trim()) || !Array.isArray(poem.translations) || !['ltr', 'rtl'].includes(poem.direction) || !(poem.year === null || Number.isInteger(poem.year))) throw new Error(`Incomplete or invalid record: ${poem.id}`);
+  if (poem.displayTitleLang !== undefined && (!poem.displayTitle || typeof poem.displayTitleLang !== 'string' || !/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i.test(poem.displayTitleLang))) throw new Error(`Invalid display-title language: ${poem.id}`);
   if (!URL.canParse(poem.source) || new URL(poem.source).protocol !== 'https:') throw new Error(`Invalid source: ${poem.id}`);
   if (poem.contextSource && (!poem.contextSourceTitle || !URL.canParse(poem.contextSource) || new URL(poem.contextSource).protocol !== 'https:')) throw new Error(`Invalid context source: ${poem.id}`);
   for (const t of poem.translations) if (!t.title || !t.language || !t.text || !t.translator || !t.source || !t.rights || !URL.canParse(t.source) || new URL(t.source).protocol !== 'https:') throw new Error(`Incomplete translation: ${poem.id}`);

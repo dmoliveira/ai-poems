@@ -1,0 +1,250 @@
+{
+  "scanSha256": "8b447a98b191d11a5d856e5a1f41b029b8deb38e47a72a71ec8f8e0e9974ce9b",
+  "poems": [
+    {
+      "slug": "olhos",
+      "articleNumber": 1,
+      "title": "Olhos",
+      "displayTitle": "",
+      "source": "https://pt.wikisource.org/w/index.php?title=Pastoral_aos_crentes_do_amor_e_da_morte_(1923)/Olhos&oldid=457426",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        43,
+        44
+      ],
+      "sourceSha256": "94fb48e9991f85d310f2e0649474f3c018908c465e1bf0de86113ffebedcb82c",
+      "omittedFinalLine": "",
+      "sourceBreaks": [
+        4,
+        8,
+        12,
+        20
+      ],
+      "restoredBreaks": [
+        16
+      ],
+      "corrections": [
+        {
+          "line": 8,
+          "before": "Rôxas violetas impassoveis...",
+          "after": "Rôxas violetas impassiveis..."
+        }
+      ],
+      "lines": 24,
+      "form": "Verse",
+      "themes": [],
+      "yearLabel": "In Pastoral (1923) · composition date not established",
+      "note": "The 1923 print reads impassiveis; Wikisource has impassoveis. The date of composition is not independently established here.",
+      "sha256": "02f51557cf46a2714ab2910b516571c60eb6576ed290c23823def17f2c5edf47"
+    },
+    {
+      "slug": "cysnes-brancos",
+      "articleNumber": 2,
+      "title": "Cysnes brancos",
+      "displayTitle": "Cisnes brancos",
+      "source": "https://pt.wikisource.org/w/index.php?title=Pastoral_aos_crentes_do_amor_e_da_morte_(1923)/Cysnes_brancos&oldid=457425",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        45,
+        46
+      ],
+      "sourceSha256": "ea60ed93ec04f375d7224f126de341eea368eead1b34fbe218dc1500eaa6bf97",
+      "omittedFinalLine": "",
+      "sourceBreaks": [
+        4,
+        8,
+        12,
+        20
+      ],
+      "restoredBreaks": [
+        16
+      ],
+      "corrections": [],
+      "lines": 24,
+      "form": "Verse",
+      "themes": [],
+      "yearLabel": "In Pastoral (1923) · composition date not established",
+      "note": "The modern-spelling display title aids discovery; the printed title is Cysnes brancos. The date of composition is not independently established here.",
+      "sha256": "f91f552ddafaa4c0c51127a15569167a3322a98c69c5d82a872939b5a77a23b2"
+    },
+    {
+      "slug": "minhalma-torre",
+      "articleNumber": 3,
+      "title": "Minh’alma é a torre de uma egreja",
+      "displayTitle": "Minh’alma é a torre de uma igreja",
+      "source": "https://pt.wikisource.org/w/index.php?title=Pastoral_aos_crentes_do_amor_e_da_morte_(1923)/Minh%E2%80%99alma_%C3%A9_a_torre_de_uma_egreja&oldid=457424",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        49,
+        50
+      ],
+      "sourceSha256": "0a73a919549239db6db46c5f7e0c4abee529de5a9badd845588960370ef43622",
+      "omittedFinalLine": "",
+      "sourceBreaks": [
+        4,
+        8,
+        12,
+        20,
+        24,
+        28
+      ],
+      "restoredBreaks": [
+        16
+      ],
+      "corrections": [],
+      "lines": 32,
+      "form": "Verse",
+      "themes": [
+        "Faith"
+      ],
+      "yearLabel": "In Pastoral (1923) · composition date not established",
+      "note": "The 1923 print numbers this poem VII without a title; the first line supplies its title. The Faith theme reflects its prayers and liturgical imagery, not an inferred denomination. The date of composition is not independently established here.",
+      "sha256": "ab3dce66909ea56d7dad4a65f663387e8feb1196ee6302cb59119e62de9e9657"
+    },
+    {
+      "slug": "cinnamomo-floresce",
+      "articleNumber": 4,
+      "title": "O cinnamomo floresce",
+      "displayTitle": "O cinamomo floresce",
+      "source": "https://pt.wikisource.org/w/index.php?title=Pastoral_aos_crentes_do_amor_e_da_morte_(1923)/O_cinnamomo_floresce&oldid=457422",
+      "quality": "0 página validada, 1 página só revista e 0 página não revista",
+      "pages": [
+        81
+      ],
+      "sourceSha256": "9d30508e90ddc30086482fc694f0621d391ed5b28436ebb84930dc86cdfd1e1b",
+      "omittedFinalLine": "",
+      "sourceBreaks": [
+        4,
+        8,
+        12
+      ],
+      "restoredBreaks": [],
+      "corrections": [],
+      "lines": 16,
+      "form": "Verse",
+      "themes": [],
+      "yearLabel": "In Pastoral (1923) · composition date not established",
+      "note": "The 1923 print numbers this poem XXV without a title; the first line supplies its title. The date of composition is not independently established here.",
+      "sha256": "9d30508e90ddc30086482fc694f0621d391ed5b28436ebb84930dc86cdfd1e1b"
+    },
+    {
+      "slug": "ysmalia",
+      "articleNumber": 5,
+      "title": "Ysmalia",
+      "displayTitle": "Ismália",
+      "source": "https://pt.wikisource.org/w/index.php?title=Pastoral_aos_crentes_do_amor_e_da_morte_(1923)/Ysmalia&oldid=457421",
+      "quality": "0 página validada, 1 página só revista e 0 página não revista",
+      "pages": [
+        93
+      ],
+      "sourceSha256": "f0f4435d89123c85deb4bda4a799193d0db2f7e31a444a7159d20c0e6e34dd3e",
+      "omittedFinalLine": "",
+      "sourceBreaks": [
+        4,
+        8,
+        12,
+        16
+      ],
+      "restoredBreaks": [],
+      "corrections": [],
+      "lines": 20,
+      "form": "Verse",
+      "themes": [],
+      "yearLabel": "In Pastoral (1923) · composition date not established",
+      "note": "The familiar modern-spelling title is Ismália; Ysmalia is the title printed in this edition. The date of composition is not independently established here.",
+      "sha256": "f0f4435d89123c85deb4bda4a799193d0db2f7e31a444a7159d20c0e6e34dd3e"
+    },
+    {
+      "slug": "rosas-desfolhadas",
+      "articleNumber": 6,
+      "title": "Rosas que já vos fostes, desfolhadas",
+      "displayTitle": "",
+      "source": "https://pt.wikisource.org/w/index.php?title=Pastoral_aos_crentes_do_amor_e_da_morte_(1923)/Rosas_que_j%C3%A1_vos_fostes,_desfolhadas&oldid=457418",
+      "quality": "0 página validada, 1 página só revista e 0 página não revista",
+      "pages": [
+        114
+      ],
+      "sourceSha256": "4fa2196a63c185a17d021fb0396267d4b4dde6cf5c142514788f8589e5b9b43e",
+      "omittedFinalLine": "",
+      "sourceBreaks": [
+        4,
+        8,
+        11
+      ],
+      "restoredBreaks": [],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "themes": [],
+      "yearLabel": "In Pastoral (1923) · composition date not established",
+      "note": "The 1923 print numbers this sonnet XII without a title; the first line supplies its title. The date of composition is not independently established here.",
+      "sha256": "4fa2196a63c185a17d021fb0396267d4b4dde6cf5c142514788f8589e5b9b43e"
+    },
+    {
+      "slug": "hao-de-chorar",
+      "articleNumber": 7,
+      "title": "Hão de chorar por ella os cinnamomos",
+      "displayTitle": "Hão de chorar por ela os cinamomos",
+      "source": "https://pt.wikisource.org/w/index.php?title=Pastoral_aos_crentes_do_amor_e_da_morte_(1923)/H%C3%A3o_de_chorar_por_ella_os_cinnamomos&oldid=457417",
+      "quality": "0 página validada, 1 página só revista e 0 página não revista",
+      "pages": [
+        121
+      ],
+      "sourceSha256": "a879b42c460140f4d003d0f3a53a1b9bef02c8ba63cb22237363a586c9e20c09",
+      "omittedFinalLine": "",
+      "sourceBreaks": [
+        4,
+        8,
+        11
+      ],
+      "restoredBreaks": [],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "themes": [],
+      "yearLabel": "In Pastoral (1923) · composition date not established",
+      "note": "The 1923 print numbers this sonnet XIX without a title; the first line supplies its title. The date of composition is not independently established here.",
+      "sha256": "a879b42c460140f4d003d0f3a53a1b9bef02c8ba63cb22237363a586c9e20c09"
+    },
+    {
+      "slug": "a-cathedral",
+      "articleNumber": 8,
+      "title": "A Cathedral",
+      "displayTitle": "A Catedral",
+      "source": "https://pt.wikisource.org/w/index.php?title=Pastoral_aos_crentes_do_amor_e_da_morte_(1923)/A_Cathedral&oldid=457416",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        155,
+        156
+      ],
+      "sourceSha256": "8c75d069175a45507b94fbd435568b79111de4a21ac05a8d3aa8c49758cc40ed",
+      "omittedFinalLine": "Julho — 14, de 1914.",
+      "sourceBreaks": [
+        6,
+        8,
+        14,
+        22,
+        24,
+        30
+      ],
+      "restoredBreaks": [
+        16
+      ],
+      "corrections": [
+        {
+          "line": 16,
+          "before": "Pobre Alphonsus ! Pobre Alphonsus!",
+          "after": "Pobre Alphonsus! Pobre Alphonsus!"
+        }
+      ],
+      "lines": 32,
+      "form": "Verse",
+      "themes": [
+        "Faith"
+      ],
+      "yearLabel": "In Pastoral (1923) · dated 1914 in print",
+      "note": "The 1923 printing separately dates the poem July 14, 1914; that line is omitted from the verse. The printed date has not been independently verified as the composition date. The Faith theme reflects the poem’s Christian imagery, not an inferred denomination.",
+      "sha256": "338cc4a7d4aa75987a9b0360e5cd6371066e55e5a1e8ef039082351b7119fb3f"
+    }
+  ]
+}

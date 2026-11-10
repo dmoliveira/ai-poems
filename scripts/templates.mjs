@@ -1,4 +1,4 @@
-import { associatedPlaces, collectionLabel, escapeHtml as e, filterPoems, lineCount, normalize, placeCounts, poemCard, readingLanguages, yearRangeCounts } from '../src/catalog.mjs';
+import { associatedPlaces, collectionLabel, escapeHtml as e, filterPoems, lineCount, normalize, placeCounts, poemCard, readingLanguages, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 import { groupPoets } from './poets.mjs';
 import { relatedPoems } from './recommendations.mjs';
 
@@ -80,7 +80,7 @@ function featuredReading(poems, base) {
   const translation = Array.isArray(poem.translations) && poem.translations.find(item => item && item.language === 'English' && item.translator === 'Lafcadio Hearn, 1898' && present(item.title) && present(item.text) && present(item.rights) && secureUrl(item.source));
   const english = translation ? lines(translation.text) : [];
   const title = poem.displayTitle || poem.title;
-  return `<article class="featured-reading" aria-labelledby="featured-reading-title"><div class="featured-reading-heading"><p class="featured-reading-kicker">FEATURED READING</p><h4 id="featured-reading-title"${poem.displayTitle ? '' : ` lang="${e(poem.lang)}" dir="${e(poem.direction)}"`}>${e(title)}</h4><p class="featured-reading-byline">${e(poem.author)} · ${e(poem.language)}</p></div><div class="featured-reading-verses"><p class="featured-reading-label">${original.length > 1 ? 'Opening line · ' : ''}${e(poem.language)} original</p><p class="featured-reading-original" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(original[0])}</p>${translation ? `<p class="featured-reading-label">${english.length > 1 ? 'Opening line · ' : ''}English translation</p><p class="featured-reading-translation" lang="en" dir="ltr">${e(english[0])}</p>` : ''}</div><div class="featured-reading-footer"><p>Original: ${e(poem.sourceTitle)}${translation ? ` · English: ${e(translation.translator)}` : ''}</p><a href="${e(base)}poems/${e(poem.id)}/">Read poem &amp; sources <span aria-hidden="true">↗</span></a></div></article>`;
+  return `<article class="featured-reading" aria-labelledby="featured-reading-title"><div class="featured-reading-heading"><p class="featured-reading-kicker">FEATURED READING</p><h4 id="featured-reading-title"${titleAttributes(poem)}>${e(title)}</h4><p class="featured-reading-byline">${e(poem.author)} · ${e(poem.language)}</p></div><div class="featured-reading-verses"><p class="featured-reading-label">${original.length > 1 ? 'Opening line · ' : ''}${e(poem.language)} original</p><p class="featured-reading-original" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(original[0])}</p>${translation ? `<p class="featured-reading-label">${english.length > 1 ? 'Opening line · ' : ''}English translation</p><p class="featured-reading-translation" lang="en" dir="ltr">${e(english[0])}</p>` : ''}</div><div class="featured-reading-footer"><p>Original: ${e(poem.sourceTitle)}${translation ? ` · English: ${e(translation.translator)}` : ''}</p><a href="${e(base)}poems/${e(poem.id)}/">Read poem &amp; sources <span aria-hidden="true">↗</span></a></div></article>`;
 }
 
 export function renderHome(poems, base) {
@@ -107,7 +107,7 @@ export function renderHome(poems, base) {
     indexByLanguage.get(poem.language).push(poem);
   }
   const indexGroups = [...indexByLanguage].toSorted(([a], [b]) => a.localeCompare(b)).map(([language, works]) => ({ language, works, id: `index-original-${encodeURIComponent(language)}` }));
-  const indexItem = poem => `<li><a href="${e(base)}poems/${e(poem.id)}/">${poem.displayTitle ? e(poem.displayTitle) : `<span lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</span>`}${poem.disambiguation ? ` (${disambiguation(poem)})` : ''} — ${e(poem.author)}</a></li>`;
+  const indexItem = poem => `<li><a href="${e(base)}poems/${e(poem.id)}/">${poem.displayTitle && !poem.displayTitleLang ? e(poem.displayTitle) : `<span${titleAttributes(poem)}>${e(poem.displayTitle || poem.title)}</span>`}${poem.disambiguation ? ` (${disambiguation(poem)})` : ''} — ${e(poem.author)}</a></li>`;
   const places = placeCounts(poems);
   const regions = new Set(['Not established', 'Arabian Peninsula']);
   const orderedPlaces = [...places.filter(p => !regions.has(p.place)), ...places.filter(p => regions.has(p.place))];
@@ -187,7 +187,7 @@ export function renderPoet(poet, base) {
   const places = values(associatedPlaces);
   const languages = values(p => [p.language]);
   const works = poet.poems.toSorted((a, b) => (a.displayTitle || a.title).localeCompare(b.displayTitle || b.title, undefined, { numeric: true }) || a.id.localeCompare(b.id));
-  const workLink = p => `<li><a href="${e(base)}poems/${e(p.id)}/"><span><strong${p.displayTitle ? '' : ` lang="${e(p.lang)}" dir="${e(p.direction)}"`}>${e(p.displayTitle || p.title)}</strong>${p.displayTitle ? `<small lang="${e(p.lang)}" dir="${e(p.direction)}">${e(p.title)}</small>` : ''}${p.disambiguation ? `<small>Opening line: ${disambiguation(p)}</small>` : ''}<small>${e(p.language)} · ${e(p.yearLabel)}</small></span><span aria-hidden="true">↗</span></a></li>`;
+  const workLink = p => `<li><a href="${e(base)}poems/${e(p.id)}/"><span><strong${titleAttributes(p)}>${e(p.displayTitle || p.title)}</strong>${p.displayTitle ? `<small lang="${e(p.lang)}" dir="${e(p.direction)}">${e(p.title)}</small>` : ''}${p.disambiguation ? `<small>Opening line: ${disambiguation(p)}</small>` : ''}<small>${e(p.language)} · ${e(p.yearLabel)}</small></span><span aria-hidden="true">↗</span></a></li>`;
   const first = works.slice(0, 8).map(workLink).join('');
   const remaining = works.slice(8);
   const more = remaining.length ? `<details class="poet-more"><summary>Show ${remaining.length.toLocaleString('en-US')} more ${remaining.length === 1 ? 'poem' : 'poems'}</summary><ul class="poet-works-list">${remaining.map(workLink).join('')}</ul></details>` : '';
@@ -216,7 +216,7 @@ export function renderPoem(poem, poems, base) {
   const connections = (poem.connections || []).map(connection => {
     const target = poems.find(item => item.id === connection.targetId);
     if (!target) return '';
-    return `<div class="connection-entry"><span class="language-pill">${e(connectionNames[connection.type])}</span><a href="${e(base)}poems/${e(target.id)}/"><strong>${e(target.displayTitle || target.title)}</strong> · ${e(target.author)} ↗</a><p>${e(connection.note)}</p><a href="${e(connection.source)}" target="_blank" rel="noopener noreferrer">View evidence ↗</a></div>`;
+    return `<div class="connection-entry"><span class="language-pill">${e(connectionNames[connection.type])}</span><a href="${e(base)}poems/${e(target.id)}/"><strong${titleAttributes(target)}>${e(target.displayTitle || target.title)}</strong> · ${e(target.author)} ↗</a><p>${e(connection.note)}</p><a href="${e(connection.source)}" target="_blank" rel="noopener noreferrer">View evidence ↗</a></div>`;
   }).join('');
   const connectionsSection = connections ? `<section class="connections-section"><p class="eyebrow">TRACING CONNECTIONS</p><h2>Connections we can trace.</h2>${connections}</section>` : '';
   const relatedSection = suggestions.length ? `<section class="related-section"><div class="section-heading"><div><p class="eyebrow">KEEP WANDERING</p><h2>One poem leads <em>to another.</em></h2><p>Suggestions share catalogue details, not claims of historical influence.</p></div><a class="text-link" href="${e(base)}#explore">Explore all poems ↗</a></div><div class="poem-grid">${suggestions.map(item => poemCard(item.poem, base, item.reason)).join('')}</div></section>` : '';
@@ -224,7 +224,7 @@ export function renderPoem(poem, poems, base) {
   return `${head({ title: `${seoTitle} by ${poem.author} | Verso Poetry Library`, description: desc, path, base, schema })}<body class="reader-page tone-${e(poem.mood)}" data-poem-id="${e(poem.id)}">${header(base)}
   <main id="main" class="reader-wrap"><a class="back-link" data-back-to-library href="${e(base)}#explore">← Back to the library</a>
     <div class="reader-intro"><div><p class="eyebrow"><span>THE READING ROOM</span> &nbsp; / &nbsp; ${e(poem.language.toUpperCase())} POETRY</p>
-      <h1${poem.displayTitle ? '' : ` lang="${e(poem.lang)}" dir="${e(poem.direction)}"`}>${e(title)}</h1>
+      <h1${titleAttributes(poem)}>${e(title)}</h1>
       ${poem.displayTitle ? `<p class="reader-original-title" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}
       ${poem.disambiguation ? `<p class="reader-disambiguation">Opening line: ${disambiguation(poem)}</p>` : ''}
       <p class="reader-byline">${poem.anonymous ? 'Attribution:' : 'by'} <strong><a href="${e(base)}poets/${e(poem.authorId)}/">${e(poem.author)}</a></strong> <span>·</span> ${e(poem.yearLabel)}</p></div>

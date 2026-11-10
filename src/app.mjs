@@ -1,4 +1,4 @@
-import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml as e, filterPoems, normalize, poemCard, readingLanguages, recordedYearRanges, surprisePoem, yearRangeCounts } from './catalog.mjs';
+import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml as e, filterPoems, normalize, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from './catalog.mjs';
 
 const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
@@ -208,13 +208,13 @@ function updateSaveButtons() {
   const shelf = document.querySelector('#shelf-items');
   if (shelf) {
     const saved = catalogueFailed ? [] : state.saved.map(id => poems.find(p => p.id === id)).filter(Boolean);
-    const items = catalogueFailed ? unavailableShelfItems(state.saved, 'saved') : saved.length ? saved.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>♡</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '' : '<p>Your saved poems will appear here. Tap ♡ on a poem to keep it close.</p>';
+    const items = catalogueFailed ? unavailableShelfItems(state.saved, 'saved') : saved.length ? saved.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>♡</span><span><strong${titleAttributes(p)}>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '' : '<p>Your saved poems will appear here. Tap ♡ on a poem to keep it close.</p>';
     if (shelf.innerHTML !== items) shelf.innerHTML = items;
   }
   const recent = document.querySelector('#recent-items');
   if (recent) {
     const read = catalogueFailed ? [] : state.recent.map(id => poems.find(p => p.id === id)).filter(Boolean);
-    const items = catalogueFailed ? unavailableShelfItems(state.recent, 'recent') : read.length ? read.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>◷</span><span><strong>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '<p>Reading history could not be read from browser storage.</p>' : '<p>Your recently read poems will appear here.</p>';
+    const items = catalogueFailed ? unavailableShelfItems(state.recent, 'recent') : read.length ? read.map(p => `<a href="${e(base)}poems/${e(p.id)}/"><span>◷</span><span><strong${titleAttributes(p)}>${e(p.displayTitle || p.title)}</strong><small>${e(p.author)}</small></span><span>↗</span></a>`).join('') : storageFailure === 'read' ? '<p>Reading history could not be read from browser storage.</p>' : '<p>Your recently read poems will appear here.</p>';
     if (recent.innerHTML !== items) recent.innerHTML = items;
   }
 }
@@ -435,7 +435,7 @@ function setupExplore() {
   function rememberJourney(id, source = 'results') {
     try {
       const token = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2) || '0'}`;
-      sessionStorage.setItem(journeyKey, JSON.stringify({ search: location.search, items: filtered.map(p => ({ id: p.id, title: p.displayTitle || p.title })), limit, entryId: id, entryPending: true, source, token }));
+      sessionStorage.setItem(journeyKey, JSON.stringify({ search: location.search, items: filtered.map(p => ({ id: p.id, title: p.displayTitle || p.title, ...(p.displayTitle && p.displayTitleLang ? { titleLang: p.displayTitleLang } : {}) })), limit, entryId: id, entryPending: true, source, token }));
       if (history.state === null || (typeof history.state === 'object' && !Array.isArray(history.state))) history.replaceState({ ...history.state, versoJourney: token }, '', location.href);
     } catch { /* Reading still works when browser storage is unavailable. */ }
   }
@@ -577,7 +577,12 @@ function setupReader() {
           if (!item) continue;
           const link = document.querySelector(selector);
           link.href = `${base}poems/${encodeURIComponent(item.id)}/`;
-          link.querySelector('strong').textContent = item.title;
+          const title = link.querySelector('strong');
+          title.textContent = item.title;
+          if (typeof item.titleLang === 'string' && /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i.test(item.titleLang)) {
+            title.lang = item.titleLang;
+            title.dir = 'auto';
+          }
           link.hidden = false;
         }
         document.querySelector('#reading-journey').hidden = false;
