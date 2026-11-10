@@ -1,0 +1,109 @@
+{
+  "scanSha256": {
+    "bint-fikr-commons.pdf": "fb138913fddf153646069e625e24bf326d823fef91b1d1cb770e02bf4607e053",
+    "mashahir-1922.pdf": "5871bd12d1d4b8bef093e8690dd5ac3330975fcd3d11cf5b891c80db53dba31e",
+    "ibrahim-collected-undated.pdf": "78d00d3a59fd1314795a08b48334469c9a225de05411b53b423f8218dc757bc3"
+  },
+  "poems": [
+    {
+      "slug": "francis-coffin",
+      "poet": "marrash",
+      "printedPages": [19],
+      "wikiPages": [{"pageId": 174584, "revision": 311907}],
+      "couplets": 2,
+      "textSha256": "241959a8fcd067da0c74cacd83bdf535aa85d2a50ecec1eab23ce5f770320a97",
+      "note": "The headnote identifies these two couplets as an inscription for the coffin of her brother Francis Marrash; they are separately presented from the longer elegy on p. 16."
+    },
+    {
+      "slug": "evening-gathering",
+      "poet": "marrash",
+      "printedPages": [19],
+      "wikiPages": [{"pageId": 174584, "revision": 311907}],
+      "couplets": 5,
+      "textSha256": "5d08a6800dcad6fa39e33661a5ea1a8f06e8984c0983ad1c454b25ad84d9006c",
+      "note": "A separate وقالت heading introduces these five couplets about an evening gathering and an admired companion; a new inscription follows."
+    },
+    {
+      "slug": "bashir-elegy",
+      "poet": "marrash",
+      "printedPages": [20],
+      "wikiPages": [{"pageId": 174586, "revision": 311908}],
+      "couplets": 2,
+      "textSha256": "bb6497a0700518e343ae5fe8fe901955681f8955bc430d5a61d04543a4582f37",
+      "note": "The headnote identifies this separately presented two-couplet elegy as mourning a child named Bashir. Its comparison with Gabriel is not treated as evidence of denomination or a devotional classification."
+    },
+    {
+      "slug": "steadfast-friend",
+      "poet": "marrash",
+      "printedPages": [21],
+      "wikiPages": [{"pageId": 174587, "revision": 311909}],
+      "couplets": 3,
+      "textSha256": "6a4dfc3b30fa91c25c49a714ee26a4837b80e264adb987175dfd7b76c855014d",
+      "note": "A separate وقالت heading presents three couplets on separation and steadfast affection, before the next headnote."
+    },
+    {
+      "slug": "unlearned-physician",
+      "poet": "marrash",
+      "printedPages": [22],
+      "wikiPages": [{"pageId": 174588, "revision": 311910}],
+      "couplets": 2,
+      "textSha256": "a692cb3df492b7ec9b589d480eeb12287ace2600002aed3bb98de135c8edb1f7",
+      "note": "The book separately presents these two satirical couplets about an unlearned physician between two inscriptions."
+    },
+    {
+      "slug": "fragrant-pouch",
+      "poet": "marrash",
+      "printedPages": [22],
+      "wikiPages": [{"pageId": 174588, "revision": 311910}],
+      "couplets": 2,
+      "textSha256": "a14a1adb3f4ecde137f6f85c391d9400c2c8f70df7eac91fef92207bcdc350dd",
+      "note": "The headnote identifies these two couplets as an inscription for a tobacco pouch; they are distinct from the three-couplet pouch inscription earlier on the same page."
+    },
+    {
+      "slug": "photograph",
+      "poet": "marrash",
+      "printedPages": [23],
+      "wikiPages": [{"pageId": 174589, "revision": 311911}],
+      "couplets": 2,
+      "textSha256": "d16a6ef8e6dfccf46f62abe79808772eac1f4ec35702586b9c446865c4411ea3",
+      "note": "The headnote says the two couplets were written on a photograph; the following birth greeting has its own heading."
+    },
+    {
+      "slug": "newborn-greeting",
+      "poet": "marrash",
+      "printedPages": [23, 24],
+      "wikiPages": [{"pageId": 174589, "revision": 311911}, {"pageId": 174590, "revision": 311912}],
+      "couplets": 3,
+      "textSha256": "0057812124f1f852676e82225c9e437ff9d2fd70a5d2fb62b006e5301ed1c71a",
+      "note": "The headnote identifies a congratulation on the birth of a girl: one couplet on p. 23 continues with two on p. 24. The scan reads ملاك and خط where the unproofread Wikisource page has ملك and فخط."
+    },
+    {
+      "slug": "barber",
+      "poet": "marrash",
+      "printedPages": [24],
+      "wikiPages": [{"pageId": 174590, "revision": 311912}],
+      "couplets": 2,
+      "textSha256": "8ffec41f5993eea5279e6c7ba977bd94ea54c21b84a71456fb3cc200e1465851",
+      "note": "The headnote presents these two couplets as praise of a barber. The scan and Wikisource read مد كفا; the consulted Qafiyah transcription has مد كفاه."
+    },
+    {
+      "slug": "bereaved-mother",
+      "poet": "marrash",
+      "printedPages": [24],
+      "wikiPages": [{"pageId": 174590, "revision": 311912}],
+      "couplets": 2,
+      "textSha256": "99c87d1c053ecc7a8d0e100f7a34f4d6985fb08dc65bdaaee24d208d044f196d",
+      "note": "The headnote presents this two-couplet exchange as suggested by a bereaved woman, not as an established event in the poet's own life. The scan reads شتاتي where the consulted online transcriptions have ستاتي."
+    },
+    {
+      "slug": "truth-and-homeland",
+      "poet": "ibrahim",
+      "printedPages": [204, 205, 206],
+      "pdfPages": [167, 166, 165],
+      "comparisonPrintedPages": [94, 95, 96, 97],
+      "comparisonPdfPages": [466, 467, 468, 469],
+      "couplets": 32,
+      "textSha256": "257bb3ea9503b56dfb664c600b879482e16562159d5ca94bc43eb442f26fe945"
+    }
+  ]
+}
