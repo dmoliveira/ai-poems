@@ -261,6 +261,8 @@ test('Francisca Júlia originals retain reviewed first-edition readings and dist
   assert.match(byId('ballada-05').context, /print does not establish the break/);
   assert.match(byId('ballada-05').context, /prayer to Christ.*does not establish the poet’s denomination/);
   assert.match(byId('marmores-05').text, /tritão de escameo dorso louro/);
+  assert.match(byId('marmores-06').text, /Pensa na longe patria.*[\s\S]*negros pituns/);
+  assert.match(byId('marmores-06').context, /pátria, além.*negros reptis.*incomplete year/);
   assert.match(byId('marmores-17').text, /^Eis-me a pensar, emquanto a noite envolve a terra;/);
   assert.match(byId('ballada-01').text, /Terras extranhas e remotos mares/);
   assert.match(byId('ballada-06').text, /^Aguarda o joven conde[\s\S]*A um canto do boudoir[\s\S]*Entra e murmura/);
