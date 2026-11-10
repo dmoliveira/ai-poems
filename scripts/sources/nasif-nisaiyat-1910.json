@@ -1,0 +1,23 @@
+{
+  "scanSha256": {
+    "nasif-nisaiyat-1910.pdf": "24b5bbe63a0fabf2878f2abef72e753e3e6bd5b6d0996863823662cf925840fb",
+    "nisaiyat-alex-unknown.pdf": "00cb5ca5b3b9f7761da3bc0eaf4be2801063389c5257b9155e7f72ef3cd8ce0c",
+    "muqtabas-year-5.pdf": "2830748149d092b96be646751fcf8275dd090a89f279c2557868423e433cbebf"
+  },
+  "poem": {
+    "slug": "womens-poem",
+    "printedPages": [144, 145, 146],
+    "pdfPages": [156, 157, 158],
+    "introductionPdfPage": 155,
+    "followingSectionPdfPage": 159,
+    "comparisonPrintedPages": [148, 149, 150],
+    "comparisonPdfPages": [154, 155, 156],
+    "reviewPrintedPage": 481,
+    "reviewPdfPage": 493,
+    "reviewIssueOpeningPdfPage": 445,
+    "couplets": 60,
+    "textSha256": "67b97f3c839ba80a035ff43a41b4f8ca43afd230263971d0a462756fadabf767",
+    "wikiPageId": 92957,
+    "wikiRevision": 465123
+  }
+}
