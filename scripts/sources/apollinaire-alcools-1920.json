@@ -1,0 +1,591 @@
+{
+  "gutenbergSha256": "ffe6ede68622c9806cca052ead144f9745f2c4cccb7ef7a37db13212eea5bbfb",
+  "scanSha256": {
+    "7": "cf799d9e671e652783418828f51c73e6e4ac1d6e3f44a9c09446bd35606ebaa5",
+    "8": "e7b919c4f7256e6d4a257bb047c7d61321ac5c555505bdc6e1be998229f7b524",
+    "9": "adb94aab7f83d640f2744c0a4945dfc219fdd18d51ebbc70cb6c86f925c8b8d4",
+    "10": "d7aed34097db84054d1c16d75b74f7ead046edae8d76b4f7299bc132b9a2ade9",
+    "11": "6f34387db9ced5431a8dc47113b18a59c3628a49a64a8c712005feb4fc6572ff",
+    "12": "0a47b3f13cf39a11001f043f8b5fab2d07748df98ce1065354000ebdd4aa9c07",
+    "13": "42c06c990a212dc9823e9e8af81b9a9fa40066d96e16367b54f0731437478921",
+    "14": "b9a2ecde01721f6f81e7bc2f6f124048a0aa99983b6527354e811dd08debfaf1",
+    "15": "75c4a51f5cb5ccbc39af461118fa4bac7e21ed9f4b0c09c27b73aa63df80923b",
+    "16": "464269d7872ef4d1952501c00079edc5832d96f2128029f3ad65fff4009b0313",
+    "17": "bf371adc1ead9cb24340658d1577a9ee6c1f54476f547a0452eaedae2bbba3e9",
+    "35": "5eaf88d75340224529864df92aa9bbb6de911beb208df78f2569c60a4aeca357",
+    "39": "4bb17af043eb541d14f904232c0308234120210f81ef89de720e1725af46c38a",
+    "58": "27b6c84bed9942447c1502dd4dde785047d2cc8f63eb8d6112f7b61cefdab93a",
+    "63": "9702e41f5e05a8d10fc898db095d787de61d6fb3031a70c54ec3bc80ba7f8d5c",
+    "64": "cf340b1811e610d2f0c5a149ea77ead1ffc36f19d5786fedc7b9a8b744f9dd48",
+    "104": "ffa2562c514f54566e603c1a0d944dc4c7d35835fe520004d27e2389c13c3fae",
+    "113": "eba6b3dd05af386c65340678dab872eae19de54ab46cfbd68fd15eb99dc5148f",
+    "114": "08532f6dd473c03ef6ea1ce03fecda12b3a98fe3ff75eb1ad8e2159027152d4d",
+    "122": "fcb0eae19dd323d6ca51c18ad08452979ed95642901af8db14fb04d17ab4bc16",
+    "123": "c90f95a277c05ce98387ffad568bce38dd8f312864a39430249039ff00dab039",
+    "124": "d1b91ede883c70f450b5c46008774b25120c96217ac5a4ec8ee4c02cb6fd12f6",
+    "125": "77e85f98e6b56ab5203bb0fda3fb1981f8329ee16e620bd813d15826a3ceb52c",
+    "126": "a970729784fdb36fb6a3fc2fd9e2e1efaf3871fb9793129af35d2f650c4ce1c4",
+    "127": "719d1063d5d36976278c6c32260eee0076c371051bf799c71bd7386b92432022",
+    "128": "0f1e26f37ac69dc0ded6f03e2ca7529f871c717964888458f038e4942c0adea6",
+    "129": "3797e3501551d6f79518e51a4ebfd7cc07b92a9ddd7ac265898fb6c07505f920",
+    "130": "9ecb9e00addfdbeb481a38aa2964c5b4a384d87a25d0856163c4125d23ccb426",
+    "148": "f93bdd0c4989c5ec921aa097352ecf4999f1c7961fe3f0f736d50bd2865246b7",
+    "149": "8f283b395a85d7e06a3493c716559ce4aef780bd12655659e78d2f21923ef7be"
+  },
+  "poems": [
+    {
+      "number": 1,
+      "title": "Zone",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Zone&oldid=14091471",
+      "quality": "9 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "610621b4bd5e40dcf0ad5bfeae79e65298681dbcd40ff6a9b1728ed1d890c363",
+      "comparisonStart": "id00007",
+      "comparisonEnd": "id00044",
+      "note": "The 1920 print repeats “devant devant”, omitted in both digital transcriptions; this is restored from the scan. Several breaks introduced around long-line markup are removed. The print also has “en élevant”, “flamands”, “fonds” and “la regarder” where the comparison differs.",
+      "edits": [
+        {
+          "page": 8,
+          "before": "Située à Paris entre la rue Aumont-Thiéville et l’avenue des Ternes\n\nVoilà la jeune rue et tu n’es encore qu’un petit enfant",
+          "after": "Située à Paris entre la rue Aumont-Thiéville et l’avenue des Ternes\nVoilà la jeune rue et tu n’es encore qu’un petit enfant"
+        },
+        {
+          "page": 8,
+          "before": "Vous n’aimez rien tant que les pompes de l’Église\n\nIl est neuf heures le gaz est baissé tout bleu vous sortez du dortoir en cachette",
+          "after": "Vous n’aimez rien tant que les pompes de l’Église\nIl est neuf heures le gaz est baissé tout bleu vous sortez du dortoir en cachette"
+        },
+        {
+          "page": 11,
+          "before": "L’amour dont je souffre est une maladie honteuse\n\nEt l’image qui te possède te fait survivre dans l’insomnie et dans l’angoisse",
+          "after": "L’amour dont je souffre est une maladie honteuse\nEt l’image qui te possède te fait survivre dans l’insomnie et dans l’angoisse"
+        },
+        {
+          "page": 13,
+          "before": "J’ai vécu comme un fou et j’ai perdu mon temps\n\nTu n’oses plus regarder tes mains et à tous moments je voudrais sangloter",
+          "after": "J’ai vécu comme un fou et j’ai perdu mon temps\nTu n’oses plus regarder tes mains et à tous moments je voudrais sangloter"
+        },
+        {
+          "page": 14,
+          "before": "Et revenir dans leur pays après avoir fait fortune\n\nUne famille transporte un édredon rouge comme vous transportez votre cœur",
+          "after": "Et revenir dans leur pays après avoir fait fortune\nUne famille transporte un édredon rouge comme vous transportez votre cœur"
+        },
+        {
+          "page": 15,
+          "before": "Dormir parmi tes fétiches d’Océanie et de Guinée\n\nIls sont des Christ d’une autre forme et d’une autre croyance",
+          "after": "Dormir parmi tes fétiches d’Océanie et de Guinée\nIls sont des Christ d’une autre forme et d’une autre croyance"
+        },
+        {
+          "page": 14,
+          "before": "Tu es debout devant le zinc d’un bar crapuleux",
+          "after": "Tu es debout devant devant le zinc d’un bar crapuleux"
+        }
+      ],
+      "lines": 155,
+      "sha256": "111ee70dd9ba70cc65ff80fa531cb01629f2de02dead52a994311a34bae19b7e",
+      "comparisonDifferences": [
+        {
+          "original": "en",
+          "comparison": ""
+        },
+        {
+          "original": "flamands",
+          "comparison": "flamants"
+        },
+        {
+          "original": "fonds",
+          "comparison": "fond"
+        },
+        {
+          "original": "la",
+          "comparison": "le"
+        },
+        {
+          "original": "devant",
+          "comparison": ""
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Le Pont Mirabeau",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Le_Pont_Mirabeau&oldid=14091437",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "746725f1136dbc705883fca9bd79a15350b61018de9b153d0e3ecd94e566f85b",
+      "comparisonStart": "id00044",
+      "comparisonEnd": "id00052",
+      "note": "The final two-line refrain is present in the 1920 scan but missing from the comparison.",
+      "lines": 24,
+      "sha256": "746725f1136dbc705883fca9bd79a15350b61018de9b153d0e3ecd94e566f85b",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 4,
+      "title": "Les Colchiques",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Les_Colchiques&oldid=14091441",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "8e3e66147f2e58f3db1a0f742ac83d39ef3037d1db7065402604c24dcb09cdc1",
+      "comparisonStart": "id00120",
+      "comparisonEnd": "id00124",
+      "note": "The 1920 scan prints a stanza break before “Qui battent”; the comparison joins that line to the preceding stanza.",
+      "lines": 15,
+      "sha256": "8e3e66147f2e58f3db1a0f742ac83d39ef3037d1db7065402604c24dcb09cdc1",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 6,
+      "title": "Chantre",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Chantre&oldid=14091418",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "8c92540f30af0efd559c03aebf9fb5d3ee0c09c5af34c6378b396c22674ac555",
+      "comparisonStart": "id00137",
+      "comparisonEnd": "id00139",
+      "note": "This complete poem consists of one line in the 1920 edition.",
+      "lines": 1,
+      "sha256": "8c92540f30af0efd559c03aebf9fb5d3ee0c09c5af34c6378b396c22674ac555",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 7,
+      "title": "Crépuscule",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Cr%C3%A9puscule&oldid=14091424",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "8d58011c521f8274a7430200f0e208f4de22ba3f09f2d0249228250801bc296a",
+      "comparisonStart": "id00139",
+      "comparisonEnd": "id00146",
+      "note": "",
+      "lines": 20,
+      "sha256": "8d58011c521f8274a7430200f0e208f4de22ba3f09f2d0249228250801bc296a",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 8,
+      "title": "Annie",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Annie&oldid=14091415",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "529c517b24a9e68cc0d00620b1def6c276e297d123ddd103a6a2cd531516ccee",
+      "comparisonStart": "id00146",
+      "comparisonEnd": "id00150",
+      "note": "",
+      "lines": 13,
+      "sha256": "529c517b24a9e68cc0d00620b1def6c276e297d123ddd103a6a2cd531516ccee",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 10,
+      "title": "Clotilde",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Clotilde&oldid=14091420",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "ee0f0cee449ddb1e786c4568bfbfccbf04fda2e8e470d0c730aae14c2bda72c8",
+      "comparisonStart": "id00185",
+      "comparisonEnd": "id00189",
+      "note": "",
+      "lines": 12,
+      "sha256": "ee0f0cee449ddb1e786c4568bfbfccbf04fda2e8e470d0c730aae14c2bda72c8",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 12,
+      "title": "Marizibill",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Marizibill&oldid=14091454",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "7ffa58cdaadb5df6060326597bd55915baf71915d537685663aa1f9eaef8f015",
+      "comparisonStart": "id00198",
+      "comparisonEnd": "id00202",
+      "note": "The poem contains a historical antisemitic stereotype. The scan has “Je connais gens”, while the comparison adds “des”.",
+      "lines": 15,
+      "sha256": "7ffa58cdaadb5df6060326597bd55915baf71915d537685663aa1f9eaef8f015",
+      "comparisonDifferences": [
+        {
+          "line": 11,
+          "original": "Je connais gens de toutes sortes",
+          "comparison": "Je connais des gens de toutes sortes"
+        }
+      ]
+    },
+    {
+      "number": 14,
+      "title": "Marie",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Marie&oldid=14091453",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "c3dfce2784b49682168cb7304d4b4c7eaf6123c25c26bb913e5c7e79ec37c477",
+      "comparisonStart": "id00221",
+      "comparisonEnd": "id00227",
+      "note": "The 1920 scan has “Des masques”; the comparison reads “Les masques”.",
+      "lines": 25,
+      "sha256": "c3dfce2784b49682168cb7304d4b4c7eaf6123c25c26bb913e5c7e79ec37c477",
+      "comparisonDifferences": [
+        {
+          "line": 6,
+          "original": "Des masques sont silencieux",
+          "comparison": "Les masques sont silencieux"
+        }
+      ]
+    },
+    {
+      "number": 15,
+      "title": "La Blanche Neige",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/La_Blanche_Neige&oldid=14091426",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "ce464e2a96e9010edfb4d16f8c6be647a0a08a2d77c923485d8f42e26a3d02a5",
+      "comparisonStart": "id00227",
+      "comparisonEnd": "id00231",
+      "note": "",
+      "lines": 12,
+      "sha256": "ce464e2a96e9010edfb4d16f8c6be647a0a08a2d77c923485d8f42e26a3d02a5",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 17,
+      "title": "L’Adieu",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/L%E2%80%99Adieu&oldid=14091544",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "c7f86e51e06795d77907d1f28bb4b2dd92f318c0aedae0fd8ede7437076f389c",
+      "comparisonStart": "id00236",
+      "comparisonEnd": "id00238",
+      "note": "",
+      "lines": 5,
+      "sha256": "c7f86e51e06795d77907d1f28bb4b2dd92f318c0aedae0fd8ede7437076f389c",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 18,
+      "title": "Salomé",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Salom%C3%A9&oldid=14091462",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "ce0dad5501e35559f05705fe1272271bace89e730f3c96eb5aff1a2e10b15b85",
+      "comparisonStart": "id00238",
+      "comparisonEnd": "id00244",
+      "note": "",
+      "lines": 23,
+      "sha256": "ce0dad5501e35559f05705fe1272271bace89e730f3c96eb5aff1a2e10b15b85",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 19,
+      "title": "La Porte",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/La_Porte&oldid=13754871",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "2569849c5b52813db4669892af6f0a26f4f143cbafb2903556ee033e10956cda",
+      "comparisonStart": "id00244",
+      "comparisonEnd": "id00247",
+      "note": "",
+      "lines": 8,
+      "sha256": "2569849c5b52813db4669892af6f0a26f4f143cbafb2903556ee033e10956cda",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 21,
+      "title": "Saltimbanques",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Saltimbanques&oldid=14091463",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "5d93d37de3724a5222d6de88ba426f3fde0f563f07546fc47038a8d08a490c15",
+      "comparisonStart": "id00263",
+      "comparisonEnd": "id00268",
+      "note": "",
+      "lines": 12,
+      "sha256": "5d93d37de3724a5222d6de88ba426f3fde0f563f07546fc47038a8d08a490c15",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 23,
+      "title": "Le Vent nocturne",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Le_Vent_nocturne&oldid=14091438",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "2cf666f233bf8d4a982620acd7090c5f43b7fc91ad42167a0927241d8488de0a",
+      "comparisonStart": "id00312",
+      "comparisonEnd": "id00314",
+      "note": "",
+      "lines": 13,
+      "sha256": "2cf666f233bf8d4a982620acd7090c5f43b7fc91ad42167a0927241d8488de0a",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 25,
+      "title": "La Tzigane",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/La_Tzigane&oldid=14091434",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "1c2e0d245e60d61f431697f5f90643b9f74e2c6df59762b5dc6c059d98b81e4c",
+      "comparisonStart": "id00325",
+      "comparisonEnd": "id00329",
+      "note": "",
+      "lines": 12,
+      "sha256": "1c2e0d245e60d61f431697f5f90643b9f74e2c6df59762b5dc6c059d98b81e4c",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 27,
+      "title": "Automne",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Automne&oldid=14091416",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "78a1f9e37a00e30cb18fa182f3c5728f3357d290830f2e53c5284ed3712a29bd",
+      "comparisonStart": "id00355",
+      "comparisonEnd": "id00359",
+      "note": "",
+      "lines": 8,
+      "sha256": "78a1f9e37a00e30cb18fa182f3c5728f3357d290830f2e53c5284ed3712a29bd",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 29,
+      "title": "Rosemonde",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Rosemonde&oldid=14091461",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "bf232ed587ec070e79d2cecd2cfe54ae08f977f8fbae734190cb7c48bbbaed9a",
+      "comparisonStart": "id00374",
+      "comparisonEnd": "id00379",
+      "note": "The 1920 scan has “je m’allai”; the comparison reads “je m’en allai”.",
+      "lines": 15,
+      "sha256": "bf232ed587ec070e79d2cecd2cfe54ae08f977f8fbae734190cb7c48bbbaed9a",
+      "comparisonDifferences": [
+        {
+          "line": 14,
+          "original": "Puis lentement je m’allai",
+          "comparison": "Puis lentement je m'en allai"
+        }
+      ]
+    },
+    {
+      "number": 31,
+      "title": "Nuit rhénane",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Nuit_rh%C3%A9nane&oldid=14091514",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "a4873083a5832521367b14fac5b57802f355bd1b221732285bf3ef29b7d1be16",
+      "comparisonStart": "id00401",
+      "comparisonEnd": "id00406",
+      "note": "",
+      "lines": 13,
+      "sha256": "a4873083a5832521367b14fac5b57802f355bd1b221732285bf3ef29b7d1be16",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 32,
+      "title": "Mai",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Mai&oldid=14091452",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "34e182c2bb6c68653b595a8eb5355163c16af1d7dcc4a6298469bf89f182436a",
+      "comparisonStart": "id00406",
+      "comparisonEnd": "id00411",
+      "note": "The 1920 scan has “pétales flétris”; the comparison reads “pétales fleuris”.",
+      "lines": 17,
+      "sha256": "34e182c2bb6c68653b595a8eb5355163c16af1d7dcc4a6298469bf89f182436a",
+      "comparisonDifferences": [
+        {
+          "line": 8,
+          "original": "Les pétales flétris sont comme ses paupières",
+          "comparison": "Les pétales fleuris sont comme ses paupières"
+        }
+      ]
+    },
+    {
+      "number": 34,
+      "title": "Les Cloches",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Les_Cloches&oldid=14091440",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "f7ec2de5010ccd8a2e8af8f19a6be3885c7a7a527fe0fce969626573c2cb141e",
+      "comparisonStart": "id00417",
+      "comparisonEnd": "id00422",
+      "note": "",
+      "lines": 16,
+      "sha256": "f7ec2de5010ccd8a2e8af8f19a6be3885c7a7a527fe0fce969626573c2cb141e",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 35,
+      "title": "La Loreley",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/La_Loreley&oldid=14091431",
+      "quality": "3 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "74ec85b8cc190b8e9675a3085e8173b89d193175673199d9803308198e132c3f",
+      "comparisonStart": "id00422",
+      "comparisonEnd": "id00443",
+      "note": "",
+      "lines": 38,
+      "sha256": "74ec85b8cc190b8e9675a3085e8173b89d193175673199d9803308198e132c3f",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 36,
+      "title": "Schinderhannes",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Schinderhannes&oldid=14091464",
+      "quality": "3 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "b627c185f80de49b8a6f9ed5509467830fc21b3816cb399c5a6b436efdfb7c48",
+      "comparisonStart": "id00443",
+      "comparisonEnd": "id00452",
+      "note": "This narrative depicts a band planning to kill a Jewish character. The 1920 scan has “Au clair de torches”; the comparison reads “des torches”.",
+      "lines": 32,
+      "sha256": "b627c185f80de49b8a6f9ed5509467830fc21b3816cb399c5a6b436efdfb7c48",
+      "comparisonDifferences": [
+        {
+          "line": 27,
+          "original": "Au clair de torches de résine",
+          "comparison": "Au clair des torches de résine"
+        }
+      ]
+    },
+    {
+      "number": 37,
+      "title": "Rhénane d’automne",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Rh%C3%A9nane_d%E2%80%99automne&oldid=14091459",
+      "quality": "4 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "93e68004eaa89d7de8b312ee4205a436b05b467a611116db7f4438958820729c",
+      "comparisonStart": "id00452",
+      "comparisonEnd": "id00464",
+      "note": "The 1920 scan reads “Plein des saules” and “La croix nous pousse”; the comparison has “de saules” and “vous pousse”. A stanza break absent from the transcription is restored after “pieds”.",
+      "edits": [
+        {
+          "page": 127,
+          "before": "La croix nous pousse entre les pieds\nLe vent du Rhin ulule avec tous les hiboux",
+          "after": "La croix nous pousse entre les pieds\n\nLe vent du Rhin ulule avec tous les hiboux"
+        }
+      ],
+      "lines": 52,
+      "sha256": "2b098b325eaa6abcebc8998104afca0ca5bf620a0d07e534cc5edceea8a59026",
+      "comparisonDifferences": [
+        {
+          "line": 20,
+          "original": "Plein des saules gris et de romarins",
+          "comparison": "Plein de saules gris et de romarins"
+        },
+        {
+          "line": 31,
+          "original": "La croix nous pousse entre les pieds",
+          "comparison": "La croix vous pousse entre les pieds"
+        }
+      ]
+    },
+    {
+      "number": 38,
+      "title": "Les Sapins",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Les_Sapins&oldid=14091444",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "4fe1b047e0c02c0dbe4f2d1da71d93de6071385cb674368fc1a6b22670a340d1",
+      "comparisonStart": "id00464",
+      "comparisonEnd": "id00471",
+      "note": "The 1920 scan reads “revêtus”; the comparison has “revêtu”.",
+      "lines": 30,
+      "sha256": "4fe1b047e0c02c0dbe4f2d1da71d93de6071385cb674368fc1a6b22670a340d1",
+      "comparisonDifferences": [
+        {
+          "line": 2,
+          "original": "De longues robes revêtus",
+          "comparison": "De longues robes revêtu"
+        }
+      ]
+    },
+    {
+      "number": 39,
+      "title": "Les Femmes",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Les_Femmes&oldid=14091442",
+      "quality": "3 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "5b715df74fd843426bb5484477d82a71da116a6bebcc83e992b55c4de263fa9e",
+      "comparisonStart": "id00471",
+      "comparisonEnd": "id00482",
+      "note": "The dates printed separately after the verse are omitted.",
+      "lines": 36,
+      "sha256": "5b715df74fd843426bb5484477d82a71da116a6bebcc83e992b55c4de263fa9e",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 40,
+      "title": "Signe",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Signe&oldid=14091466",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "a89730cb867c09128b13441929b1464f5e791ac2f796e44c8dcb7cafe8232ddb",
+      "comparisonStart": "id00482",
+      "comparisonEnd": "id00485",
+      "note": "",
+      "lines": 8,
+      "sha256": "a89730cb867c09128b13441929b1464f5e791ac2f796e44c8dcb7cafe8232ddb",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 41,
+      "title": "Un Soir",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Un_Soir&oldid=14091468",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "95e95a07211e7ba2635fd7642e7f1b94a7164ccfbdae18481d7e9324637eb5f5",
+      "comparisonStart": "id00485",
+      "comparisonEnd": "id00491",
+      "note": "",
+      "lines": 20,
+      "sha256": "95e95a07211e7ba2635fd7642e7f1b94a7164ccfbdae18481d7e9324637eb5f5",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 42,
+      "title": "La Dame",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/La_Dame&oldid=14091430",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "0c8c9366b4114d4d0ddabf482b7c067eb265bbd3aead675f7ea0b11bcd4e5585",
+      "comparisonStart": "id00491",
+      "comparisonEnd": "id00494",
+      "note": "",
+      "lines": 6,
+      "sha256": "0c8c9366b4114d4d0ddabf482b7c067eb265bbd3aead675f7ea0b11bcd4e5585",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 44,
+      "title": "Clair de Lune",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Clair_de_Lune&oldid=14091419",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "19153fb917aa6b1ea8ca3c3a496b279bf1947bd7514ecf95c0b7d234e00d2414",
+      "comparisonStart": "id00518",
+      "comparisonEnd": "id00520",
+      "note": "",
+      "lines": 10,
+      "sha256": "19153fb917aa6b1ea8ca3c3a496b279bf1947bd7514ecf95c0b7d234e00d2414",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 45,
+      "title": "1909",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/1909&oldid=14091414",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "b3923511f6b9854d54744c32991b374d909307d581cae4294fb1e78b522cbe5b",
+      "comparisonStart": "id00520",
+      "comparisonEnd": "id00528",
+      "note": "The scan separates the final seven lines into stanzas of three and four; the comparison joins them.",
+      "lines": 29,
+      "sha256": "b3923511f6b9854d54744c32991b374d909307d581cae4294fb1e78b522cbe5b",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 47,
+      "title": "Automne Malade",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Automne_Malade&oldid=14091417",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "8419ad73c9785f2c67da392be702fe5c4ad8355cb0bd4855b9d26f70de2d6180",
+      "comparisonStart": "id00550",
+      "comparisonEnd": "id00555",
+      "note": "",
+      "lines": 23,
+      "sha256": "8419ad73c9785f2c67da392be702fe5c4ad8355cb0bd4855b9d26f70de2d6180",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 48,
+      "title": "Hôtels",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/H%C3%B4tels&oldid=14091425",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "3ca02bb1670b96278f22ec467c6a176da03ae331845ff9852e893a5c502cd742",
+      "comparisonStart": "id00555",
+      "comparisonEnd": "id00562",
+      "note": "",
+      "lines": 24,
+      "sha256": "3ca02bb1670b96278f22ec467c6a176da03ae331845ff9852e893a5c502cd742",
+      "comparisonDifferences": []
+    },
+    {
+      "number": 49,
+      "title": "Cors de Chasse",
+      "source": "https://fr.wikisource.org/w/index.php?title=Alcools/Cors_de_Chasse&oldid=14091421",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "sourceSha256": "171d73fae6b0016d27eaeb38bf4fc35f0d58fee5621b898ac425371cd9da6f51",
+      "comparisonStart": "id00562",
+      "comparisonEnd": "id00566",
+      "note": "",
+      "lines": 12,
+      "sha256": "171d73fae6b0016d27eaeb38bf4fc35f0d58fee5621b898ac425371cd9da6f51",
+      "comparisonDifferences": []
+    }
+  ]
+}
