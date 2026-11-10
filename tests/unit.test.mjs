@@ -216,6 +216,67 @@ test('Castro Alves originals preserve scan-reviewed readings and edition variant
   assert.equal(groupPoets(poems).find(group => group.id === 'castro-alves').poems.length, 9);
 });
 
+test('Francisca Júlia originals retain reviewed first-edition readings and distinct works', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/francisca-julia-marmores-reviewed.json', import.meta.url), 'utf8'));
+  const numbers = [...Array.from({ length: 21 }, (_, i) => i + 1), 23, 24, 36];
+  assert.deepEqual(manifest.poems.map(item => item.articleNumber), numbers);
+  assert.equal(manifest.scanSha256, '78b520b348ce8f986f618e8d2ee2b1724eea272c05ef09e0c1ed1cf405f085f6');
+  const selected = manifest.poems.map(item => {
+    const poem = poems.find(entry => entry.id === `francisca-julia-${item.slug}`);
+    assert.ok(poem, item.slug);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, 'Francisca Júlia');
+    assert.equal(poem.authorId, 'francisca-julia');
+    assert.equal(poem.authorYears, '1871?–1920');
+    assert.deepEqual(associatedPlaces(poem), ['Brazil']);
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.equal(new URL(poem.contextSource).searchParams.get('page'), String(item.pages[0]));
+    assert.ok(poem.contextSourceTitle.includes(String(item.pages[0] - 36)));
+    assert.match(poem.context, /birth year is disputed.*1871.*1874/);
+    assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*check local law/);
+    assert.match(poem.rights, /USP states non-commercial-use.*scan is linked, not reproduced/);
+    assert.equal(poem.form, item.form);
+    assert.equal(lineCount(poem), item.lines);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, item.faith ? ['Faith'] : []);
+    assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Brazil', query: 'francisca julia' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), 'fe2137250949c8799b834fd1092982abb41e58d48964646978a576fe903ae617');
+  const byId = suffix => selected.find(poem => poem.id === `francisca-julia-${suffix}`);
+  for (const poem of selected.filter(entry => entry.form === 'Sonnet')) {
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 3, 3]);
+  }
+  assert.deepEqual(byId('ballada-01').text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 4, 2, 2, 2, 2]);
+  assert.deepEqual(byId('ballada-03').text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 4, 4, 4]);
+  assert.deepEqual(byId('ballada-05').text.split('\n\n').map(stanza => stanza.split('\n').length), Array(9).fill(4));
+  assert.match(byId('ballada-05').context, /print does not establish the break/);
+  assert.match(byId('ballada-05').context, /prayer to Christ.*does not establish the poet’s denomination/);
+  assert.match(byId('marmores-05').text, /tritão de escameo dorso louro/);
+  assert.match(byId('marmores-06').text, /Pensa na longe patria.*[\s\S]*negros pituns/);
+  assert.match(byId('marmores-06').context, /pátria, além.*negros reptis.*incomplete year/);
+  assert.match(byId('marmores-17').text, /^Eis-me a pensar, emquanto a noite envolve a terra;/);
+  assert.match(byId('ballada-01').text, /Terras extranhas e remotos mares/);
+  assert.match(byId('ballada-06').text, /^Aguarda o joven conde[\s\S]*A um canto do boudoir[\s\S]*Entra e murmura/);
+  assert.match(byId('ballada-18').context, /marked over dos/);
+  assert.equal(byId('marmores-01').title, byId('ballada-18').title);
+  assert.notEqual(byId('marmores-01').disambiguation, byId('ballada-18').disambiguation);
+  assert.notEqual(byId('marmores-13').disambiguation, byId('marmores-17').disambiguation);
+  assert.equal(filterPoems(poems, { language: 'Portuguese', country: 'Brazil', query: 'musa impassivel' }).length, 2);
+  assert.ok(!selected.some(poem => poem.title === 'Estella'));
+  const poet = groupPoets(poems).find(group => group.id === 'francisca-julia');
+  assert.equal(poet.poems.length, 24);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
+
 test('French classics retain their proofread texts, edition credits and complete discovery', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/hugo-1911.json', import.meta.url), 'utf8'));
   assert.equal(manifest.length, 55);

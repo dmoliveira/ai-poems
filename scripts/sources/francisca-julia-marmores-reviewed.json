@@ -1,0 +1,671 @@
+{
+  "scanSha256": "78b520b348ce8f986f618e8d2ee2b1724eea272c05ef09e0c1ed1cf405f085f6",
+  "poems": [
+    {
+      "slug": "marmores-01",
+      "articleNumber": 1,
+      "title": "Musa impassivel",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Musa_impassivel&oldid=452826",
+      "quality": "1 página validada, 1 página só revista e 0 página não revista",
+      "pages": [
+        37,
+        38
+      ],
+      "sourceSha256": "dd94206aa85f76e638a97ac4c665399e84225fe6ba11dc807c0d635a1bf90c4e",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "This opening sonnet and the closing sonnet of Ballada share a title but are distinct works.",
+      "sha256": "1b1b5990326684e5b6e41381317397f71babfde3d86fde37bb15bcaa59fbd42c"
+    },
+    {
+      "slug": "marmores-02",
+      "articleNumber": 2,
+      "title": "A um artista",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/A_um_artista&oldid=409632",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        39,
+        40
+      ],
+      "sourceSha256": "e7af15666bb83038fc98ac69e751c7e538075d5b3207076a2904aec00f1cce60",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "The separate dedication to her brother Júlio César da Silva is not included in the verse.",
+      "sha256": "64cac0e9cd392328641139a7c88ff4df2ecaa76669e60a2b0c3080a9acbf7129"
+    },
+    {
+      "slug": "marmores-03",
+      "articleNumber": 3,
+      "title": "Os argonautas",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Os_argonautas&oldid=410040",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        41,
+        42
+      ],
+      "sourceSha256": "7740b25e7d1f6805a71337e1ee6f78e2f016737fad509ff8ca7524cbc5384be0",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "The separate dedication to Carlos Coelho is not included in the verse.",
+      "sha256": "638129f0718fea71114deb5f1ad1b5c5d1c74e2e64b08563f3a56129b6a43b7a"
+    },
+    {
+      "slug": "marmores-04",
+      "articleNumber": 4,
+      "title": "Mahabarata",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Mahabarata&oldid=409633",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        43,
+        44
+      ],
+      "sourceSha256": "6c6041a3ea891baf804abb8bb0cdb9631854a2bb60fcab3033bfe212cca1d8c8",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "",
+      "sha256": "d59c6cf67c2af634d6932b9f19fc966a254f33bf8171084d7901feb8223ca44f"
+    },
+    {
+      "slug": "marmores-05",
+      "articleNumber": 5,
+      "title": "Rainha das aguas",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Rainha_das_aguas&oldid=453095",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        45,
+        46
+      ],
+      "sourceSha256": "f345b80ad34aa92fda3be0ee08e46ce51e8e7fd7157ed85a150a37dea1faa6fb",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [
+        {
+          "line": 5,
+          "before": "Rema, á pôpa, um tritão de escarneo dorso louro;",
+          "after": "Rema, á pôpa, um tritão de escameo dorso louro;"
+        }
+      ],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "The scan reads escameo, correcting Wikisource’s escarneo. The separate dedication to Alberto d’Oliveira is omitted.",
+      "sha256": "d29e24fd0ee30324e869b7510a9334f992b1a749b72346149ca6fa28b1f7c084"
+    },
+    {
+      "slug": "marmores-06",
+      "articleNumber": 6,
+      "title": "Sonho africano",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Sonho_africano&oldid=410020",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        47,
+        48
+      ],
+      "sourceSha256": "b1fe3d2a8138eaba8334ca867b9bcd1c098f326d4e7ec8ff8ff8e8ab919ae700",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "The separate dedication to João Ribeiro is omitted. A modern-spelling Escritas transcription reads Pensa na pátria, além and negros reptis; the 1895 print has Pensa na longe patria and negros pituns. Escritas cites a Poesias edition with an incomplete year.",
+      "sha256": "07cf309e0b21ad7978e87440532d9f5a02bad605c998b18b9c83f9d25e54d63e"
+    },
+    {
+      "slug": "marmores-07",
+      "articleNumber": 7,
+      "title": "Paizagem",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Paizagem&oldid=410021",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        49,
+        50
+      ],
+      "sourceSha256": "5d3682121faefe860ef8afb5412de2d8a3cf431294d59fb70714b4de0816ac7f",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "",
+      "sha256": "f745f3afd0ef505d940c49a2ad77845caf18587676e4a855874340af382b107e"
+    },
+    {
+      "slug": "marmores-08",
+      "articleNumber": 8,
+      "title": "Venus",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Venus&oldid=410022",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        51,
+        52
+      ],
+      "sourceSha256": "998e1197e741fbc4fbdcca524610f8cdbc5564f01f1f289ad00eb4107917555d",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [
+        {
+          "line": 11,
+          "before": "Julgo vel-a descer lentamente do throno.",
+          "after": "Julgo vel-a descer lentamente do throno,"
+        }
+      ],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "The scan has a comma after throno, not the transcription’s period. The separate dedication to Victor Silva is omitted.",
+      "sha256": "36b7112eb47658ad35851ceefcb417a88b2a763d223d0f7b38785c10365fac47"
+    },
+    {
+      "slug": "marmores-09",
+      "articleNumber": 9,
+      "title": "Em Sonda",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Em_Sonda&oldid=410023",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        53,
+        54
+      ],
+      "sourceSha256": "b5040ad5b9ba4ac0273b5caff6c6a4c1d5bc1ea8c1d02d0167d37839faff081a",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "",
+      "sha256": "2205365d46b13943a1f4ef410fe7dc993974ffd8111ab3e6911d2e1b4f55fa54"
+    },
+    {
+      "slug": "marmores-10",
+      "articleNumber": 10,
+      "title": "A caçada",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/A_ca%C3%A7ada&oldid=410103",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        55,
+        56
+      ],
+      "sourceSha256": "9828b252e67b794c860310ad0d8b67897170ed3cdf0a1dd0c946f73278c38adb",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "The separate dedication to Valentim Magalhães is not included in the verse.",
+      "sha256": "1a8506d6d8708ff81160c37bc7a165a51c60c7a4475885de1a659e9c132a78d3"
+    },
+    {
+      "slug": "marmores-11",
+      "articleNumber": 11,
+      "title": "No campo",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/No_campo&oldid=410104",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        57,
+        58
+      ],
+      "sourceSha256": "7b3592336d0e7b06abefd25d69e056a5efacc4c4829b37eca2254a8e08bc7863",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "The separate dedication to Max Fleiuss is not included in the verse.",
+      "sha256": "d596023e25aa90d519c307f8b8a9127c37a6a8c739761044a68008437f5e4f3f"
+    },
+    {
+      "slug": "marmores-12",
+      "articleNumber": 12,
+      "title": "Nocturno",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Nocturno&oldid=409522",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        59,
+        60
+      ],
+      "sourceSha256": "5650f4e5de478f820b6039c56ce908630558603299fb3f007a8e0b0f4e48b3ad",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "",
+      "sha256": "a5b761017c31abd5cce979f99653cb7f876f0dbe71c90eddb519392e105e9423"
+    },
+    {
+      "slug": "marmores-13",
+      "articleNumber": 13,
+      "title": "A Noite",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/A_Noite&oldid=410066",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        61,
+        62
+      ],
+      "sourceSha256": "37ebcec26f28ab6af7c9c3ba70153ff410ebc2b61718ac9f4888899c2d14b7ee",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "The separate dedication to Wenceslau de Queiroz is not included in the verse.",
+      "sha256": "88b92860eff831ccccd1d438b0d23792014f338275af5310cea42787f4eb60da"
+    },
+    {
+      "slug": "marmores-14",
+      "articleNumber": 14,
+      "title": "A Ondina",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/A_Ondina&oldid=410105",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        63,
+        64
+      ],
+      "sourceSha256": "417ae9712589d84f049eb7c15ed14b27c54f458fd2a7057843c118e511722ba7",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "",
+      "sha256": "ef05735a054fac45bce6612c8ba00cae3383bf82cbdd2f142a423e5772517b70"
+    },
+    {
+      "slug": "marmores-15",
+      "articleNumber": 15,
+      "title": "Aurora",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Aurora&oldid=409510",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        65,
+        66
+      ],
+      "sourceSha256": "4ba5e0d4808bc0cef093a6c90bb3cf7137c4d0bf76313a8e3f2a422085763ca4",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "",
+      "sha256": "b7bff9b106826a18c0f623ffef8f345995543aae9d1ca635ed79e5f45abdd957"
+    },
+    {
+      "slug": "marmores-16",
+      "articleNumber": 16,
+      "title": "A um poeta",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/A_um_poeta&oldid=410106",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        67,
+        68
+      ],
+      "sourceSha256": "68f68e913ac7a5d616d26ab65b6ecf016c35cbe4299d4689017304b4e6e07a18",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "",
+      "sha256": "a395c1e6c5ead27bff9badb203ca68c82006fbc4de83e578f0b8f855d31dae63"
+    },
+    {
+      "slug": "marmores-17",
+      "articleNumber": 17,
+      "title": "Á noite",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/%C3%81_noite&oldid=410107",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        69,
+        70
+      ],
+      "sourceSha256": "02c2b1a519d3320e6f4d0b910cf537f408b0eabb773e4087a69f28b0963d1dde",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [
+        {
+          "line": 1,
+          "before": "Eis-me a pensar, emquato a noite envolve a terra;",
+          "after": "Eis-me a pensar, emquanto a noite envolve a terra;"
+        },
+        {
+          "line": 2,
+          "before": "Olhos fitos no vacuo, a amiga penna em pouso.",
+          "after": "Olhos fitos no vacuo, a amiga penna em pouso,"
+        },
+        {
+          "line": 3,
+          "before": "Eis-me, pois a pensar... De antro em antro, de serra",
+          "after": "Eis-me, pois, a pensar... De antro em antro, de serra"
+        }
+      ],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "The scan reads emquanto, not emquato, and has commas after pouso and pois.",
+      "sha256": "4e7ab5d227d073ce1e9466ab7c9ec1635c6650ae5ed286ebaaae5e670f9ef1ce"
+    },
+    {
+      "slug": "marmores-18",
+      "articleNumber": 18,
+      "title": "Inverno",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Inverno&oldid=410029",
+      "quality": "0 página validada, 2 páginas só revistas e 0 página não revista",
+      "pages": [
+        71,
+        72
+      ],
+      "sourceSha256": "437fecb33881db32d00384cf1502ad11b99bb181485445c7ebb4395880f497f5",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "The separate dedication to João Luso is not included in the verse.",
+      "sha256": "fd5c1d0d46c6673844cddeafc9c4b88f4452d876e00f0cbb10aa9af86a93e03e"
+    },
+    {
+      "slug": "ballada-01",
+      "articleNumber": 19,
+      "title": "Ballada",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Ballada/Ballada&oldid=410639",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        93,
+        94
+      ],
+      "sourceSha256": "273b81c7d52b905050a87b38950822c1325378080b38c88eae765678613738b4",
+      "sourceBreaks": [
+        4,
+        12,
+        14,
+        16,
+        18
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [
+        {
+          "line": 8,
+          "before": "Terra extranhas e remotos mares...",
+          "after": "Terras extranhas e remotos mares..."
+        }
+      ],
+      "lines": 20,
+      "form": "Verse",
+      "faith": false,
+      "note": "The scan reads Terras extranhas, correcting the transcription’s Terra extranhas.",
+      "sha256": "73af25a30c89afc6bd257647d46e119b7d399b460d57efaef71b68fe06b8469e"
+    },
+    {
+      "slug": "ballada-02",
+      "articleNumber": 20,
+      "title": "A florista",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Ballada/A_florista&oldid=410640",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        95,
+        96
+      ],
+      "sourceSha256": "a7f4cb1a97fe73d6e9cdacbcf29593326f873ef853954b26173ec7d740805214",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "",
+      "sha256": "78a11f32627d180297a5b31e9edee2695a634321c9ffe04097f7fdd264453128"
+    },
+    {
+      "slug": "ballada-03",
+      "articleNumber": 21,
+      "title": "Inconsolaveis",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Ballada/Inconsolaveis&oldid=410641",
+      "quality": "2 páginas validadas, 0 página só revista e 0 página não revista",
+      "pages": [
+        97,
+        98
+      ],
+      "sourceSha256": "87cb1f21410d416e9c30bde1dbff0808b83a36f79cf959aa156a67099a226702",
+      "sourceBreaks": [
+        4,
+        12,
+        16
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 20,
+      "form": "Verse",
+      "faith": false,
+      "note": "",
+      "sha256": "08bcea9921cda316d8520f7a080660def1f4a1414211548304f376e1ecffa78f"
+    },
+    {
+      "slug": "ballada-05",
+      "articleNumber": 23,
+      "title": "De joelhos",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Ballada/De_joelhos&oldid=411715",
+      "quality": "0 página validada, 3 páginas só revistas e 0 página não revista",
+      "pages": [
+        101,
+        102,
+        103
+      ],
+      "sourceSha256": "52a9586e8d3eab66a90b198aaa197a3260b7081560187228a90fa3f1221e96e7",
+      "sourceBreaks": [
+        4,
+        12,
+        16,
+        20,
+        28,
+        32
+      ],
+      "restoredBreaks": [
+        8,
+        24
+      ],
+      "corrections": [
+        {
+          "line": 12,
+          "before": "De outros mysterios e de outras vidas.",
+          "after": "De outros mysterios e de outras vidas..."
+        }
+      ],
+      "lines": 36,
+      "form": "Verse",
+      "faith": true,
+      "note": "The printed dedication to Santa Thereza is separate from the verse. The poem depicts prayer to Christ; this does not establish the poet’s denomination. The scan has an ellipsis after the first vidas. At the page break we show two quatrains, following the surrounding pattern; the print does not establish the break there.",
+      "sha256": "1b501e1d88b418d98cecf14e70acf61a7860a39f420dd3f5e007c516b4ce303e"
+    },
+    {
+      "slug": "ballada-06",
+      "articleNumber": 24,
+      "title": "No boudoir",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Ballada/No_boudoir&oldid=411716",
+      "quality": "0 página validada, 0 página só revista e 2 páginas não revistas",
+      "pages": [
+        105,
+        106
+      ],
+      "sourceSha256": "319ea1a563407a8d39d339048133f07525b4a57dd14785572617260bd5c01da0",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [
+        {
+          "line": 1,
+          "before": "Aguarda o jovem conde ha quasi uma hora,",
+          "after": "Aguarda o joven conde ha quasi uma hora,"
+        },
+        {
+          "line": 3,
+          "before": "A canto do boudoir, altiva e bella,",
+          "after": "A um canto do boudoir, altiva e bella,"
+        },
+        {
+          "line": 5,
+          "before": "Entre e murmura: „Que brilhante estrella!",
+          "after": "Entra e murmura: „Que brilhante estrella!"
+        }
+      ],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "The scan reads joven, A um canto and Entra, correcting the transcription’s jovem, A canto and Entre.",
+      "sha256": "0e5594a5e8535f8a7b287182e7f1454f37af5a7c3e85a23232a422e981adae77"
+    },
+    {
+      "slug": "ballada-18",
+      "articleNumber": 36,
+      "title": "Musa impassivel",
+      "source": "https://pt.wikisource.org/w/index.php?title=Marmores_(1895)/Ballada/Musa_impassivel&oldid=416347",
+      "quality": "0 página validada, 1 página só revista e 1 página não revista",
+      "pages": [
+        135,
+        136
+      ],
+      "sourceSha256": "3ffdf2a2a49ea4eb6ee8cdba827932256d92bbf30b08344bcc8acee53855648b",
+      "sourceBreaks": [
+        4,
+        11
+      ],
+      "restoredBreaks": [
+        8
+      ],
+      "corrections": [],
+      "lines": 14,
+      "form": "Sonnet",
+      "faith": false,
+      "note": "This closing sonnet and the opening sonnet of Mármores share a title but are distinct works. The print is marked over dos on p. 100; the transcription’s reading is retained.",
+      "sha256": "f5a9f3f88fdfa6f75d06e7c6713bfc65dcdb8e243e2ae1b7c4510a899e931150"
+    }
+  ]
+}
