@@ -435,6 +435,74 @@ test('Apollinaire originals retain complete 1920 readings and source evidence', 
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
   for (const number of [3, 5, 9, 11, 13, 16, 20, 22, 24, 26, 28, 30, 33, 43, 46, 50]) assert.ok(!byNumber(number));
 });
+test('Desbordes-Valmore originals preserve complete 1834 readings and attribution caveats', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/desbordes-valmore-pleurs-1834.json', import.meta.url), 'utf8'));
+  const expected = [
+    ['attente', 20], ['dors-tu', 16], ['amour', 16], ['jumeau', 46], ['adieu-tout-bas', 32],
+    ['ne-me-plains-pas', 24], ['detachement', 14], ['croix-belge', 24], ['sincere', 32],
+    ['une-fleur', 16], ['les-fleurs', 16], ['rameau', 30], ['fiancee', 48], ['ondine', 32],
+  ];
+  assert.deepEqual(manifest.poems.map(item => [item.slug, item.lines]), expected);
+  assert.equal(manifest.scanSha256['les-pleurs-1834.djvu'], '13a98edaf06224a2c935357dcb89638c275c4bdef4cd4cffe5f7f68a98734cfd');
+  assert.ok(manifest.scanSha256['fiancee-memorial-1831.jpg']);
+  assert.equal(manifest.scanSha256['leaf-166.jpg'], undefined);
+  const selected = manifest.poems.map(item => {
+    const poem = poems.find(entry => entry.id === `desbordes-valmore-pleurs-${item.slug}`);
+    assert.ok(poem, item.slug);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, 'Marceline Desbordes-Valmore');
+    assert.equal(poem.authorId, 'marceline-desbordes-valmore');
+    assert.equal(poem.authorYears, '1786–1859');
+    assert.equal(poem.language, 'French');
+    assert.equal(poem.lang, 'fr');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['France']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.match(poem.yearLabel, /1834 edition.*composition date not established/);
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.match(poem.sourceTitle, new RegExp(`1834\\), no\\. ${item.roman}$`));
+    assert.match(poem.context, /1834 Goullet second edition.*composition date and place are not established/);
+    assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*Check local law/);
+    assert.ok(poem.context.includes(item.note));
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), item.stanzas);
+    assert.equal(lineCount(poem), item.lines);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, item.slug === 'rameau' ? ['Faith'] : []);
+    assert.ok(filterPoems(poems, { language: 'French', country: 'France', query: 'marceline desbordes-valmore' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), '69f9bb248cd9f7cb32ebc2106fbe39b73de0e7a4c260fe6412b9770aedcc2d40');
+  const bySlug = slug => selected.find(poem => poem.id === `desbordes-valmore-pleurs-${slug}`);
+  assert.deepEqual(bySlug('jumeau').text.split('\n\n').map(stanza => stanza.split('\n').length), [30, 16]);
+  assert.match(bySlug('jumeau').context, /Henriette Duthillœil/);
+  assert.doesNotMatch(bySlug('jumeau').context, /Duthilloeul/);
+  assert.match(bySlug('detachement').text, /De quel astre inclément s’est échappé l’orage\.\n/);
+  assert.match(bySlug('detachement').context, /Scan-based punctuation correction/);
+  assert.match(bySlug('ondine').text, /Par ses yeux fervens d’amour,\n/);
+  assert.match(bySlug('ondine').context, /Goethe.*translator.*punctuation correction/);
+  assert.doesNotMatch(bySlug('sincere').text, /Hernani|Doña Sol/);
+  assert.match(bySlug('sincere').context, /Victor Hugo.*Hernani.*absent/);
+  assert.doesNotMatch(bySlug('amour').text, /Trop faibles que nous sommes/);
+  assert.match(bySlug('amour').context, /André Chénier.*not included/);
+  const fiancee = bySlug('fiancee');
+  assert.match(fiancee.text, /^« Ouvrez ! » — Qui frappe à l’heure/);
+  assert.match(fiancee.text, /Des anges sentinelles/);
+  assert.doesNotMatch(fiancee.text, /Des mânes sentinelles/);
+  assert.match(fiancee.context, /partly ink-obscured.*1831.*mânes.*anges/);
+  assert.equal(fiancee.contextSource, manifest.poems.find(item => item.slug === 'fiancee').comparisonSource);
+  assert.ok(filterPoems(poems, { query: 'lointain hameau' }).includes(fiancee));
+  assert.ok(filterPoems(poems, { theme: 'Faith', query: 'rameau' }).includes(bySlug('rameau')));
+  const poet = groupPoets(poems).find(group => group.id === 'marceline-desbordes-valmore');
+  assert.equal(poet.poems.length, expected.length);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+  for (const excluded of ['crainte', 'agar', 'oreiller', 'coucher']) {
+    assert.ok(!poems.some(poem => poem.id === `desbordes-valmore-pleurs-${excluded}`));
+  }
+});
 test('Italian classics retain reviewed texts, edition caveats and complete discovery', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/leopardi-1917.json', import.meta.url), 'utf8'));
   assert.equal(manifest.length, 32);
