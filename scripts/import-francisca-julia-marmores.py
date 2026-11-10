@@ -20,7 +20,9 @@ RIGHTS = (
     "The historical poems and 1895 edition are public domain in the United States. "
     "Wikisource transcription by contributors under CC BY-SA 4.0: "
     "https://creativecommons.org/licenses/by-sa/4.0/; consult the linked article and "
-    "scan-page histories for contributors; check local law."
+    "scan-page histories for contributors; check local law. USP states non-commercial-use "
+    "terms for its digitized document and forbids commercial image use; the scan is linked, "
+    "not reproduced here."
 )
 
 

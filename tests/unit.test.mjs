@@ -240,6 +240,7 @@ test('Francisca Júlia originals retain reviewed first-edition readings and dist
     assert.ok(poem.contextSourceTitle.includes(String(item.pages[0] - 36)));
     assert.match(poem.context, /birth year is disputed.*1871.*1874/);
     assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*check local law/);
+    assert.match(poem.rights, /USP states non-commercial-use.*scan is linked, not reproduced/);
     assert.equal(poem.form, item.form);
     assert.equal(lineCount(poem), item.lines);
     assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
