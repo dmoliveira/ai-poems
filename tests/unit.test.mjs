@@ -2370,6 +2370,56 @@ test('Mutran magazine readings retain their boundaries, dates, variants and attr
   assert.equal(poet.poems.length, 8);
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
 });
+test('Shawqi aviation poem retains its complete school-edition reading and provenance', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/shawqi-schools-1927.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/shawqi-schools-1927.txt', import.meta.url), 'utf8');
+  const poem = poems.find(entry => entry.id === 'shawqi-schools-aviation');
+  assert.ok(poem);
+  assert.equal(poems.filter(entry => entry.authorId === 'ahmad-shawqi').length, 1);
+  assert.equal(poem.title, 'آية العصر في سماء مصر');
+  assert.equal(poem.author, 'Ahmad Shawqi');
+  assert.equal(poem.authorOriginal, 'أحمد شوقي');
+  assert.equal(poem.authorYears, '1868–1932');
+  assert.deepEqual(associatedPlaces(poem), ['Egypt']);
+  assert.equal(poem.language, 'Arabic');
+  assert.equal(poem.lang, 'ar');
+  assert.equal(poem.direction, 'rtl');
+  assert.equal(poem.year, null);
+  assert.equal(poem.creationPlace, undefined);
+  assert.match(poem.yearLabel, /Published 1927.*composition date not independently established/);
+  assert.deepEqual(manifest.poem.coupletsBySection, [23, 18, 17]);
+  assert.deepEqual(manifest.poem.printedPages, [8, 9, 10, 11, 12]);
+  assert.deepEqual(manifest.poem.pdfPages, [6, 7, 8]);
+  assert.deepEqual(manifest.poem.comparisonPrintedPages, [3, 4, 5, 6]);
+  assert.deepEqual(manifest.poem.comparisonPdfPages, [5, 6, 7, 8]);
+  assert.deepEqual(Object.fromEntries(Object.entries(manifest.witnesses).map(([name, item]) => [name, item.sha256])), {
+    'schools-unknown.pdf': 'd380285b00cbf4512d51f55563bd41187c8ce343990d4b6be882eecc69c98280',
+    'correct-137947.pdf': 'c921bb983458ad90eac5cc925132b6ebd31b63c86c64828f6aa4f3e1994e8196',
+  });
+  assert.ok(source.startsWith('=== aviation ===\n'));
+  assert.equal(poem.text, source.slice('=== aviation ===\n'.length).trim().replaceAll(' | ', '\n'));
+  assert.deepEqual(poem.text.split('\n\n').map(section => section.split('\n').length), [46, 36, 34]);
+  assert.equal(lineCount(poem), 116);
+  assert.equal(createHash('sha256').update(poem.text).digest('hex'), '47b0292db482a73b2beb9ff3c91fcc727fc8a4418215357d5dc23444106fca11');
+  assert.equal(manifest.poem.textSha256, createHash('sha256').update(poem.text).digest('hex'));
+  assert.match(poem.text, /^يا فرنسا نلت أسباب السماء\nوتملكت مقاليد الجواء/);
+  assert.match(poem.text, /جرح الأهرام في عزتها\nفمشى للقبر مجروح الإباء/);
+  assert.match(poem.text, /عزها في عهد خوفو وميناء\nأمة للخلد ما تبني إذا\nما بنى الناس جميعا للعفاء\nتعصم الأجسام من عادي البلا/);
+  assert.match(poem.text, /واطلبوا المجد على الأرض فإن\nهي ضاقت فاطلبوه في السماء$/);
+  assert.match(poem.source, /\/1525pdf_201912\/.*#page=6$/);
+  assert.match(poem.contextSource, /\/AAlexandrina-137947\/.*#page=5$/);
+  assert.match(poem.context, /1914.*not independent proof.*composition date/);
+  assert.match(poem.context, /completeness in these printings, not all traditions or independent textual descent/);
+  assert.match(poem.context, /في يمين الله.*في عين الله.*scan has not been verified.*unresolved/);
+  assert.match(poem.rights, /public domain in the United States.*comparison, not reproduced/);
+  assert.deepEqual(poem.themes, []);
+  assert.deepEqual(poem.translations, []);
+  for (const query of ['أحمد شوقي', 'Ahmad Shawqi', 'آية العصر في سماء مصر', 'ما بنى الناس جميعا للعفاء']) {
+    assert.ok(filterPoems(poems, { language: 'Arabic', country: 'Egypt', query }).includes(poem), query);
+  }
+  assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  assert.equal(groupPoets(poems).find(group => group.id === 'ahmad-shawqi').poems[0].id, poem.id);
+});
 test('Sabri magazine originals retain their complete printings, variants and provenance', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/sabri-magazines-reviewed.json', import.meta.url), 'utf8'));
   const source = await readFile(new URL('../scripts/sources/sabri-magazines-reviewed.txt', import.meta.url), 'utf8');

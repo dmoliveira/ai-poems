@@ -1,0 +1,24 @@
+{
+  "witnesses": {
+    "schools-unknown.pdf": {
+      "sha256": "d380285b00cbf4512d51f55563bd41187c8ce343990d4b6be882eecc69c98280",
+      "archiveId": "1525pdf_201912",
+      "archiveFile": "1525 كتاب اقرا اونلاين    pdf   الشوقيات (للمدارس).pdf"
+    },
+    "correct-137947.pdf": {
+      "sha256": "c921bb983458ad90eac5cc925132b6ebd31b63c86c64828f6aa4f3e1994e8196",
+      "archiveId": "AAlexandrina-137947",
+      "archiveFile": "137947 - الشوقيات - (الصحيحة).pdf"
+    }
+  },
+  "poem": {
+    "slug": "aviation",
+    "title": "آية العصر في سماء مصر",
+    "coupletsBySection": [23, 18, 17],
+    "printedPages": [8, 9, 10, 11, 12],
+    "pdfPages": [6, 7, 8],
+    "comparisonPrintedPages": [3, 4, 5, 6],
+    "comparisonPdfPages": [5, 6, 7, 8],
+    "textSha256": "47b0292db482a73b2beb9ff3c91fcc727fc8a4418215357d5dc23444106fca11"
+  }
+}
