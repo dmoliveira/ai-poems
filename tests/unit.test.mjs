@@ -274,6 +274,77 @@ test('Alphonsus originals retain the reviewed 1923 readings and complete works',
   assert.equal(titleAttributes({ ...byId('ysmalia'), displayTitleLang: 'pt" onmouseover="x' }), ' lang="pt&quot; onmouseover=&quot;x" dir="auto"');
 });
 
+test('Maria Firmina originals retain reviewed historical texts and explicit page mappings', async () => {
+  const source = await readFile(new URL('../scripts/sources/firmina-historical-readings.txt', import.meta.url), 'utf8');
+  assert.equal(createHash('sha256').update(source).digest('hex'), '6f9607a3ad8a67e39ab8f1ed33984af359dce4b950bc6974f4eebe25a27e2bc3');
+  const sections = source.split(/^=== ([a-z0-9-]+) ===\n/gm);
+  assert.equal(sections.shift(), '');
+  const readings = new Map();
+  while (sections.length) readings.set(sections.shift(), sections.shift().trim());
+  const selections = [
+    ['parnaso', 'por-ver-te', 222, 223, 234, [5, 4, 4, 4, 4, 5, 4]],
+    ['parnaso', 'minha-vida', 223, 225, 235, Array(8).fill(4)],
+    ['cantos', 'uma-tarde-no-cuman', 25, 26, 23, Array(8).fill(4)],
+    ['cantos', 'supplica', 27, 29, 25, Array(10).fill(6)],
+    ['cantos', 'ah-nao-posso', 45, 46, 43, Array(4).fill(6)],
+    ['cantos', 'um-bouquet', 125, 127, 69, Array(5).fill(8)],
+    ['cantos', 'hosana', 149, 151, 93, Array(7).fill(8)],
+    ['cantos', 'o-pedido', 157, 158, 101, Array(4).fill(4)],
+    ['cantos', 'amor', 159, 159, 103, Array(3).fill(4)],
+    ['cantos', 'scismar', 161, 162, 105, [7, 8, 8, 8]],
+    ['cantos', 'uns-olhos', 205, 206, 150, Array(6).fill(4)],
+  ];
+  assert.deepEqual([...readings.keys()], selections.map(([, id]) => id));
+  const selected = selections.map(([edition, id, first, last, pdf, stanzas]) => {
+    const poem = poems.find(item => item.id === `firmina-${edition}-${id}`);
+    assert.ok(poem, id);
+    assert.equal(poem.text, readings.get(id));
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), stanzas);
+    assert.equal(poem.author, 'Maria Firmina dos Reis');
+    assert.equal(poem.authorYears, '1822 or 1825–1917');
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['Brazil']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.source, `https://literaturabrasileira.ufsc.br/midias/stream?id=${edition === 'parnaso' ? '147845' : '155427'}&raw=1#page=${pdf}`);
+    assert.ok(poem.sourceTitle.endsWith(`pp. ${first === last ? first : `${first}–${last}`}`));
+    assert.match(poem.context, /completeness refers to this printing, not every witness/);
+    assert.match(poem.context, /birth year is disputed[\s\S]*1822[\s\S]*1825/);
+    assert.match(poem.context, /not an assertion of this poem's composition place/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Brazil', query: 'maria firmina' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), 'abc4566cd1081f3e6309542d7d0913fbd87ce4b30f0bb8bc6921a019e2971df1');
+  const byId = id => selected.find(poem => poem.id.endsWith(`-${id}`));
+  assert.match(byId('minha-vida').context, /‘tristesa’ is a provisional reading/);
+  assert.match(byId('por-ver-te').context, /place marker ‘Guimarães/);
+  assert.match(byId('uma-tarde-no-cuman').text, /dessas phrases tuas/);
+  assert.match(byId('uma-tarde-no-cuman').context, /phrases[\s\S]*2024[\s\S]*fases/);
+  assert.match(byId('uma-tarde-no-cuman').context, /footnote identifies Cuman/);
+  assert.match(byId('supplica').text, /Que vale a vida sem gozos/);
+  assert.match(byId('supplica').context, /2024 transcription has ‘seus gozos’/);
+  assert.match(byId('hosana').text, /Hosana! Senhor!$/);
+  assert.match(byId('hosana').context, /earlier scan was not independently checked/);
+  assert.match(byId('amor').text, /quero revelar-te a medo/);
+  assert.match(byId('amor').context, /2022 UFRGS selection gives ‘rever-te’/);
+  assert.match(byId('uns-olhos').text, /que fazem solemnes/);
+  assert.match(byId('uns-olhos').context, /que fazem sem custo/);
+  assert.deepEqual(selected.filter(poem => poem.themes.includes('Faith')).map(poem => poem.id), [
+    byId('supplica').id, byId('hosana').id, byId('scismar').id,
+  ]);
+  for (const query of ['uma tarde no cuma', 'súplica', 'phrases tuas', 'revelar-te a medo', 'pelo ceo vagando']) {
+    assert.equal(filterPoems(selected, { query }).length, 1, query);
+  }
+  assert.equal(byId('uma-tarde-no-cuman').displayTitleLang, 'pt');
+  assert.match(byId('uma-tarde-no-cuman').context, /display title is a discovery aid/);
+  assert.equal(groupPoets(poems).find(group => group.id === 'maria-firmina-dos-reis').poems.length, 11);
+});
+
 test('Sor Juana originals retain the 1689 readings, boundaries and disclosed variants', async () => {
   const source = await readFile(new URL('../scripts/sources/sor-juana-1689-readings.txt', import.meta.url), 'utf8');
   assert.equal(createHash('sha256').update(source).digest('hex'), 'e647ffb2a19987c5dbe056a0d0c1153d612c907bee22ce3a6bea7f980089074a');
