@@ -891,6 +891,62 @@ test('Warda al-Yazijī readings retain their printed boundaries, sources and Ara
   assert.equal(poet.poems.length, 9);
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
 });
+test('Taymur readings retain complete historical boundaries, variants and Arabic identity', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/taymur-1303-reviewed.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.poems.length, 7);
+  assert.deepEqual(manifest.scanSha256, {
+    'taymur-1303.pdf': '17a2fa7dd43c122cfd761515bd06e25f40638fe919924acf505db3e390ce9d8c',
+    'taymur-other.pdf': '42f862d03fa44eaa9cf8ae1e45a34ddc4b00fe97ec3fd139b1cce6635d497fe4',
+    'fawwaz-1895.pdf': 'de55f320fb4a2f6837d7d2131989a23b8e6bc09685d8c7b0ea013b66307d2f02',
+  });
+  const selected = manifest.poems.map(item => {
+    const id = `taymur-1303-${item.slug}`;
+    const poem = poems.find(entry => entry.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.author, 'Aisha Taymur');
+    assert.equal(poem.authorId, 'aisha-taymur');
+    assert.equal(poem.authorOriginal, 'عائشة التيمورية');
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(associatedPlaces(poem), ['Egypt']);
+    assert.equal(poem.title, item.text.split('\n')[0]);
+    assert.equal(poem.text, item.text);
+    assert.equal(lineCount(poem), item.couplets * 2);
+    assert.match(poem.source, new RegExp(`#page=${item.printedPages[0] + 4}$`));
+    assert.match(poem.contextSource, new RegExp(`#page=${item.comparisonPrintedPages[0] + 40}$`));
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.context, /boundaries in these printings, not in every tradition/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /CC BY-SA 4\.0/);
+    assert.ok(poem.rights.includes(`curid=${item.wikiPageId}&oldid=${item.wikiRevision}`));
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Arabic', author: poem.author, query: poem.title }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: 'عائشة التيمورية' }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: 'Aisha Taymur' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), '2e3cad28dcaab1e302679372ee9648c2dbfb80237e0449c9989fa72c9fb65ea8');
+  const bySlug = slug => selected.find(poem => poem.id === `taymur-1303-${slug}`);
+  const elegy = bySlug('elegy-for-tawhida');
+  assert.equal(lineCount(elegy), 100);
+  assert.match(elegy.text, /ورجاء عفو أو تلاوة منزل\nفسواك من لي بالحنين يزور\nفلعلما أحظى برحمة خالق/);
+  assert.match(elegy.text, /بنتاه يا كبدي ولوعة مهجتي/);
+  assert.match(elegy.context, /internal response, not a separate work/);
+  assert.ok(!selected.some(poem => poem.title.startsWith('بنتاه يا كبدي') || poem.title.startsWith('منشور حسنك')));
+  assert.match(bySlug('birth-congratulation').text, /عن البشرى فأشرقت الليالي/);
+  assert.match(bySlug('birth-congratulation').context, /عن البشرى كإشراق الليالي/);
+  assert.match(bySlug('beloved-and-heart').text, /ورأيته متبسما/);
+  assert.match(bySlug('beloved-and-heart').context, /وأتيته متبسما/);
+  assert.equal(bySlug('beloved-and-reed').text.split('\n').length, 6);
+  const poet = groupPoets(poems).find(group => group.id === 'aisha-taymur');
+  assert.equal(poet.poems.length, 7);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
 test('Francis and Jacopone originals retain reviewed editions and separate witnesses', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/francis-jacopone-reviewed.json', import.meta.url), 'utf8'));
   const francis = poems.find(p => p.id === 'francis-laudes-creaturarum');
