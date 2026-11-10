@@ -841,6 +841,56 @@ test('al-Khansāʾ readings retain their printed boundaries, variants and RTL id
   assert.equal(poet.poems.length, 8);
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
 });
+test('Warda al-Yazijī readings retain their printed boundaries, sources and Arabic identity', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/warda-yaziji-1887-reviewed.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.poems.length, 9);
+  assert.deepEqual(manifest.scanSha256, {
+    'warda-1887.pdf': '9670ac4b3e64cc0c1eef2f6a4390f321fc28e4be2e100a01775334d8a1aa3a37',
+    'warda-cairo.pdf': 'ff15c19e69fd162401258599bf23308eca769edd01f859b3ea3ae982534183d6',
+  });
+  const selected = manifest.poems.map(item => {
+    const id = `warda-yaziji-1887-${item.slug}`;
+    const poem = poems.find(entry => entry.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.author, 'Warda al-Yazijī');
+    assert.equal(poem.authorId, 'warda-al-yaziji');
+    assert.equal(poem.authorOriginal, 'وردة اليازجي');
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(associatedPlaces(poem), ['Lebanon']);
+    assert.equal(poem.title, item.text.split('\n')[0]);
+    assert.equal(poem.text, item.text);
+    assert.equal(lineCount(poem), item.couplets * 2);
+    assert.equal(poem.source, `https://archive.org/download/adqatalwardnam00yzijuoft/adqatalwardnam00yzijuoft.pdf#page=${63 - item.printedPages[0]}`);
+    assert.match(poem.contextSource, new RegExp(`#page=${item.comparisonPrintedPages[0] + 4}$`));
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.context, /boundaries in these printings, not in every tradition/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /CC BY-SA 4\.0/);
+    assert.ok(poem.rights.includes(`curid=${item.wikiPageId}&oldid=${item.wikiRevision}`));
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Arabic', author: poem.author, query: poem.title }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Arabic', query: 'وردة اليازجي' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\n')).digest('hex'), 'f3bfdcc03a06f1f13c59ee24eb25bcb1239c2eaf5f5807d94fd1c30d077c3923');
+  const bySlug = slug => selected.find(poem => poem.id === `warda-yaziji-1887-${slug}`);
+  assert.match(bySlug('friend-away').text, /أن يجعل القرب الإله مقدما$/);
+  assert.match(bySlug('friend-away').context, /أن يجعل الله اللقاء مقدما/);
+  assert.match(bySlug('welcome-home').text, /وجلا علينا وجهه المتبسما/);
+  assert.match(bySlug('welcome-home').context, /Wikisource has المتسما/);
+  assert.match(bySlug('marun-naqqash-elegy').text, /أبكى العشيرة دمعا فاض منسجما/);
+  assert.match(bySlug('marun-naqqash-elegy').text, /واليوم في العرش لاقى حسن مختتم$/);
+  assert.ok(!poems.some(poem => poem.authorId === 'warda-al-yaziji' && poem.title.startsWith('الجهل شاع')));
+  const poet = groupPoets(poems).find(group => group.id === 'warda-al-yaziji');
+  assert.equal(poet.poems.length, 9);
+  for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
+});
 test('Francis and Jacopone originals retain reviewed editions and separate witnesses', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/francis-jacopone-reviewed.json', import.meta.url), 'utf8'));
   const francis = poems.find(p => p.id === 'francis-laudes-creaturarum');
