@@ -1,0 +1,652 @@
+{
+  "scanSha256": {
+    "labe-1887-107.jpg": "7ecf87cce6b3917f39216a455305f821851d4d3b823b84809d98df57eb2c9573",
+    "labe-1887-108.jpg": "c68241e146b5ae090f53bf8cef6dbae484e43aafbc45ac649d0e8ef4ade08485",
+    "labe-1887-109.jpg": "8c0b239d943b0a18f48e9c7d6742ec5286571527f66f26a99f2b4eada8335b17",
+    "labe-1887-110.jpg": "e35223c1a1e54580b8ce3799acc9e2dd38b42b44115915517021751568f16b64",
+    "labe-1887-111.jpg": "fe6b94e7d5060a7997ecd4252a03db3a27eec13f4f50b52fcfbb6dddaefbd5c4",
+    "labe-1887-112.jpg": "d0b02ab87c515fb1cf7b0065323bc401f54df360f63951fabe331afeb0f4ad72",
+    "labe-1887-113.jpg": "0b01cc594e2cfb7076dd415faf8515dbbcd48f0f201d407bc1e012f7c1416bd9",
+    "labe-1887-114.jpg": "5263b0031b06b5db6ae52c75f75d9e1aad934cc0b8768fec346a86c33e2fe72f",
+    "labe-1887-115.jpg": "d418e462e6419012949d5399b748c88f71e2e5929256204e1e92174e3fe23af1",
+    "labe-1887-116.jpg": "a490f70570f0fe117e55f297f6de07267c0e0d444b9abefe9787bf0003871611",
+    "labe-1887-117.jpg": "7dca6f4659af086239a14fdc8b004cbedd62090489b51c48d88a56a9baa3944c",
+    "labe-1887-118.jpg": "9d91945e66685f6a1dd76fafc3f19d5f7cc341efc703717c024a72c1cfa73cdb",
+    "labe-1887-119.jpg": "cc6643dce5f01323e299dfd4c82fb3dc85841a65cd495eee4859841e109d808c",
+    "labe-1887-120.jpg": "f1144519d96e61089fea7bdf2b383992edfe21c967284e053afd32e4755c6e43",
+    "labe-1887-121.jpg": "9df78f231e7b984278d6bab400f967935ba95aab44e07a000a3e5585cc1a0306",
+    "labe-1910-067.jpg": "538290782d58705aa81469f6358dfd45634b3de850eb9024ef16dbafca4a2c46",
+    "labe-1910-068.jpg": "9be1aeaaa56e4821a4fd029d65ef0d7adf05acd7733d247a523d388a6d6de087",
+    "labe-1910-072.jpg": "fa64b0b33c519123fdd91b14469cc22c6a358be1e9046a18116c732465adfd31",
+    "labe-1910-073.jpg": "22ce5f7bcee4cfb42dce9af2e83385a203891fe9347ed7af8284c30b357532b6",
+    "labe-1910-078.jpg": "ac4fb26aab84fa2de4f20b973da86af4c755120a1bebf33c1db3af5aa4359ce6",
+    "labe-1910-079.jpg": "dc0e24749c33fac16c177246210404e19208902cc0997b0f8ea3d2928a0b4e35",
+    "labe-1910-080.jpg": "1728117d0fe8835200ee93823c7656d5ef3706f5dd7acee4afaf0d27b8f13248",
+    "labe-1910-081.jpg": "d2c0c6123bd3c654fa4dd9a14858b5d90d9a8d5076d2759f3665f053a6281f22",
+    "labe-1910-082.jpg": "8ce25912a0504148f4bbc847bd77271943794ed3238c997a9a0f2e86ea7ef361",
+    "labe-1910-084.jpg": "3b63f521ee92609d2f25b0171bc592502cd6f973821b1ed37b704100d985bce8",
+    "labe-1910-085.jpg": "d57f54d7215b6cd6c0a9f8ca49d3c98a5585fd1ec7aa0dc0fabe0d2494b47a9f",
+    "labe-1910-086.jpg": "99783ddf0fced393c81e9ec40dc9975ca2e7f6b8f54a26598c10f86e988b2814",
+    "labe-1910-087.jpg": "d4c656b0ffae20acd50ee995333ddfeb586976c203b5feed398124eafd911b29"
+  },
+  "pageSnapshots": {
+    "107": {
+      "revision": 12931402,
+      "sha256": "18cc5bec83494c2fa01f416a50dfebdf545029148ce86fe1e476f2b93b590b84"
+    },
+    "108": {
+      "revision": 12931406,
+      "sha256": "b0e6dde8372d3a86ed6af84398939ebdd9926027ab0ae2852f7fd5b7486cc7c8"
+    },
+    "109": {
+      "revision": 12931407,
+      "sha256": "4e537dfbf1d93519d8ec99df3e41142201f479532b9d39a69bda2f025ee089f6"
+    },
+    "110": {
+      "revision": 12931409,
+      "sha256": "e7411c6cc97880112e55fedf243f9413a8f1063461482eab937274671bfd5149"
+    },
+    "111": {
+      "revision": 12931410,
+      "sha256": "530fba33310afbd70e4bb865cab607ae8403f2d624413784b69808bee71dfe75"
+    },
+    "112": {
+      "revision": 12931411,
+      "sha256": "69ce0425a86b277f31a009b93ab0f69dc277832562dfea49ac360b7f9b28c99a"
+    },
+    "113": {
+      "revision": 12931414,
+      "sha256": "ba413ec8e5587c8375485a38a74c87b45f97c78171aa56c9fcf082a08fcef61b"
+    },
+    "114": {
+      "revision": 12931415,
+      "sha256": "d0b7999a9627fcdcb1cb8e1043813b6042ec2c65a877a09c9a1c3149044fb057"
+    },
+    "115": {
+      "revision": 12931416,
+      "sha256": "eaa31c3e3e7cf4d2627b8716efd41b2793bbe3e092ee56cc4780ec9c23dbb87e"
+    },
+    "116": {
+      "revision": 12931418,
+      "sha256": "fb416f7c51a5030647c2b982bf8605b15c2c60449077de8fe0ef9855a2f08fde"
+    },
+    "117": {
+      "revision": 12931420,
+      "sha256": "31d32b23cba137bfd4021b023a323c5d82e7ff7352f05228fb9f0538c5100e67"
+    },
+    "118": {
+      "revision": 12931421,
+      "sha256": "8f0be717652cdc68b5fca016a6788664b60f380fbb98b0daab601746d31fd7d0"
+    },
+    "119": {
+      "revision": 12931423,
+      "sha256": "3e2e16fb0155a85527a80172eccaf15c018099ee35e847a439e25942a10a368e"
+    },
+    "120": {
+      "revision": 12931425,
+      "sha256": "23d8a7511f82aa842928d762dccdd5e618d8d914e403b209dfb5d40e11feccb8"
+    },
+    "121": {
+      "revision": 12931427,
+      "sha256": "845575de0a4f1ef635f10f1cd73aae46cc1c57b747b242c2ad69be9440f71ca5"
+    }
+  },
+  "poems": [
+    {
+      "number": 1,
+      "roman": "I",
+      "scans": [
+        107
+      ],
+      "sourceSha256": "9216f7f837545a22ce99fbff674abbc7c135dcb85c542a4b9cd5a84f7e3df8a5",
+      "corrections": [
+        {
+          "line": 3,
+          "before": "Pien di grade, d’honor & di rispetto",
+          "after": "Pien di gratie, d’honor & di rispetto"
+        },
+        {
+          "line": 4,
+          "before": "Sperato quai i sento assanni e guai.",
+          "after": "Sperato qual i sento affanni e guai."
+        },
+        {
+          "line": 9,
+          "before": "O forte dura, che mi fa esser quale",
+          "after": "O sorte dura, che mi fa esser quale"
+        }
+      ],
+      "sha256": "fef392682277045952e7ba9da4190ae903339d1e76118998308e88877f7f33d6",
+      "title": "Non hauria Vlysse o qualunqu’altro mai"
+    },
+    {
+      "number": 2,
+      "roman": "II",
+      "scans": [
+        108
+      ],
+      "sourceSha256": "6dd064610aa9de4d2554309b0e6bc606fe6fb5d6585c28b9bc123a4bd38c9ae4",
+      "corrections": [
+        {
+          "line": 13,
+          "before": "En tant d’endrois d’iceus mon cœur tatant.",
+          "after": "En tant d’endrois d’iceus mon cœur tatant,"
+        }
+      ],
+      "sha256": "708fbbab0599739e42b078432f2374b2b973e2729b3a25a52215bf588d985bdf",
+      "title": "O beaus yeus bruns, ô regars destournez",
+      "note": "Boy prints ‘vainement atendues’; the 1910 Sansot printing has ‘vainements attendues’."
+    },
+    {
+      "number": 3,
+      "roman": "III",
+      "scans": [
+        108,
+        109
+      ],
+      "sourceSha256": "777a8a82215dcb048537f9a835155349bda49517fb0763c1710bcd1127bfdd92",
+      "corrections": [],
+      "sha256": "47868f683bb6bc6a5595f48689fe4913154576cf3431d5629773553819945072",
+      "title": "O longs desirs, O esperances vaines"
+    },
+    {
+      "number": 4,
+      "roman": "IIII",
+      "scans": [
+        109
+      ],
+      "sourceSha256": "ee2f028ef4aaf525175d80395ad5d3494a0b6c7bcbdf6e59a938f2c4bc37f554",
+      "corrections": [],
+      "sha256": "64a31690c6a4b22fa618a8f770eff51ae4d37567f5064dc631bbc79e72dc77d9",
+      "title": "Depuis qu’Amour cruel empoisonna"
+    },
+    {
+      "number": 5,
+      "roman": "V",
+      "scans": [
+        109,
+        110
+      ],
+      "sourceSha256": "59e920c7bf95519801abf4fb9aee72a489949d42e72c5379806c24983369e3cf",
+      "corrections": [
+        {
+          "line": 2,
+          "before": "Entens ma voix qui en pleins chantera.",
+          "after": "Entens ma voix qui en pleins chantera,"
+        }
+      ],
+      "sha256": "0d79231228fb5dae99e5e8893593d66cf9f17fc45d2fc04d21a92644cef67f9b",
+      "title": "Clere Venus, qui erres par les Cieus"
+    },
+    {
+      "number": 6,
+      "roman": "VI",
+      "scans": [
+        110
+      ],
+      "sourceSha256": "a283d1fc96c7124a476c88097d6c1e71b97978dc1faf82caaed560125d95f82a",
+      "corrections": [
+        {
+          "line": 5,
+          "before": "Qu’elle pourrait se vanter d’un bon tour",
+          "after": "Qu’elle pourroit se vanter d’un bon tour"
+        },
+        {
+          "line": 8,
+          "before": "Et y ferait sur ses leures seiour !",
+          "after": "Et y feroit sur ses leures seiour !"
+        }
+      ],
+      "sha256": "c4de9318695eb124df5ca5319dd57f6312f12b8b305b44ac3e8a0e474d8b6698",
+      "title": "Deus ou trois fois bienheureus le retour",
+      "note": "The 1910 Sansot printing reads ‘feroy’ where Boy prints ‘feray’."
+    },
+    {
+      "number": 7,
+      "roman": "VII",
+      "scans": [
+        110,
+        111
+      ],
+      "sourceSha256": "c1dcf8a1c833d2cdfdb6db6d8d5d8f0744f7f5fdafd5eb80b0a08b009d30aec7",
+      "corrections": [
+        {
+          "line": 9,
+          "before": "Mais fais, Ami, que ne stit dangereuse",
+          "after": "Mais fais, Ami, que ne soit dangereuse"
+        },
+        {
+          "line": 14,
+          "before": "Iadis cruelle, à prefent sauorable.",
+          "after": "Iadis cruelle, à present fauorable."
+        }
+      ],
+      "sha256": "23dfd821dbb0e0cae05ab8e5cc22d54b1e9275d77bbdcbe64bab4166ef66e7a9",
+      "title": "On voit mourir toute chose animée",
+      "note": "Boy prints ‘par si long temps’; the 1910 Sansot printing reads ‘pas si long tems’."
+    },
+    {
+      "number": 8,
+      "roman": "VIII",
+      "scans": [
+        111
+      ],
+      "sourceSha256": "2d81f8de326b9f5003e1fa47fef489166c9dabde7706c8e52441b7ff50852a06",
+      "corrections": [
+        {
+          "line": 3,
+          "before": "La vie m’est & trop molle & trop dure,",
+          "after": "La vie m’est & trop molle & trop dure."
+        }
+      ],
+      "sha256": "507fcd3a495c1481841a13d57582c88c5525507f1731b746e380d73fb9e8d64f",
+      "title": "Ie vis, ie meurs : ie me brule & me noye"
+    },
+    {
+      "number": 9,
+      "roman": "IX",
+      "scans": [
+        112
+      ],
+      "sourceSha256": "ca1a36329b81e96c0661959b6897dec6fd53a821fa9504bce3aaf0d30d4e9184",
+      "corrections": [
+        {
+          "line": 6,
+          "before": "Ie tiens le bien, ou i’ay tant aspiré.",
+          "after": "Ie tiens le bien, ou i’ay tant aspiré,"
+        },
+        {
+          "line": 8,
+          "before": "Que de fanglots ay souuent cuidé fendre.",
+          "after": "Que de sanglots ay souuent cuidé fendre."
+        },
+        {
+          "line": 13,
+          "before": "Ne doit auoir de bien en vérité.",
+          "after": "Ne doit auoir de bien en verité,"
+        }
+      ],
+      "sha256": "3d3f3e260dfe702ff9a125b956eedc9cc3cadd759c4239ad51fad19559b385a4",
+      "title": "Tout aussi tot que ie commence à prendre"
+    },
+    {
+      "number": 10,
+      "roman": "X",
+      "scans": [
+        112,
+        113
+      ],
+      "sourceSha256": "93d050b7ef9346b5ca09f2844b2f8641987e7a13c93f159e4b6a4cdbdb4ccea5",
+      "corrections": [
+        {
+          "line": 4,
+          "before": "Arbres & rocs : quand ie te vois orné.",
+          "after": "Arbres & rocs : quand ie te vois orné,"
+        },
+        {
+          "line": 13,
+          "before": "Ce nom encor de m’estre pitoyable.",
+          "after": "Ce nom encor de m’estre pitoyable,"
+        }
+      ],
+      "sha256": "0b22d151b9c855ed99e9ea8d7bd95da29198757e065afe1b1e4f3eddcbdf891a",
+      "title": "Quand i’aperçoy ton blond chef couronné"
+    },
+    {
+      "number": 11,
+      "roman": "XI",
+      "scans": [
+        113
+      ],
+      "sourceSha256": "b9b20165d1db3d674cfeab373c25b7127525b82db1114de2ac4c17e74e491f29",
+      "corrections": [
+        {
+          "line": 3,
+          "before": "Ou sont d’Amour les flesches dangereuses.",
+          "after": "Ou sont d’Amour les flesches dangereuses,"
+        },
+        {
+          "line": 6,
+          "before": "Tant tu me tiens de façons rigoureuses.",
+          "after": "Tant tu me tiens de façons rigoureuses,"
+        },
+        {
+          "line": 7,
+          "before": "Tant i’ay coulé de larmes langoureuses.",
+          "after": "Tant i’ay coulé de larmes langoureuses,"
+        }
+      ],
+      "sha256": "8ff3eb94acbfd59cb5f396780c4b16983d94e3cadf29e4d11a5d35e4f5ab7211",
+      "title": "O dous regars, ô yeus pleins de beauté"
+    },
+    {
+      "number": 12,
+      "roman": "XII",
+      "scans": [
+        113,
+        114
+      ],
+      "sourceSha256": "2de6d6cac40fc2a328cc99e5cd80ec75c10aecb4171395d2b1e4606ba8201e76",
+      "corrections": [
+        {
+          "line": 1,
+          "before": "Lut, compagnon de ma calamité.",
+          "after": "Lut, compagnon de ma calamité,"
+        },
+        {
+          "line": 2,
+          "before": "De mes soupirs témoin irréprochable.",
+          "after": "De mes soupirs témoin irréprochable,"
+        },
+        {
+          "line": 3,
+          "before": "De mes ennuis controlleur veritable.",
+          "after": "De mes ennuis controlleur veritable,"
+        },
+        {
+          "line": 9,
+          "before": "Et si te veus efforcer au contraire.",
+          "after": "Et si te veus efforcer au contraire,"
+        },
+        {
+          "line": 13,
+          "before": "En mes ennuis me plaire suis contreinte.",
+          "after": "En mes ennuis me plaire suis contreinte,"
+        }
+      ],
+      "sha256": "87b2a200414ce121f46816830b0ef2a54092cadfe6147fd527d985b161bdeb2f",
+      "title": "Lut, compagnon de ma calamité",
+      "note": "Boy ends ‘Et d’un dous mal douce fin esperer’; the 1910 Sansot printing omits ‘d’un’."
+    },
+    {
+      "number": 13,
+      "roman": "XIII",
+      "scans": [
+        114
+      ],
+      "sourceSha256": "24f33639291ca176cbbff11fe58216bb7638a72d6da81e8e053375278d31f943",
+      "corrections": [
+        {
+          "line": 11,
+          "before": "La mort venait, de mon aise enuieuse :",
+          "after": "La mort venoit, de mon aise enuieuse :"
+        },
+        {
+          "line": 12,
+          "before": "Lors que souef plus il me baiseroit.",
+          "after": "Lors que souef plus il me baiseroit,"
+        },
+        {
+          "line": 13,
+          "before": "Et mon esprit sur ses leures fuiroit.",
+          "after": "Et mon esprit sur ses leures fuiroit,"
+        }
+      ],
+      "sha256": "a3a4a279e5dba54fc5b5a14494b8c6b2368914ff5acf3594f8158ba3ad41eced",
+      "title": "Oh si i’estois en ce beau sein rauie",
+      "note": "Boy prints ‘Lors que souef plus il me baiseroit’; the 1910 Sansot printing omits ‘plus’."
+    },
+    {
+      "number": 14,
+      "roman": "XIIII",
+      "scans": [
+        115
+      ],
+      "sourceSha256": "f75e1f426a5d0b4183376c1376d289e16eabee7783329593efc0f0eee7155409",
+      "corrections": [
+        {
+          "line": 6,
+          "before": "Du mignart Lut, pour tes grâces chanter :",
+          "after": "Du mignart Lut, pour tes graces chanter :"
+        }
+      ],
+      "sha256": "70dc802c993dc265c7572b5a45bfe44cf66d7aba1a191849a8b925f97c6838b9",
+      "title": "Tant que mes yeus pourront larmes espandre",
+      "note": "Boy prints ‘A l’heur passé’ and ‘tes graces’; the 1910 Sansot printing has ‘A leur passé’ and ‘ces graces’."
+    },
+    {
+      "number": 15,
+      "roman": "XV",
+      "scans": [
+        115,
+        116
+      ],
+      "sourceSha256": "8e4d1a56d51609b899f4a70d7b6516edb4bf4628562c4cacc6924b0c9710b060",
+      "corrections": [
+        {
+          "line": 11,
+          "before": "Veut tu Zephir de ton heur me donner,",
+          "after": "Veus tu Zephir de ton heur me donner,"
+        },
+        {
+          "line": 13,
+          "before": "Fay mon Soleil deuers moy retourner.",
+          "after": "Fay mon Soleil deuers moy retourner,"
+        }
+      ],
+      "sha256": "39691394b48504528999402fc1ec6e31898a1eec0d215d2dc59d3817164b1dea",
+      "title": "Pour le retour du Soleil honorer",
+      "note": "Boy prints ‘l’eau’ once in line 3; the 1910 Sansot printing repeats it."
+    },
+    {
+      "number": 16,
+      "roman": "XVI",
+      "scans": [
+        116
+      ],
+      "sourceSha256": "f3a6255c60fa1142bad553fcd6d1c37e0ca5aaedcaf10a46f93fadab9eb7582d",
+      "corrections": [
+        {
+          "line": 11,
+          "before": "Mais maintenant que tu m’as embrasee.",
+          "after": "Mais maintenant que tu m’as embrasee,"
+        },
+        {
+          "line": 12,
+          "before": "Et suis au point auquel tu me voulois.",
+          "after": "Et suis au point auquel tu me voulois,"
+        },
+        {
+          "line": 13,
+          "before": "Tu as ta flame en quelque eau arrosee.",
+          "after": "Tu as ta flame en quelque eau arrosee,"
+        }
+      ],
+      "sha256": "675baa13f77083a69ceb20f48144598655cb5a6f3d5f0e77df0316a5917a5ab2",
+      "title": "Apres qu’un tems la gresle & le tonnerre",
+      "note": "Boy prints ‘que’ in line 11; the 1910 Sansot printing has ‘pue’."
+    },
+    {
+      "number": 17,
+      "roman": "XVII",
+      "scans": [
+        116,
+        117
+      ],
+      "sourceSha256": "f9da34f5ec4b6e9330f8417c242010c4eeeaef07a7fcfeb63f28db19dcd91cf6",
+      "corrections": [
+        {
+          "line": 5,
+          "before": "Masques, tournois, ieus me sont ennuieus.",
+          "after": "Masques, tournois, ieus me sont ennuieus,"
+        },
+        {
+          "line": 8,
+          "before": "Et un nouuel obget faire à mes yeus.",
+          "after": "Et un nouuel obget faire à mes yeus,"
+        },
+        {
+          "line": 12,
+          "before": "Que si ie veus de toy estre deliure.",
+          "after": "Que si ie veus de toy estre deliure,"
+        }
+      ],
+      "sha256": "705d7811c34acc07ce422f816c9a00fd390559ba59e42c5b7126e1a0d77d17ab",
+      "title": "Ie fuis la vile, & temples, & tous lieus"
+    },
+    {
+      "number": 18,
+      "roman": "XVIII",
+      "scans": [
+        117
+      ],
+      "sourceSha256": "772a8a27008891d65cc6113acbed209bb854cf73cedbb205b03f2c260b4b5644",
+      "corrections": [
+        {
+          "line": 5,
+          "before": "Las, te pleins tu ? ça que ce mal i’apaise.",
+          "after": "Las, te pleins tu ? ça que ce mal i’apaise,"
+        }
+      ],
+      "sha256": "5d8e20a2bcf2d47e111668d0578e6e468650056f256040b7f8ccf6aa0a224201",
+      "title": "Baise m’encor, rebaise moy & baise ",
+      "note": "Boy prints ‘l’autre’; the 1910 Sansot printing has ‘l’antre’."
+    },
+    {
+      "number": 19,
+      "roman": "XIX",
+      "scans": [
+        118
+      ],
+      "sourceSha256": "d1852b6547c5b0b11c152b2e902ac2d7faa25b230e9394798514d2e847519adf",
+      "corrections": [
+        {
+          "line": 2,
+          "before": "Apres auoir mainte beste assenee.",
+          "after": "Apres auoir mainte beste assenee,"
+        },
+        {
+          "line": 3,
+          "before": "Prenait le frais, de Nynfes couronnée :",
+          "after": "Prenoit le frais, de Nynfes couronnée :"
+        },
+        {
+          "line": 11,
+          "before": "Ie m’animay, respons ie, à un passant.",
+          "after": "Ie m’animay, respons ie, à un passant,"
+        }
+      ],
+      "sha256": "547d148ccd60bc1c00695d488fa0aff84e16ad63c3425681e9910325779c06f4",
+      "title": "Diane estant en l’espesseur d’un bois",
+      "note": "Boy prints ‘compagne’ and ‘flesches’; the 1910 Sansot printing has ‘campagne’ and ‘flesche’."
+    },
+    {
+      "number": 20,
+      "roman": "XX",
+      "scans": [
+        118,
+        119
+      ],
+      "sourceSha256": "fa49db5e3d58960f1eb7a69666d9d711d65cad076e6c362743433ad80f51ec09",
+      "corrections": [
+        {
+          "line": 3,
+          "before": "Me fut descrite ; & sans autre peinture",
+          "after": "Me fut descrite : & sans autre peinture"
+        },
+        {
+          "line": 7,
+          "before": "Et tellement ie forcay ma nature.",
+          "after": "Et tellement ie forcay ma nature,"
+        },
+        {
+          "line": 13,
+          "before": "Ie croy qu’estoient les infernaus arrets.",
+          "after": "Ie croy qu’estoient les infernaus arrets,"
+        }
+      ],
+      "sha256": "b5d7551e8d6464c908cad0cb373c7ac24af38259a8fef8cfd9c4a51adf73aa56",
+      "title": "Predit me fut, que deuois fermement",
+      "note": "Boy prints ‘deuois’ in the first line; the 1910 Sansot printing has ‘deuoit’."
+    },
+    {
+      "number": 21,
+      "roman": "XXI",
+      "scans": [
+        119
+      ],
+      "sourceSha256": "58c3dbaca7d7c7dd6055abd71814253716497c17614aa9e624500f4c02d4d04d",
+      "corrections": [
+        {
+          "line": 11,
+          "before": "Mais ie say bien & de tant ie m’assure.",
+          "after": "Mais ie say bien & de tant ie m’assure,"
+        },
+        {
+          "line": 12,
+          "before": "Que tout le beau que l’on pourroit choisir.",
+          "after": "Que tout le beau que l’on pourroit choisir,"
+        }
+      ],
+      "sha256": "431aefbb43bca7f01fdb1a72860a194daffd4a2b0718a176e57204aaacd3442a",
+      "title": "Quelle grandeur rend l’homme venerable "
+    },
+    {
+      "number": 22,
+      "roman": "XXII",
+      "scans": [
+        119,
+        120
+      ],
+      "sourceSha256": "d0f6b497a0e822c9d78a3fcfffe0db1a9c9ec0611d6373deab4229416faa4102",
+      "corrections": [
+        {
+          "line": 3,
+          "before": "Et toy, sa seur, qu’Endimion embrasse.",
+          "after": "Et toy, sa seur, qu’Endimion embrasse,"
+        },
+        {
+          "line": 11,
+          "before": "Mais s’ils auoient ce qu’ils ayment lointein.",
+          "after": "Mais s’ils auoient ce qu’ils ayment lointein,"
+        },
+        {
+          "line": 13,
+          "before": "Se tournerait en erreur variable,",
+          "after": "Se tourneroit en erreur variable,"
+        }
+      ],
+      "sha256": "cde374a9c212a5b44635aaa62b9ac443bff629e39f28404390282a2bce878ea6",
+      "title": "Luisant Soleil, que tu es bien heureus"
+    },
+    {
+      "number": 23,
+      "roman": "XXIII",
+      "scans": [
+        120
+      ],
+      "sourceSha256": "f85eac6110d07f678c4e952cc6d996529daa49fd48272aab5c48e43c09494679",
+      "corrections": [
+        {
+          "line": 2,
+          "before": "Louas iadis & ma tresse dorée.",
+          "after": "Louas iadis & ma tresse dorée,"
+        }
+      ],
+      "sha256": "f57ae594242b5bec4099751810dc2f8111e1923a840941c0469645a1e794324c",
+      "title": "Las ! que me sert, que si parfaitement"
+    },
+    {
+      "number": 24,
+      "roman": "XXIIII",
+      "scans": [
+        121
+      ],
+      "sourceSha256": "6377f28609982804e714fdfc7180eccbc651fc721da0738a97ce51bee3c1a2d3",
+      "corrections": [
+        {
+          "line": 8,
+          "before": "Mais estime qu’Amour, à point nommé,",
+          "after": "Mais estimez qu’Amour, à point nommé,"
+        },
+        {
+          "line": 10,
+          "before": "Sans la beauté d’Adonis acuser.",
+          "after": "Sans la beauté d’Adonis acuser,"
+        }
+      ],
+      "sha256": "04197bb7a765c543fd1a1e11c952dcc944a1b4a1a1ff09c4c4420e1c547a7b73",
+      "title": "Ne reprenez, Dames, si i’ay aymé "
+    }
+  ]
+}
