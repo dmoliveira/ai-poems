@@ -1308,6 +1308,63 @@ test('additional Arabic voices support complete-text search, saved data and stat
   await staticContext.close();
 });
 
+test('Italian women sonnets support discovery, saved data and static reading', async () => {
+  const stampa = poems.filter(poem => poem.authorId === 'gaspara-stampa');
+  const colonna = poems.filter(poem => poem.authorId === 'vittoria-colonna');
+  const selected = [...stampa, ...colonna];
+  assert.equal(stampa.length, 12);
+  assert.equal(colonna.length, 14);
+  const devotional = colonna.find(poem => poem.id === 'colonna-spiritual-001');
+  const seed = { saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Italian#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Italian' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const [query, expected] of [['Gaspara Stampa', stampa], ['Vittoria Colonna', colonna]]) {
+    await page.getByLabel('Search the poetry library').fill(query);
+    await page.getByText(`${expected.length} poems found`, { exact: true }).waitFor();
+    const showMore = page.getByRole('button', { name: /Show more poems/ });
+    while (await showMore.isVisible()) await showMore.click();
+    for (const poem of expected) assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1);
+  }
+  await page.getByLabel('Search the poetry library').fill('santi chiodi omai sieno mie penne');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  await page.locator(`#results a[href$="/poems/${devotional.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), devotional.text);
+  assert.equal(await page.getByRole('link', { name: devotional.sourceTitle }).getAttribute('href'), devotional.source);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes(seed.saved[0]));
+  assert.ok(stored.saved.includes(devotional.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Italian a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    await staticPage.goto(`${base}poems/${poem.id}/`);
+    const original = staticPage.locator('#original-panel .verse');
+    assert.equal(await original.textContent(), poem.text);
+    assert.equal(await original.getAttribute('lang'), 'it');
+    assert.equal(await original.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(poem.rights));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.getByRole('link', { name: 'Vittoria Colonna', exact: true }).click();
+  for (const poem of colonna) assert.equal(await staticPage.locator(`a[href$="/poems/${poem.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Qābāḍū originals support Arabic discovery, saved data and static RTL reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'mahmud-qabadu');
   assert.equal(selected.length, 8);

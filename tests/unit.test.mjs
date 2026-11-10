@@ -553,6 +553,74 @@ test('Petrarch sonnets retain reviewed 1739 readings, boundaries and distinct nu
   for (const poem of selected) assert.ok(poet.poems.some(entry => entry.id === poem.id));
   assert.ok(poems.filter(poem => poem.language === 'Italian').length >= 100);
 });
+test('Italian women sonnets retain distinct editions, complete texts and source credits', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/italian-women-sonnets.json', import.meta.url), 'utf8'));
+  const expected = [
+    ...Array.from({ length: 12 }, (_, i) => ['stampa', i + 1]),
+    ...Array.from({ length: 4 }, (_, i) => ['colonna-love', i + 1]),
+    ...Array.from({ length: 10 }, (_, i) => ['colonna-spiritual', i + 1]),
+  ];
+  assert.deepEqual(manifest.poems.map(item => [item.group, item.number]), expected);
+  assert.equal(Object.keys(manifest.scanSha256).length, 26);
+  assert.equal(manifest.scanSha256['stampa-1554-full.pdf'], '564d9b447b8e15955fad9279974e1a2b97ffde6a2dcd33ad34823d383fffbfa2');
+  const selected = manifest.poems.map(item => {
+    const id = `${item.group}-${String(item.number).padStart(3, '0')}`;
+    const poem = poems.find(entry => entry.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, item.group === 'stampa' ? 'Gaspara Stampa' : 'Vittoria Colonna');
+    assert.equal(poem.authorId, item.group === 'stampa' ? 'gaspara-stampa' : 'vittoria-colonna');
+    assert.equal(poem.language, 'Italian');
+    assert.equal(poem.lang, 'it');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.form, 'Sonnet');
+    assert.deepEqual(associatedPlaces(poem), ['Italy']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*Check local law/);
+    assert.equal(lineCount(poem), 14);
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 3, 3]);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.equal(poem.title, poem.text.split('\n')[0].replace(/[.,;:?!]+$/, ''));
+    assert.deepEqual(poem.themes, item.group === 'colonna-spiritual' ? ['Faith'] : []);
+    assert.deepEqual(poem.translations, []);
+    const scan = item.group === 'stampa' ? 'stampa-1913' : 'colonna-1760';
+    assert.ok(manifest.scanSha256[`${scan}-leaf-${String(item.scanLeaf).padStart(3, '0')}.jpg`]);
+    if (item.group === 'stampa') {
+      assert.match(poem.context, /numbering and headings are editorial/);
+      assert.equal(new URL(poem.contextSource).hash, `#page=${item.comparisonPdfPage}`);
+      assert.ok(manifest.scanSha256[`stampa-1554-leaf-${String(item.comparisonPdfPage).padStart(3, '0')}.png`]);
+    } else {
+      assert.match(poem.context, /numbered separately/);
+      assert.ok(poem.contextSource.endsWith(`1760.djvu/${item.scanLeaf}`));
+    }
+    if (item.note) assert.ok(poem.context.includes(item.note));
+    for (const edit of item.corrections) {
+      assert.equal(poem.text.split('\n').filter(Boolean)[edit.line - 1], edit.after);
+      assert.ok(poem.context.includes(edit.before));
+      assert.ok(poem.context.includes(edit.after));
+    }
+    assert.ok(filterPoems(poems, { language: 'Italian', author: poem.author }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  const byId = id => selected.find(poem => poem.id === id);
+  assert.match(byId('stampa-002').text, /quanto ’l sol giri e guardi/);
+  assert.match(byId('stampa-002').context, /miri/);
+  assert.match(byId('stampa-007').context, /sembiante.*sembianti/);
+  assert.match(byId('stampa-009').context, /non vorrebbe.*nol vorrebbe/);
+  assert.match(byId('colonna-love-001').text, /Per altra lingua/);
+  assert.match(byId('colonna-love-001').context, /per altra tromba/);
+  assert.match(byId('colonna-spiritual-009').text, /il ghiaccio duro/);
+  assert.match(byId('colonna-spiritual-009').context, /ghìaccio.*ghiaccio/);
+  assert.match(byId('colonna-love-004').text, /^S’Alla/);
+  assert.match(byId('colonna-spiritual-004').text, /^S’In/);
+  assert.ok(filterPoems(poems, { query: 'santi chiodi omai sieno mie penne' }).includes(byId('colonna-spiritual-001')));
+  assert.equal(groupPoets(poems).find(group => group.id === 'gaspara-stampa').poems.length, 12);
+  assert.equal(groupPoets(poems).find(group => group.id === 'vittoria-colonna').poems.length, 14);
+});
 test('Machado originals retain scan-reviewed readings, credits and discovery', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/machado-reviewed.json', import.meta.url), 'utf8'));
   assert.equal(manifest.length, 23);
