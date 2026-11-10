@@ -1258,6 +1258,91 @@ test('additional Arabic works retain their bounded readings, credits and variant
   assert.match(hafiz.text, /فإنما في القلة المنجح$/);
   assert.deepEqual(groupPoets(poems).find(group => group.id === 'hafiz-ibrahim').poems.map(poem => poem.id), [hafiz.id]);
 });
+test('al-Maʿarrī originals retain reviewed readings, source boundaries and variants', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/al-maarri-1901-reviewed.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/al-maarri-1901-reviewed.txt', import.meta.url), 'utf8');
+  const sections = source.split(/^=== ([a-z-]+) ===\n/gm);
+  assert.equal(sections.shift(), '');
+  const readings = new Map();
+  while (sections.length) readings.set(sections.shift(), sections.shift().trim().replaceAll(' | ', '\n'));
+  assert.deepEqual(manifest.scanSha256, {
+    'siqt-hindiyya-1901.pdf': '9001ba79fd4800b6cf66314e1bb5202f8ac0ace49d11efd81dc43d7fab0c597e',
+    'siqt-bulaq-1869.pdf': '989b3e8f4cf0cf1fd81b9417707f1090f8c466e131eeb0327884c44bebd77743',
+    'shuruh-1948-vol4.pdf': '1ec50b0f5a3500e7b0bda75d02fa92ae7926e0b6bbe0986bf1c48afea1ed878e',
+  });
+  const expected = [
+    { slug: 'farewell', couplets: 3, hash: '4f05560a0894df0fe55d8a5b3880f9040bcdabf19d0396a8610d8c89f9e10d78', primary: [132], pdf: [136], bulaq: [136], bulaqPdf: [97], critical: [1721], criticalPdf: [275], number: 70 },
+    { slug: 'candle', couplets: 4, hash: '4eb8d8bc869d53b5be15adba875bc12b2698a6eba542ea5d73602fec952697f6', primary: [132, 133], pdf: [136, 137], bulaq: [136, 137], bulaqPdf: [97, 96], critical: [1723, 1724], criticalPdf: [277, 278], number: 71 },
+    { slug: 'mother-elegy', couplets: 10, hash: '869c990a378ebabaf1ef33f036844d298aae84d0c49167e294b66e0af285e33c', primary: [133], pdf: [137], bulaq: [137, 138], bulaqPdf: [96, 95], critical: [1725, 1726, 1727, 1728, 1729, 1730, 1731], criticalPdf: [279, 280, 281, 282, 283, 284, 285], number: 72 },
+    { slug: 'gifts', couplets: 8, hash: '5e68c20ae08e3b65bb8ae6b61651c63022980fde5190495567a4f11784af0167', primary: [133, 134], pdf: [137, 138], bulaq: [138, 139], bulaqPdf: [95, 94], critical: [1732, 1733, 1734, 1735], criticalPdf: [286, 287, 288, 289], number: 73 },
+    { slug: 'past-endeavors', couplets: 15, hash: '8ab1cff7dd47630fe43052b24c718fb220f6252708170edf87871327b0c16bbc', primary: [134, 135], pdf: [138, 139], bulaq: [139, 140, 141], bulaqPdf: [94, 93, 92], critical: [1736, 1737, 1738, 1739, 1740, 1741, 1742, 1743], criticalPdf: [290, 291, 292, 293, 294, 295, 296, 297], number: 74 },
+    { slug: 'armor', couplets: 10, hash: '8e12a1a2667e9cf7c32f05395bf34a5fe68cc9b24ef28f5d49ee1270999e5873', primary: [135], pdf: [139], bulaq: [141, 142], bulaqPdf: [92, 91], critical: [1747, 1748, 1749, 1750, 1751], criticalPdf: [301, 302, 303, 304, 305], number: 75 },
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), expected.map(item => item.slug));
+  const selected = expected.map((entry, index) => {
+    const item = manifest.poems[index];
+    const poem = poems.find(p => p.id === `al-maarri-1901-${entry.slug}`);
+    assert.ok(poem, entry.slug);
+    assert.deepEqual([item.printedPages, item.pdfPages, item.bulaqPrintedPages, item.bulaqPdfPages, item.criticalPrintedPages, item.criticalPdfPages, item.criticalNumber],
+      [entry.primary, entry.pdf, entry.bulaq, entry.bulaqPdf, entry.critical, entry.criticalPdf, entry.number]);
+    assert.equal(item.couplets, entry.couplets);
+    assert.equal(item.textSha256, entry.hash);
+    assert.equal(poem.text, readings.get(entry.slug));
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), entry.hash);
+    assert.equal(lineCount(poem), entry.couplets * 2);
+    assert.equal(poem.title, poem.text.split('\n')[0]);
+    assert.equal(poem.author, 'Abu al-Ala al-Maarri');
+    assert.equal(poem.authorOriginal, 'أبو العلاء المعري');
+    assert.equal(poem.authorId, 'abu-al-ala-al-maarri');
+    assert.equal(poem.authorYears, '973–1057 or 1058');
+    assert.deepEqual(associatedPlaces(poem), ['Syria']);
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.source, `https://dlib.nyu.edu/files/books/columbia_aco000324/columbia_aco000324_lo.pdf#page=${entry.pdf[0]}`);
+    assert.equal(poem.contextSource, `https://dlib.nyu.edu/files/books/columbia_aco001465/columbia_aco001465_lo.pdf#page=${entry.criticalPdf[0]}`);
+    assert.match(poem.context, /derived from Bulāq; they are not independent witnesses/);
+    assert.match(poem.context, /not a claim about every textual tradition/);
+    assert.match(poem.context, /not an asserted composition place/);
+    assert.ok(poem.context.includes(item.note));
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /1948 scholarly edition is linked for comparison, not reproduced/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    for (const query of [poem.title, 'أبو العلاء المعري', 'Abu al-Ala al-Maarri']) {
+      assert.ok(filterPoems(poems, { language: 'Arabic', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  const [farewell, candle, mother, gifts, past, armor] = selected;
+  assert.match(farewell.text, /فمتى أودع خلي التوديعا$/);
+  assert.match(farewell.context, /al-Balkhī.*not proof of an autobiographical event/);
+  assert.match(farewell.context, /عن instead of من/);
+  assert.match(candle.text, /فقد تدمع الأحداق من كثرة الضحك$/);
+  assert.match(candle.context, /على غير الأيام.*على نوب الأيام/);
+  assert.match(candle.context, /1884 Beirut edition omitted the last two couplets/);
+  assert.match(mother.text, /طوتهم شهور في التراب وأحوال$/);
+  assert.match(mother.context, /1884 Beirut printing omitted the elegy/);
+  assert.match(mother.text, /أبالشأم حفرة/);
+  assert.match(mother.context, /الشأم.*الشام.*uncertain/);
+  assert.ok(filterPoems(poems, { query: 'طوتهم شهور في التراب وأحوال' }).includes(mother));
+  assert.match(gifts.text, /لإسباغ طهر حان أو لشراب$/);
+  assert.match(gifts.context, /تفتش.*تكشف.*بجدة.*نجدة.*وأهلها.*وإنسها/);
+  assert.match(past.text, /فليس مثلي بناس ذلك العصرا/);
+  assert.match(past.text, /وصغت في الوارد المأمول تهنئة/);
+  assert.match(past.text, /عشرين حولا فلما نبه اعتذرا$/);
+  assert.match(past.context, /الشعر.*أحيا.*الجزء.*أعيا/);
+  assert.match(past.context, /al-Baṭalyawsī did not transmit the sixth couplet/);
+  assert.match(armor.text, /أعاذل طال ما أتلفت مالي\nولكن الحوادث أتلفتني$/);
+  assert.match(armor.context, /al-Baṭalyawsī did not include this poem/);
+  assert.match(armor.context, /two occurrences of الكر have different vowel marks/);
+  assert.ok(filterPoems(poems, { query: 'ولكن الحوادث أتلفتني' }).includes(armor));
+  const poet = groupPoets(poems).find(group => group.id === 'abu-al-ala-al-maarri');
+  assert.deepEqual(new Set(poet.poems.map(poem => poem.id)), new Set(selected.map(poem => poem.id)));
+});
 test('Taymur readings retain complete historical boundaries, variants and Arabic identity', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/taymur-1303-reviewed.json', import.meta.url), 'utf8'));
   assert.equal(manifest.poems.length, 7);
