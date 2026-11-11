@@ -1,0 +1,36 @@
+{
+  "witnesses": {
+    "schools-1927.pdf": {
+      "sha256": "d380285b00cbf4512d51f55563bd41187c8ce343990d4b6be882eecc69c98280",
+      "archiveId": "1525pdf_201912",
+      "archiveFile": "1525 كتاب اقرا اونلاين    pdf   الشوقيات (للمدارس).pdf"
+    },
+    "collected-101217.pdf": {
+      "sha256": "a6c288eb53de1422f6f081bf087d4834a578aab343dad524b5aa523aa64e3b70",
+      "archiveId": "AAlexandrina-101217",
+      "archiveFile": "101217 - الشوقيات.pdf"
+    }
+  },
+  "poems": [
+    {
+      "slug": "bank",
+      "title": "بنك مصر",
+      "coupletsBySection": [17],
+      "printedPages": [114, 115],
+      "pdfPages": [59],
+      "comparisonPrintedPages": [229, 230],
+      "comparisonPdfPages": [253, 254],
+      "textSha256": "9c55bd0d0b469b31215b9ee9631b441f5db5013035fc0f55aa08e03709bd596f"
+    },
+    {
+      "slug": "exile",
+      "title": "بعد المنفى",
+      "coupletsBySection": [9, 8, 8, 7, 28],
+      "printedPages": [28, 29, 30, 31, 32],
+      "pdfPages": [16, 17, 18],
+      "comparisonPrintedPages": [54, 55, 56, 57, 58],
+      "comparisonPdfPages": [78, 79, 80, 81, 82],
+      "textSha256": "f7d83794cddda1838d52bb01eda2deca4fc7e939b974e828654bbec8fa1fe087"
+    }
+  ]
+}
