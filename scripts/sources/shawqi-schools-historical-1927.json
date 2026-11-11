@@ -1,0 +1,43 @@
+{
+  "witnesses": {
+    "schools-1927.pdf": {
+      "sha256": "d380285b00cbf4512d51f55563bd41187c8ce343990d4b6be882eecc69c98280",
+      "archiveId": "1525pdf_201912",
+      "archiveFile": "1525 كتاب اقرا اونلاين    pdf   الشوقيات (للمدارس).pdf"
+    },
+    "correct-137947.pdf": {
+      "sha256": "c921bb983458ad90eac5cc925132b6ebd31b63c86c64828f6aa4f3e1994e8196",
+      "archiveId": "AAlexandrina-137947",
+      "archiveFile": "137947 - الشوقيات - (الصحيحة).pdf"
+    },
+    "collected-101217.pdf": {
+      "sha256": "a6c288eb53de1422f6f081bf087d4834a578aab343dad524b5aa523aa64e3b70",
+      "archiveId": "AAlexandrina-101217",
+      "archiveFile": "101217 - الشوقيات.pdf"
+    }
+  },
+  "poems": [
+    {
+      "slug": "anas",
+      "title": "أنس الوجود",
+      "coupletsBySection": [16, 19, 7],
+      "printedPages": [33, 34, 35, 36],
+      "pdfPages": [18, 19, 20],
+      "comparison": "correct-137947.pdf",
+      "comparisonPrintedPages": [53, 54, 55, 56, 57, 58],
+      "comparisonPdfPages": [55, 56, 57, 58, 59, 60],
+      "textSha256": "2d6caf2705a237920cc32fdef37a3ba70bc1d83248665f49866c1abe77574726"
+    },
+    {
+      "slug": "women",
+      "title": "مصر تجدد مجدها",
+      "coupletsBySection": [27, 16],
+      "printedPages": [58, 59, 60, 61],
+      "pdfPages": [31, 32],
+      "comparison": "collected-101217.pdf",
+      "comparisonPrintedPages": [102, 103, 104, 105],
+      "comparisonPdfPages": [126, 127, 128, 129],
+      "textSha256": "c51867b335876a2b7d614c40741459574f7cd31acd98e333e9dc771dd1276e29"
+    }
+  ]
+}
