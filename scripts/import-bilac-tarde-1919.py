@@ -93,9 +93,9 @@ def records(directory):
         first, last = item["printedPages"]
         context = (
             notes[item["slug"]]
-            + "This complete sonnet is transcribed from the posthumous 1919 Tarde, "
-            "checked line by line against the USP and Princeton/HathiTrust copies of "
-            "that printing. They are copies of the same printing, not independent "
+            + "This complete sonnet follows the Princeton/HathiTrust copy of the "
+            "posthumous 1919 Tarde and was checked line by line against the USP "
+            "copy. They are copies of the same printing, not independent "
             "editions. Modern transcriptions were comparison aids, not the historical "
             "or rights basis. Historical wording and much of the spelling are retained; "
             "spacing, punctuation, some diacritics and typographic apostrophes are "
@@ -105,8 +105,9 @@ def records(directory):
         )
         rights = (
             "The original as published in 1919 is public domain in the United States; "
-            "USP also identifies Tarde as public domain. The scans are linked, not "
-            "republished. Check local law before reuse."
+            "Wikimedia Commons marks the Princeton scan public domain. USP requests "
+            "noncommercial use and no online republication without authorization for its "
+            "comparison scan; its images are linked, not reproduced. Check local law."
         )
         if item["slug"] in WIKISOURCE:
             rights += (
@@ -133,10 +134,10 @@ def records(directory):
             "themes": [],
             "mood": "paper",
             "context": context,
-            "contextSource": ABL if modern else f"{witnesses['tarde-hathitrust-1919.djvu']['url']}?page={item['princetonLeaves'][0]}",
-            "contextSourceTitle": "Academia Brasileira de Letras · selected texts" if modern else f"Wikimedia Commons · Princeton copy, pp. {first}–{last}",
-            "sourceTitle": f"USP · Tarde (1919), pp. {first}–{last}",
-            "source": f"{witnesses['tarde-1919.pdf']['url']}#page={item['uspLeaves'][0]}",
+            "contextSource": ABL if modern else f"{witnesses['tarde-1919.pdf']['url']}#page={item['uspLeaves'][0]}",
+            "contextSourceTitle": "Academia Brasileira de Letras · selected texts" if modern else f"USP · comparison copy, pp. {first}–{last}",
+            "sourceTitle": f"Wikimedia Commons · Princeton copy of Tarde (1919), pp. {first}–{last}",
+            "source": f"{witnesses['tarde-hathitrust-1919.djvu']['url']}?page={item['princetonLeaves'][0]}",
             "rights": rights,
             "text": text[item["slug"]],
             "translations": [],

@@ -208,10 +208,15 @@ test('Bilac sonnets preserve complete 1919 readings, page mappings and compariso
     assert.equal(lineCount(poem), 14);
     assert.equal(item.textSha256, hash);
     assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
-    assert.equal(new URL(poem.source).hash, `#page=${usp[0]}`);
+    assert.equal(new URL(poem.source).searchParams.get('page'), String(princeton[0]));
+    if (['cyclo', 'patria'].includes(slug)) assert.equal(new URL(poem.contextSource).hash, `#page=${usp[0]}`);
+    else assert.equal(poem.contextSource, 'https://www.academia.org.br/academicos/olavo-bilac/textos-escolhidos');
+    assert.match(poem.context, /follows the Princeton\/HathiTrust copy.*checked line by line against the USP copy/);
+    assert.match(poem.context, /Modern transcriptions were comparison aids/);
     assert.match(poem.context, /copies of the same printing, not independent editions/);
     assert.match(poem.context, /not a diplomatic edition.*final author-approved text/);
     assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /Commons marks the Princeton scan public domain.*USP requests noncommercial use.*not reproduced/);
     assert.deepEqual(poem.themes, []);
     assert.deepEqual(poem.translations, []);
     for (const query of ['olavo bilac', title, ...(display ? [display] : [])]) {
