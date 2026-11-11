@@ -162,6 +162,80 @@ test('Brazilian originals retain their reviewed edition texts, evidence and disc
   assert.ok(home.includes('/ai-poems/assets/flags/br.svg'));
   assert.ok(home.includes(`Brazil</strong><small>${placeCounts(poems).find(p => p.place === 'Brazil').count} poems`));
 });
+test('Bilac sonnets preserve complete 1919 readings, page mappings and comparison variants', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/bilac-tarde-1919.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/bilac-tarde-1919.txt', import.meta.url), 'utf8');
+  const parts = source.split(/^=== ([a-z]+) ===\n/gm);
+  assert.equal(parts.shift(), '');
+  const readings = new Map();
+  while (parts.length) readings.set(parts.shift(), parts.shift().trim());
+  assert.equal(manifest.titlePageLeaf, 9);
+  assert.deepEqual(Object.fromEntries(Object.entries(manifest.witnesses).map(([name, witness]) => [name, witness.sha256])), {
+    'tarde-1919.pdf': 'cbcfa738725c886436e1a082af32bb5d45bf5e7437fbb1680ff995964d69647e',
+    'tarde-hathitrust-1919.djvu': 'c93d501d3d82159efa96f938bfd1df9caabaceed50408b135f14442cfb8e58c3',
+  });
+  const cases = [
+    ['cyclo', 'Cyclo', 'Ciclo', [12, 13], [16, 17], [16, 17], 'ad1d48f90ddfa26ea8f150d3782f1bb48936d021975367d841ab646397fbc6bd'],
+    ['patria', 'Patria', 'Pátria', [14, 15], [18, 19], [18, 19], 'bf704dbfae4d88c3c72a90e3c24c5fe6e9a08368ced45ca982fdc95628dd677e'],
+    ['lingua', 'Lingua Portugueza', 'Língua Portuguesa', [16, 17], [20, 21], [20, 21], 'e78c7daff17b2c8599d23f1840a66e84e3936772e4875cfe6eda20de0dbde5f0'],
+    ['poeta', 'A um poeta', undefined, [118, 119], [122, 123], [122, 123], '8912e6f3702e9884c216bf2db9fb14f09e40455396f9a3c0d6f1c072276de998'],
+    ['sinos', 'Aos sinos', 'Os sinos', [204, 205], [204, 205], [208, 209], '83a4c66876a8794e8ac209bcd124fd8542b41163f783885904da751f9c620600'],
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), cases.map(([slug]) => slug));
+  for (const [index, [slug, title, display, printed, usp, princeton, hash]] of cases.entries()) {
+    const item = manifest.poems[index];
+    const poem = poems.find(entry => entry.id === `bilac-tarde-1919-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.title, title);
+    assert.equal(poem.displayTitle, display);
+    if (display) assert.equal(poem.displayTitleLang, 'pt');
+    assert.equal(poem.author, 'Olavo Bilac');
+    assert.equal(poem.authorId, 'olavo-bilac');
+    assert.equal(poem.authorYears, '1865–1918');
+    assert.deepEqual(associatedPlaces(poem), ['Brazil']);
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.match(poem.yearLabel, /Published 1919.*composition date not established/);
+    assert.equal(poem.form, 'Sonnet');
+    assert.deepEqual(item.printedPages, printed);
+    assert.deepEqual(item.uspLeaves, usp);
+    assert.deepEqual(item.princetonLeaves, princeton);
+    assert.equal(poem.text, readings.get(slug));
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 3, 3]);
+    assert.equal(lineCount(poem), 14);
+    assert.equal(item.textSha256, hash);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(new URL(poem.source).hash, `#page=${usp[0]}`);
+    assert.match(poem.context, /copies of the same printing, not independent editions/);
+    assert.match(poem.context, /not a diplomatic edition.*final author-approved text/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    for (const query of ['olavo bilac', title, ...(display ? [display] : [])]) {
+      assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Brazil', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const bySlug = slug => poems.find(poem => poem.id === `bilac-tarde-1919-${slug}`);
+  assert.match(bySlug('cyclo').text, /^Manhã\. Sangue em delirio, verde gomo,[\s\S]*As folhas, como lagrimas\.\.\. Lembrar!$/);
+  assert.match(bySlug('cyclo').context, /one complete sonnet.*not separate works/);
+  assert.match(bySlug('patria').text, /^Patria, latejo em ti[\s\S]*soffrendo o golpe e o insulto!$/);
+  assert.match(bySlug('lingua').text, /De virgens selvas e de oceano largo!/);
+  assert.match(bySlug('lingua').context, /de oceano largo.*de oceanos largos/);
+  assert.match(bySlug('poeta').text, /Do claustro, na paciencia e no socego,/);
+  assert.match(bySlug('poeta').context, /na paciencia.*no silêncio/);
+  assert.match(bySlug('poeta').context, /damaged mark.*omitted/);
+  assert.match(bySlug('poeta').rights, /Wikisource contributors.*CC BY-SA 4\.0/);
+  assert.match(bySlug('patria').rights, /Wikisource contributors.*CC BY-SA 4\.0/);
+  assert.match(bySlug('sinos').text, /aspiração mais vasta/);
+  assert.match(bySlug('sinos').context, /Aos sinos.*mais vasta.*Os sinos.*mais casta/);
+  assert.ok(filterPoems(poems, { query: 'virgens selvas e de oceano largo' }).includes(bySlug('lingua')));
+  assert.ok(filterPoems(poems, { query: 'andaimes do edificio' }).includes(bySlug('poeta')));
+  assert.deepEqual(groupPoets(poems).find(group => group.id === 'olavo-bilac').poems.map(poem => poem.id), cases.map(([slug]) => `bilac-tarde-1919-${slug}`));
+});
 test('Gonçalves Dias additions preserve 1860 readings, complete works and earlier variants', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/goncalves-dias-cantos-1860.json', import.meta.url), 'utf8'));
   const expected = [

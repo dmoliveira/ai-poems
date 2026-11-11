@@ -219,6 +219,62 @@ test('Lorca romances support Spanish search, saved data and JavaScript-free mobi
   await staticContext.close();
 });
 
+test('Bilac sonnets support Brazilian search, preserved saves and complete static reading', async () => {
+  const ids = ['bilac-tarde-1919-cyclo', 'bilac-tarde-1919-patria', 'bilac-tarde-1919-lingua', 'bilac-tarde-1919-poeta', 'bilac-tarde-1919-sinos'];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  const seed = { saved: ['hafiz-ibrahim-1922-virtues', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const filters = { language: 'Portuguese', country: 'Brazil' };
+  await page.goto(`${base}?language=Portuguese&country=Brazil#explore`);
+  await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const [poem, fragment] of [[selected[2], 'virgens selvas e de oceano largo'], [selected[3], 'andaimes do edificio'], [selected[4], 'aspiração mais vasta']]) {
+    for (const query of ['Olavo Bilac', poem.title, ...(poem.displayTitle ? [poem.displayTitle] : []), fragment]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { ...filters, query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.goto(`${base}?language=Portuguese&country=Brazil#explore`);
+    await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...ids.slice(2)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Portuguese a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    const response = await staticPage.goto(`${base}poems/${poem.id}/`);
+    assert.equal(response.status(), 200);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), poem.text);
+    assert.equal(await verse.getAttribute('lang'), 'pt');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+    assert.ok((await staticPage.locator('.story').textContent()).includes(poem.context));
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(poem.rights));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.goto(`${base}poets/olavo-bilac/`);
+  for (const id of ids) assert.equal(await staticPage.locator(`a[href$="/poems/${id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('new Gonçalves Dias poems support Brazilian search and complete static reading', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('dias-cantos-1860-'));
   assert.equal(selected.length, 15);

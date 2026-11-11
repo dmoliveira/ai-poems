@@ -1,0 +1,59 @@
+{
+  "witnesses": {
+    "tarde-1919.pdf": {
+      "sha256": "cbcfa738725c886436e1a082af32bb5d45bf5e7437fbb1680ff995964d69647e",
+      "url": "https://digital.bbm.usp.br/bitstream/bbm/4541/1/002927_COMPLETO.pdf"
+    },
+    "tarde-hathitrust-1919.djvu": {
+      "sha256": "c93d501d3d82159efa96f938bfd1df9caabaceed50408b135f14442cfb8e58c3",
+      "url": "https://commons.wikimedia.org/wiki/File:Tarde_(1919).djvu"
+    }
+  },
+  "titlePageLeaf": 9,
+  "poems": [
+    {
+      "slug": "cyclo",
+      "title": "Cyclo",
+      "displayTitle": "Ciclo",
+      "printedPages": [12, 13],
+      "uspLeaves": [16, 17],
+      "princetonLeaves": [16, 17],
+      "textSha256": "ad1d48f90ddfa26ea8f150d3782f1bb48936d021975367d841ab646397fbc6bd"
+    },
+    {
+      "slug": "patria",
+      "title": "Patria",
+      "displayTitle": "Pátria",
+      "printedPages": [14, 15],
+      "uspLeaves": [18, 19],
+      "princetonLeaves": [18, 19],
+      "textSha256": "bf704dbfae4d88c3c72a90e3c24c5fe6e9a08368ced45ca982fdc95628dd677e"
+    },
+    {
+      "slug": "lingua",
+      "title": "Lingua Portugueza",
+      "displayTitle": "Língua Portuguesa",
+      "printedPages": [16, 17],
+      "uspLeaves": [20, 21],
+      "princetonLeaves": [20, 21],
+      "textSha256": "e78c7daff17b2c8599d23f1840a66e84e3936772e4875cfe6eda20de0dbde5f0"
+    },
+    {
+      "slug": "poeta",
+      "title": "A um poeta",
+      "printedPages": [118, 119],
+      "uspLeaves": [122, 123],
+      "princetonLeaves": [122, 123],
+      "textSha256": "8912e6f3702e9884c216bf2db9fb14f09e40455396f9a3c0d6f1c072276de998"
+    },
+    {
+      "slug": "sinos",
+      "title": "Aos sinos",
+      "displayTitle": "Os sinos",
+      "printedPages": [204, 205],
+      "uspLeaves": [204, 205],
+      "princetonLeaves": [208, 209],
+      "textSha256": "83a4c66876a8794e8ac209bcd124fd8542b41163f783885904da751f9c620600"
+    }
+  ]
+}
