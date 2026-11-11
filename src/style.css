@@ -1629,6 +1629,10 @@ h2 em {
   align-items: end;
   margin: 45px 0 30px;
 }
+.reader-intro > div:first-child {
+  min-width: 0;
+  max-width: 100%;
+}
 .reader-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1643,6 +1647,7 @@ h2 em {
 .reader-intro h1 {
   font-size: clamp(48px, 5.5vw, 72px);
   margin: 0 0 10px;
+  overflow-wrap: anywhere;
 }
 .reader-original-title {
   font:
