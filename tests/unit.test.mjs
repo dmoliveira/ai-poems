@@ -179,6 +179,82 @@ test('three Tang poets retain complete volume 805 readings and source caveats', 
     assert.equal(group.poems.length, count);
   }
 });
+test('Li He horse poems retain separate complete Siku readings and alternate-search caveats', () => {
+  const cases = [
+    ['two', '其二', 88, 'd123a09d637cd401c4eb63408c707ada9540d0f335969d6353980430ee01cdc5'],
+    ['three', '其三', 89, '694678459358b1d30a2ddadbd60f47727a19df635cf89635275f31cf824e6f58'],
+    ['four', '其四', 89, 'c02ea7483659051f0bde74019a98de4e67e607bd0e565f0429d2adc0db2dbe1d'],
+    ['five', '其五', 90, '3b2aad8160299a05ba1be7c8f8e068e95118ee9a047d1803de1af321bee6bdc3'],
+    ['six', '其六', 90, 'a016049dbdd1634c22f97c2597824a54b53f00f9de93fbd589af3a2df9280198'],
+    ['seven', '其七', 91, '1e5316f8074f45b458c6d6dbf11e101299ef72b5c62127caa45edcde6e6ebd1d'],
+    ['eight', '其八', 91, '6b49c23e18e4bd9e68f1385f4f3ee94b0d725a7d819e8463bb2d2f4d19dbed03'],
+    ['nine', '其九', 92, 'e9881ddb6a2971c9f4bf130e77dc45f356c2a45f0acd29b4e5b1f86afcaa77ee'],
+    ['ten', '其十', 92, '17e20e6d0d0e3868eeba05851e4bee31899e8c6886f724368c85d10d9bd9ff26'],
+    ['eleven', '其十一', 93, 'b97b16f7a3a67eb489045af0b2c4133c00ee468b298e231545d077503b672e07'],
+    ['twelve', '其十二', 94, '35dc1f9e9e5f4060bcdfd551cd23d0fe128609deebdec847a40fd5a36d340918'],
+    ['thirteen', '其十三', 94, 'a9c826f272229bfdac41c721a98794d1046be14423dd48fecac3a9825124bc02'],
+    ['fifteen', '其十五', 95, '88f8ec3f2926c52a7ae3c35cd833f52cd41cfd46cd54af0d81b7524db877b914'],
+    ['sixteen', '其十六', 96, 'c23d10029920e21b5bb4f49b52ef36b80bbf5a3fd4a6ef801c15ac78945bdddc'],
+    ['seventeen', '其十七', 97, '40e5f4e456168fd6e8d165617cf872e8df7325bfe8bb2939c99bbd5c4d11117b'],
+    ['eighteen', '其十八', 97, '673abbf71844157a5e4e6cf04a418dacb9c8fb1673af5009aafdd9f7f2ad9964'],
+    ['nineteen', '其十九', 98, 'def1196535b97b943cc58ed82e0ca3f90d7ab2be01b1bb863457158b00b32d15'],
+    ['twenty', '其二十', 98, '75f94dee2cd1415c8607389006044ae2a778c25e9e2aebc6986620fbc661b7af'],
+    ['twenty-one', '其二十一', 98, '5bba499f91ac7af75bbe1474b609c22b59ce2aa1af6f8eea48b26769968f803d'],
+    ['twenty-two', '其二十二', 99, '62798e1b20fd0b5a7c186eec13e6017ff6efd3964c21e1bd94ddcebd685ba42d'],
+    ['twenty-three', '其二十三', 99, 'fb899bdc350ecac29480268dadabbee496af3c02959cd7b6b6b749a51854b21d'],
+  ];
+  const selected = poems.filter(poem => poem.id.startsWith('li-he-horses-'));
+  const get = slug => selected.find(poem => poem.id === `li-he-horses-${slug}`);
+  assert.equal(selected.length, cases.length);
+  assert.ok(!get('one') && !get('fourteen'));
+  for (const [slug, number, page, hash] of cases) {
+    const poem = get(slug);
+    assert.ok(poem, slug);
+    assert.equal(poem.author, 'Li He');
+    assert.equal(poem.authorId, 'li-he');
+    assert.equal(poem.authorOriginal, '李賀');
+    assert.equal(poem.language, 'Chinese');
+    assert.equal(poem.lang, 'zh-Hant');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['China']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    const lines = poem.text.split('\n');
+    assert.equal(lines.length, 4);
+    assert.ok(lines.every(line => [...line.slice(0, -1)].length === 5));
+    assert.equal(poem.title, `馬詩二十三首（${number} · ${lines[0].slice(0, -1)}）`);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(poem.source, `https://archive.org/download/06049046.cn/06049046.cn.pdf#page=${page}`);
+    assert.match(poem.contextSource, /oldid=790637$/);
+    assert.match(poem.context, /relationship to this scanned copy is not established/);
+    assert.match(poem.context, /reproduction date is not identified/);
+    assert.match(poem.context, /not a diplomatic transcription/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /維基小霸王 and Wmr-bot.*CC BY-SA 4\.0/);
+    for (const query of ['Li He', '李賀', lines[0]]) {
+      assert.ok(filterPoems(poems, { language: 'Chinese', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const five = get('five');
+  assert.equal(five.text.split('\n')[0], '大漠山如雪，');
+  assert.match(five.context, /‘大漠山如雪’.*‘大漠沙如雪’/);
+  assert.equal(five.displayTitle, '馬詩二十三首（其五 · 異文：大漠沙如雪）');
+  for (const query of ['大漠山如雪', '大漠沙如雪']) {
+    assert.ok(filterPoems(poems, { language: 'Chinese', query }).includes(five), query);
+  }
+  assert.match(get('two').context, /‘衘’.*‘銜’.*exact glyph is not certain/);
+  assert.match(get('four').context, /‘精’.*‘星’/);
+  assert.match(get('six').context, /‘朱色’.*‘珠色’.*provenance has not been established/);
+  assert.match(get('nine').context, /‘飂叔’.*‘颼叔’/);
+  assert.match(get('sixteen').context, /‘颴風’.*‘飈’.*‘飃風’/);
+  assert.match(get('twenty-three').context, /next work after 其二十三/);
+  const group = groupPoets(poems).find(item => item.id === 'li-he');
+  assert.equal(group.poems.length, 32);
+  for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
+});
+
 test('Li He poems retain distinct complete Siku readings and source caveats', () => {
   const cases = [
     ['one', 72, '68c9dbf340b1bb085b33ad19452efb658912e96ba9f41d107b085a6b2f907480'],
@@ -233,7 +309,7 @@ test('Li He poems retain distinct complete Siku readings and source caveats', ()
   assert.match(get('thirteen').context, /‘燒燭照漁船’.*‘燒竹照漁船’/);
   assert.match(get('thirteen').text, /燒燭照漁船。$/);
   const group = groupPoets(poems).find(item => item.id === 'li-he');
-  assert.equal(group.poems.length, cases.length);
+  assert.equal(group.poems.length, cases.length + poems.filter(poem => poem.id.startsWith('li-he-horses-')).length);
   for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
 });
 test('Rossetti poems retain complete 1906 readings, boundaries and edition caveats', async () => {
