@@ -2563,7 +2563,7 @@ test('Shawqi aviation poem retains its complete school-edition reading and prove
   const source = await readFile(new URL('../scripts/sources/shawqi-schools-1927.txt', import.meta.url), 'utf8');
   const poem = poems.find(entry => entry.id === 'shawqi-schools-aviation');
   assert.ok(poem);
-  assert.equal(poems.filter(entry => entry.authorId === 'ahmad-shawqi').length, 3);
+  assert.equal(poems.filter(entry => entry.authorId === 'ahmad-shawqi').length, 5);
   assert.equal(poem.title, 'آية العصر في سماء مصر');
   assert.equal(poem.author, 'Ahmad Shawqi');
   assert.equal(poem.authorOriginal, 'أحمد شوقي');
@@ -2670,6 +2670,81 @@ test('additional Shawqi poems retain complete 1927 school readings and compariso
   assert.match(exile.text, /ويا وطني لقيتك بعد يأس\nكأني قد لقيت بك الشبابا/);
   assert.match(exile.text, /ولولا البر لم يبعث رسول\nولم يحمل إلى قوم كتابا$/);
   assert.ok(filterPoems(poems, { query: 'ويا وطني لقيتك بعد يأس' }).includes(exile));
+});
+test('Shawqi historical poems preserve complete school readings, textual variants and date uncertainty', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/shawqi-schools-historical-1927.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/shawqi-schools-historical-1927.txt', import.meta.url), 'utf8');
+  const parts = source.split(/^=== ([a-z]+) ===\n/gm);
+  assert.equal(parts.shift(), '');
+  const readings = new Map();
+  while (parts.length) readings.set(parts.shift(), parts.shift().trim());
+  const expected = [
+    ['anas', [16, 19, 7], '2d6caf2705a237920cc32fdef37a3ba70bc1d83248665f49866c1abe77574726', 'AAlexandrina-137947'],
+    ['women', [27, 16], 'c51867b335876a2b7d614c40741459574f7cd31acd98e333e9dc771dd1276e29', 'AAlexandrina-101217'],
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), expected.map(([slug]) => slug));
+  assert.deepEqual(manifest.poems.map(({ printedPages, pdfPages, comparisonPrintedPages, comparisonPdfPages }) => ({
+    printedPages, pdfPages, comparisonPrintedPages, comparisonPdfPages,
+  })), [
+    { printedPages: [33, 34, 35, 36], pdfPages: [18, 19, 20], comparisonPrintedPages: [53, 54, 55, 56, 57, 58], comparisonPdfPages: [55, 56, 57, 58, 59, 60] },
+    { printedPages: [58, 59, 60, 61], pdfPages: [31, 32], comparisonPrintedPages: [102, 103, 104, 105], comparisonPdfPages: [126, 127, 128, 129] },
+  ]);
+  assert.deepEqual(Object.fromEntries(Object.entries(manifest.witnesses).map(([name, item]) => [name, item.sha256])), {
+    'schools-1927.pdf': 'd380285b00cbf4512d51f55563bd41187c8ce343990d4b6be882eecc69c98280',
+    'correct-137947.pdf': 'c921bb983458ad90eac5cc925132b6ebd31b63c86c64828f6aa4f3e1994e8196',
+    'collected-101217.pdf': 'a6c288eb53de1422f6f081bf087d4834a578aab343dad524b5aa523aa64e3b70',
+  });
+  for (const [slug, sections, hash, comparison] of expected) {
+    const item = manifest.poems.find(entry => entry.slug === slug);
+    const poem = poems.find(entry => entry.id === `shawqi-schools-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, 'Ahmad Shawqi');
+    assert.equal(poem.authorOriginal, 'أحمد شوقي');
+    assert.equal(poem.authorYears, '1868–1932');
+    assert.deepEqual(associatedPlaces(poem), ['Egypt']);
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.match(poem.yearLabel, /Published 1927.*composition date not independently established/);
+    assert.deepEqual(item.coupletsBySection, sections);
+    assert.deepEqual(poem.text.split('\n\n').map(section => section.split('\n').length), sections);
+    assert.equal(poem.text, readings.get(slug));
+    assert.equal(lineCount(poem), sections.reduce((total, n) => total + n, 0));
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(item.textSha256, hash);
+    assert.match(poem.source, new RegExp(`/1525pdf_201912/.*#page=${item.pdfPages[0]}$`));
+    assert.match(poem.contextSource, new RegExp(`/${comparison}/.*#page=${item.comparisonPdfPages[0]}$`));
+    assert.match(poem.context, /completeness in these printings, not independent manuscript descent/);
+    assert.match(poem.context, /words split across printed half-lines are rejoined/);
+    assert.match(poem.context, /not a fully vocalized diplomatic edition/);
+    assert.match(poem.rights, /public domain in the United States.*comparison is linked, not reproduced/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Arabic', country: 'Egypt', query: 'أحمد شوقي' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    assert.ok(groupPoets(poems).find(group => group.id === 'ahmad-shawqi').poems.some(entry => entry.id === poem.id));
+  }
+  const anas = poems.find(poem => poem.id === 'shawqi-schools-anas');
+  const women = poems.find(poem => poem.id === 'shawqi-schools-women');
+  assert.match(anas.text, /^أيها المنتحي بأسوان دارا كالثريا تريد أن تنقضا/);
+  assert.match(anas.text, /بالسعد والنحس إلى أن تعاطت النحس محضا/);
+  assert.match(anas.text, /شيد والمال والعلوم قليل أنقذوه بالمال والعلم نقضا$/);
+  assert.match(anas.context, /1912.*1910.*discrepancy.*unresolved/);
+  assert.match(anas.context, /prose dedication absent from the school poem/);
+  assert.match(anas.context, /بالسعد والنحس.*بالسعد والنخس/);
+  assert.ok(filterPoems(poems, { query: 'نفض الصانع منه اليدين' }).includes(anas));
+  assert.match(women.text, /^قم حي هذي النيرات حي الحسان الخيرات/);
+  assert.match(women.text, /ولقد عامت بناته لجج العلوم الزاخرات/);
+  assert.match(women.text, /ورأين عندهمو الصنائع والفنون مضيعات/);
+  assert.match(women.text, /أقبلن يبنين المآثر للنجاح موفقات/);
+  assert.match(women.text, /حتى زدن حض المحسنات/);
+  assert.match(women.text, /ويرين حتى في الكرى قبل الرجال محرمات$/);
+  assert.match(women.context, /1920.*1924.*not independently resolved/);
+  assert.match(women.context, /عامت بناته.*علمت بناته.*علت ببناته/);
+  assert.ok(filterPoems(poems, { query: 'عندهمو الصنائع والفنون' }).includes(women));
 });
 test('Sabri magazine originals retain their complete printings, variants and provenance', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/sabri-magazines-reviewed.json', import.meta.url), 'utf8'));
