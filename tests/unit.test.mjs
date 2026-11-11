@@ -107,6 +107,58 @@ test('Yu Xuanji poems retain dated-facsimile readings and attribution uncertaint
   assert.equal(group.poems.length, cases.length);
   for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
 });
+test('Rossetti poems retain complete 1906 readings, boundaries and edition caveats', async () => {
+  const manifestText = await readFile(new URL('../scripts/sources/rossetti-1906.json', import.meta.url), 'utf8');
+  assert.equal(createHash('sha256').update(manifestText).digest('hex'), '0c98f4598629843bbccd24b7b7516346b8fa3a7487e8497b0450d3d696b40a2c');
+  const manifest = JSON.parse(manifestText).poems;
+  const slugs = [
+    'dream-land', 'at-home', 'from-sunset', 'love-from-the-north', 'winter-rain', 'a-dirge', 'spring',
+    'lambs-of-grasmere', 'a-birthday', 'remember', 'after-death', 'an-end', 'song-roses', 'a-summer-wish',
+    'an-apple-gathering', 'song-doves', 'maude-clare', 'echo', 'winter-my-secret', 'another-spring',
+    'fata-morgana', 'no-thank-you-john', 'may', 'song-when-i-am-dead', 'up-hill',
+  ];
+  const selected = poems.filter(poem => poem.id.startsWith('rossetti-1906-'));
+  const get = slug => selected.find(poem => poem.id === `rossetti-1906-${slug}`);
+  assert.deepEqual(manifest.map(row => row.slug), slugs);
+  assert.equal(selected.length, slugs.length);
+  for (const row of manifest) {
+    const poem = get(row.slug);
+    assert.ok(poem, row.slug);
+    assert.equal(poem.title, row.title);
+    assert.equal(poem.author, 'Christina Rossetti');
+    assert.equal(poem.authorId, 'christina-rossetti');
+    assert.equal(poem.language, 'English');
+    assert.equal(poem.lang, 'en');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['England']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), row.stanzas);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), row.textSha256);
+    assert.equal(poem.source, 'https://www.gutenberg.org/ebooks/19188');
+    assert.equal(poem.contextSource, `https://archive.org/details/poems00ross5/page/n${row.ocrStart[0] - 1}/mode/1up`);
+    assert.match(poem.context, /not established as the same copy or impression/);
+    assert.match(poem.context, /not exhaustive punctuation collation or a diplomatic transcription/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /Steven desJardins, Jeffrey Johnson/);
+    for (const query of ['Christina Rossetti', poem.text.split('\n')[0]]) {
+      assert.ok(filterPoems(poems, { language: 'English', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  assert.match(get('dream-land').text, /She sleeps a charmèd sleep:/);
+  assert.match(get('may').text, /Nor any bird foregone its mate\.\n\nI cannot tell you what it was;/);
+  assert.equal(get('may').text.split('\n').filter(Boolean).length, 13);
+  assert.match(get('up-hill').text, /Shall I meet other wayfarers at night\?/);
+  assert.match(get('up-hill').context, /“other”.*“otner,” possibly damaged type or a printing error/);
+  const songs = ['song-roses', 'song-doves', 'song-when-i-am-dead'].map(get);
+  assert.ok(songs.every(poem => poem.title === 'Song' && poem.disambiguation === poem.text.split('\n')[0]));
+  assert.equal(new Set(songs.map(poem => poem.disambiguation)).size, 3);
+  const group = groupPoets(poems).find(item => item.id === 'christina-rossetti');
+  assert.equal(group.poems.length, slugs.length);
+  for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
+});
 test('Teasdale poems retain complete Love Songs readings and edition caveats', async () => {
   const manifestText = await readFile(new URL('../scripts/sources/teasdale-love-songs.json', import.meta.url), 'utf8');
   assert.equal(createHash('sha256').update(manifestText).digest('hex'), '1cfefd190bf9f3a2363a6ebde45c1438d3a8f241f5df7b005472df1887393171');
