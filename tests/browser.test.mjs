@@ -171,6 +171,68 @@ test('country flags and counts link to the matching country results', async () =
   await context.close();
 });
 
+test('Tao Yuanming poems support Chinese search, saved data and JavaScript-free reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'tao-yuanming');
+  assert.equal(selected.length, 10);
+  const seed = { saved: ['li-qingzhao-1881-red-lotus', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const filters = { language: 'Chinese', country: 'China' };
+  const filterUrl = `${base}?language=Chinese&country=China#explore`;
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(filterUrl);
+  await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const name of ['Tao Yuanming', '陶淵明']) {
+    await page.getByLabel('Search the poetry library').fill(name);
+    await page.getByText('10 poems found', { exact: true }).waitFor();
+  }
+  const samples = [['05', '採菊東籬下'], ['09', '清晨聞叩門'], ['17', '幽蘭生前庭']];
+  for (const [number, fragment] of samples) {
+    const poem = selected.find(item => item.id === `tao-yuanming-drinking-ming-${number}`);
+    for (const query of [poem.title, fragment]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { ...filters, query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.goto(filterUrl);
+    await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...samples.map(([number]) => `tao-yuanming-drinking-ming-${number}`)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Chinese a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    const response = await staticPage.goto(`${base}poems/${poem.id}/`);
+    assert.equal(response.status(), 200);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), poem.text);
+    assert.equal(await verse.getAttribute('lang'), 'zh-Hant');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+    assert.ok((await staticPage.locator('.story').textContent()).includes(poem.context));
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(poem.rights));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await staticPage.goto(`${base}poets/tao-yuanming/`);
+  for (const poem of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${poem.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Li Qingzhao lyrics support Chinese search, saved data and JavaScript-free reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'li-qingzhao');
   assert.equal(selected.length, 12);
