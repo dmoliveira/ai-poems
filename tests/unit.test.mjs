@@ -63,6 +63,59 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.equal(byId('castellana-003').anonymous, true);
   assert.equal(byId('tang-108').year, null);
 });
+test('Lorca romances preserve the reviewed 1928 works, sections and source caveats', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/lorca-romancero-1928.json', import.meta.url), 'utf8'));
+  const selected = poems.filter(poem => poem.authorId === 'federico-garcia-lorca');
+  assert.equal(selected.length, 18);
+  assert.deepEqual(manifest.poems.map(item => item.number), Array.from({ length: 18 }, (_, i) => i + 1));
+  for (const item of manifest.poems) {
+    const poem = selected.find(entry => entry.id === `lorca-romancero-${String(item.number).padStart(2, '0')}`);
+    assert.ok(poem, item.number);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, 'Federico García Lorca');
+    assert.equal(poem.authorYears, '1898–1936');
+    assert.deepEqual(associatedPlaces(poem), ['Spain']);
+    assert.equal(poem.language, 'Spanish');
+    assert.equal(poem.lang, 'es');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.form, 'Romance');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.match(poem.yearLabel, /Printed 1928.*composition date not established/);
+    assert.equal(poem.source, `https://www.gutenberg.org/cache/epub/72665/pg72665-images.html#Ch${String(item.number).padStart(2, '0')}`);
+    assert.equal(new URL(poem.contextSource).hash, `#page=${item.pages[0] + 2}`);
+    assert.ok(poem.context.includes(item.dedication));
+    assert.match(poem.context, /OCR.*not every witness.*not a diplomatic transcription/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.equal(lineCount(poem), item.lines);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Spanish', country: 'Spain', author: poem.author }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const byNumber = number => selected.find(poem => poem.id === `lorca-romancero-${String(number).padStart(2, '0')}`);
+  assert.match(byNumber(1).text, /^La luna vino a la fragua[\s\S]*El aire la está velando\.$/);
+  assert.match(byNumber(4).text, /^Verde que te quiero verde\./);
+  assert.ok(filterPoems(poems, { query: 'verde que te quiero verde' }).includes(byNumber(4)));
+  assert.match(byNumber(9).text, /^II$/m);
+  assert.match(byNumber(9).context, /printed ‘II’/);
+  assert.match(byNumber(9).context, /Creselles.*Croselles/);
+  assert.match(byNumber(10).text, /^II$/m);
+  assert.match(byNumber(13).text, /las cuatro luces clamaban/);
+  assert.match(byNumber(13).context, /la cuatro luces/);
+  assert.match(byNumber(14).context, /Romance del emplazado/);
+  assert.match(byNumber(15).text, /y las orzas de moneda/);
+  assert.match(byNumber(15).context, /horzas/);
+  assert.match(byNumber(16).text, /^I\n\nPANORAMA DE MÉRIDA[\s\S]*\nII\n\nEL MARTIRIO[\s\S]*\nIII\n\nINFIERNO Y GLORIA/);
+  assert.match(byNumber(17).text, /PRIMERA LAGUNA[\s\S]*SIGUE[\s\S]*SEGUNDA LAGUNA[\s\S]*SIGUE[\s\S]*ÚLTIMA LAGUNA/);
+  assert.doesNotMatch(byNumber(17).text, /SECUNDA/);
+  assert.match(byNumber(17).context, /partly obscured.*undated Chilean edition/);
+  assert.match(byNumber(18).text, /y en las yemas de tus dedos/);
+  assert.match(byNumber(18).context, /llemas/);
+  for (const number of [16, 17, 18]) assert.match(byNumber(number).context, /Tres romances históricos/);
+  assert.equal(groupPoets(poems).find(group => group.id === 'federico-garcia-lorca').poems.length, 18);
+});
 test('Brazilian originals retain their reviewed edition texts, evidence and discovery', () => {
   const cases = [
     ['cancao-do-exilio-goncalves-dias', 'CANCAO', 24, '4239dad4c9f1d576ea933ec77ed47cae35f77cecec5057dc8ecd8ca3719d8da7'],

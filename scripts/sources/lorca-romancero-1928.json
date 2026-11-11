@@ -1,0 +1,27 @@
+{
+  "sourceSha256": {
+    "gutenberg-72665.html": "359b9b047a819bfb0ad997a9e1b7954f612ba5bf8a08d7301a818e1d7d715d26",
+    "bne-1928.pdf": "a8e012f659cd35dce42beb0f9e5630cf77a7089c9532f4c2ac75557775d451fd",
+    "chile-p131.jpg": "566702fcd4cd38353813004a3492d27c1ef3b2598e66f9905bc0bd225a3afb90"
+  },
+  "poems": [
+    {"number": 1, "title": "Romance de la luna, luna", "pages": [9, 11], "dedication": "A Conchita García Lorca.", "lines": 36, "sha256": "231d6200181762eb1f7a17cb8bed147bd0935592ee8195fd6358e756fc5ab0ef"},
+    {"number": 2, "title": "Preciosa y el aire", "pages": [15, 19], "dedication": "A Dámaso Alonso.", "lines": 58, "sha256": "05b57262bddc5fac212816aa7d7154b44dd7b32852b2dab019c32827ac25ce17"},
+    {"number": 3, "title": "Reyerta", "pages": [23, 25], "dedication": "A Rafael Méndez.", "lines": 38, "sha256": "791503ad7e0cbb1c7ed4f932c5291442d479bde3d96093b3c5f868b12026cf38"},
+    {"number": 4, "title": "Romance sonámbulo", "pages": [29, 35], "dedication": "A Gloria Giner y A Fernando de los Ríos.", "lines": 86, "sha256": "ae1de88f4fed83019f13d10cc7e7f24e3a66e6f47cf9267193ab3cb38190a9df"},
+    {"number": 5, "title": "La monja gitana", "pages": [39, 41], "dedication": "A José Moreno Villa.", "lines": 36, "sha256": "7ef0d5bf807debea59b2f75c14baa851f65712062a46ab3121ae46674bdcfa82"},
+    {"number": 6, "title": "La casada infiel", "pages": [45, 48], "dedication": "A Lydia Cabrera y a su negrita.", "lines": 55, "sha256": "1b5b85cd7d2941059be0002916285ad02e848ad98bc0c976805e04cf82ad4dbf"},
+    {"number": 7, "title": "Romance de la pena negra", "pages": [51, 54], "dedication": "A José Navarro Pardo.", "lines": 46, "sha256": "f499e14a2269bc8685c7e1606476baac0ca623e2249af48a601b15f0961afe48"},
+    {"number": 8, "title": "San Miguel (Granada)", "pages": [57, 61], "dedication": "A Diego Buigas de Dalmáu.", "lines": 52, "sha256": "2756ef8709a28cd4c859a330c6694149bd7924475c3ef521507e6ffd9ba4bdf6"},
+    {"number": 9, "title": "San Rafael (Córdoba)", "pages": [65, 68], "dedication": "A Juan Izquierdo Croselles.", "lines": 51, "sha256": "279292a7eea3b6c1b49043a83296fd1ddf0ae6bed6e8a5dc1830b1208367280c"},
+    {"number": 10, "title": "San Gabriel (Sevilla)", "pages": [71, 76], "dedication": "A D. Agustín Viñuales.", "lines": 71, "sha256": "5e2af528585dc750a9e6ff01f6e104293059670bad8a6409f5a63b7471dc3519"},
+    {"number": 11, "title": "Prendimiento de Antoñito el Camborio en el camino de Sevilla", "pages": [79, 82], "dedication": "A Margarita Xirgu.", "lines": 46, "sha256": "ef6222b83858670efbdd798eee07fc6822bfb8340aa97cdec1145af8a47ee857"},
+    {"number": 12, "title": "Muerte de Antoñito el Camborio", "pages": [85, 88], "dedication": "A José Antonio Rubio Sacristán.", "lines": 52, "sha256": "be89f4878f85975e79aae1211932819bf3559f0f5810e6ba2522bf51c7aa3ce8"},
+    {"number": 13, "title": "Muerto de amor", "pages": [91, 94], "dedication": "A Margarita Manso.", "lines": 54, "sha256": "6a4a9485526e8a189f6c40e1e39bb58abc1ba6b72f45d72a59d96de008e938c5"},
+    {"number": 14, "title": "El emplazado", "pages": [97, 101], "dedication": "Para Emilio Aladrén.", "lines": 57, "sha256": "82ad4305cf418387a055138588d753e76efbfb0a21798bec7397df96d234023e"},
+    {"number": 15, "title": "Romance de la Guardia Civil española", "pages": [105, 114], "dedication": "A Juan Guerrero. Cónsul general de la poesía.", "lines": 124, "sha256": "13a3aefc98121cfbc8bb44be879f20743ee1a17b51507666e372883cc7b67a97"},
+    {"number": 16, "title": "Martirio de Santa Olalla", "pages": [119, 125], "dedication": "A Rafael Martínez Nadal.", "lines": 80, "sha256": "2c2b353229953f03fd2f6d33056805c3632e0387d1b90d888878a2376da791d4"},
+    {"number": 17, "title": "Burla de don Pedro a caballo", "pages": [129, 134], "dedication": "A Jean Cassou.", "lines": 74, "sha256": "3b4fd011bb501939215352e16ea73a7ace9ea7119f7bd187a1ed5bd331a5d804"},
+    {"number": 18, "title": "Thamár y Amnón", "pages": [137, 144], "dedication": "Para Alfonso García Valdecasas.", "lines": 100, "sha256": "674fc631715adebac3756e91292ba4b14dbf9be4038bd113e6f5130400f6c83c"}
+  ]
+}

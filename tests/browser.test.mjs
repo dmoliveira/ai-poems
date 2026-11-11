@@ -171,6 +171,54 @@ test('country flags and counts link to the matching country results', async () =
   await context.close();
 });
 
+test('Lorca romances support Spanish search, saved data and JavaScript-free mobile reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'federico-garcia-lorca');
+  assert.equal(selected.length, 18);
+  const seed = { saved: ['shakespeare-sonnet-18', 'unknown-preserved-id'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Spanish&country=Spain#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Spanish', country: 'Spain' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('federico garcia lorca');
+  await page.getByText('18 poems found', { exact: true }).waitFor();
+  await page.getByLabel('Search the poetry library').fill('verde que te quiero verde');
+  const matches = filterPoems(poems, { language: 'Spanish', country: 'Spain', query: 'verde que te quiero verde' });
+  await page.getByText(`${matches.length} ${matches.length === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+  const poem = selected.find(item => item.id === 'lorca-romancero-04');
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, poem.id]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-Spanish a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const item of selected) {
+    await staticPage.goto(`${base}poems/${item.id}/`);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), item.text);
+    assert.equal(await verse.getAttribute('lang'), 'es');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${item.contextSourceTitle} ↗` }).getAttribute('href'), item.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(item.rights));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), item.id);
+  }
+  await staticPage.goto(`${base}poets/federico-garcia-lorca/`);
+  for (const item of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${item.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Brazilian originals support place discovery, search and static reading', async () => {
   const ids = ['cancao-do-exilio-goncalves-dias', 'cachias-goncalves-dias', 'desejo-goncalves-dias', 'te-deum-goncalves-dias'];
   const selected = ids.map(id => poems.find(p => p.id === id));
