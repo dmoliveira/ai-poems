@@ -63,6 +63,68 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.equal(byId('castellana-003').anonymous, true);
   assert.equal(byId('tang-108').year, null);
 });
+test('Whitman poems retain complete 1918 edition readings and source caveats', () => {
+  const cases = [
+    ['bunting', 8, 3, 'be9e8a72580da51385459f0c957e7864d2616ccb6ade546e0fa0b276229105d1'],
+    ['drums', 21, 4, '80ebc814464e5aff668116cda932cd7fe0fffc3946fb1194de6502180c2f592a'],
+    ['city', 17, 6, '8f78e1f4b8941913078056d47509a4ab43c344f6dbbc0b4ec6d4edec20a1000e'],
+    ['march', 25, 7, 'd588711893a300a1ada901f3ab3a92749f355d58d4b50097d82a2840a87f41c7'],
+    ['father', 37, 9, 'cea5dff5b8ba7b82aa73f558972895ae2436c70a88eb0041b11aac522fe0f2e4'],
+    ['twilight', 15, 12, 'afbeb6a2a62fd93d45a273c147e1ffd8c64fcd90f8e33c0f14e00c1cbe65c055'],
+    ['sight', 15, 14, '002bdc0929f886fd9a4bd5c5c81a5d7a21777537bef6a8eec7bbce9f3fb00476'],
+    ['year', 6, 16, 'd2e226763c3dda63a6141e30c4e12a76a061bff17a73608b454335e36acea400'],
+    ['dreams', 12, 41, '9c46fd50fcbf63f7868004234dc9020baf691874485db7b1866424b6e6dc73d3'],
+    ['cluster', 8, 42, '84f1be574379e73ba586772f5cb667988c018e839a3e94167af42eff1975b2eb'],
+    ['civilian', 10, 43, 'ede13b163837657fe101080bebce9f5d72dcad83e9fdd8968fdb7a4151f3b6f0'],
+    ['adieu', 15, 44, '0934758726e63fd52f790bf3415341e744b78415b66bcc4a914ebde9955e2731'],
+    ['long', 5, 45, '1b9ed8fac71b9a72c9ffc4cb0124dbdefa80719a2b8207173175b98a14687b01'],
+    ['weave', 8, 49, '99f691bfa2e2192f1e1222ed242a70544e03b2d3ee37097fecd339f8af9438c3'],
+    ['spirit', 18, 51, 'fee0f3c4d310591f9bd6296fb11c4e130074c24c912ced433d09f994342cb1c1'],
+    ['captain', 24, 76, 'b6707bdd4c3b1ad44e00edf397d82f715c3b333bcc9451f605c000f4ec787282'],
+    ['hush', 12, 78, '2fd56dd635e67f64b4bf218165753ee41c97347a5f96f31d0660457eda02d2d7'],
+    ['america', 11, 87, 'bde0d502375a7fc804fb21115d2935db2852e8340d25d8abe5adc4970f3e493f'],
+    ['foreign', 3, 141, 'a63f6a5f2915b66521d8c66d2fe037f480b472276a282f1715e28c92c43626de'],
+    ['democracy', 11, 143, '70c0c71d294f7857f0e5417509a679f84a267e0028a36a7a4806f13f0abc9b43'],
+  ];
+  const selected = poems.filter(poem => poem.id.startsWith('whitman-1918-'));
+  assert.equal(selected.length, cases.length);
+  const get = slug => selected.find(poem => poem.id === `whitman-1918-${slug}`);
+  for (const [slug, count, page, hash] of cases) {
+    const poem = get(slug);
+    assert.ok(poem, slug);
+    assert.equal(poem.author, 'Walt Whitman');
+    assert.equal(poem.authorId, 'walt-whitman');
+    assert.equal(poem.language, 'English');
+    assert.equal(poem.lang, 'en');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['United States']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    assert.equal(lineCount(poem), count);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(new URL(poem.source).pathname, '/ebooks/27494');
+    assert.equal(new URL(poem.contextSource).hash, `#page=${page + 14}`);
+    assert.match(poem.context, /not a diplomatic transcription/);
+    assert.match(poem.context, /not necessarily the same copy/);
+    assert.match(poem.context, /Punctuation was not independently collated/);
+    assert.match(poem.rights, /public domain in the United States/);
+    for (const query of ['Walt Whitman', poem.text.split('\n')[0]]) {
+      assert.ok(filterPoems(poems, { language: 'English', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  assert.match(get('drums').text, /would they continue\?/);
+  assert.match(get('drums').context, /Not the peaceful farmer.*Nor/);
+  assert.match(get('weave').text, /threads to weave,\nWe know not why/);
+  assert.match(get('march').context, /odour of blood.*odor of blood/);
+  assert.match(get('spirit').context, /Washington City, 1865/);
+  assert.match(get('hush').context, /May 4, 1865/);
+  assert.ok(!selected.some(poem => /^(Faces|How Solemn as One by One)$/i.test(poem.title)));
+  const group = groupPoets(poems).find(item => item.id === 'walt-whitman');
+  assert.equal(group.poems.length, 20);
+  for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
+});
 test('Keats poems retain complete 1909 edition readings and source caveats', () => {
   const cases = [
     ['nightingale', 80, 107, '3c0210c828cdf047203577c949532eca73b943e9fd056a19653ae9faa5821cdb'],
