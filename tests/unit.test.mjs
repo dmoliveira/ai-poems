@@ -63,6 +63,48 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.equal(byId('castellana-003').anonymous, true);
   assert.equal(byId('tang-108').year, null);
 });
+test('Tao Yuanming selections retain complete Ming readings and source attribution', () => {
+  const cases = [
+    ['01', 5, 59, '744cbce15be402a6ca5eebdd55f380ec35d3eddc8b3b8f8973025d89d727f55f'],
+    ['02', 4, 60, '544f9078395efe20decc07b2026be0237094ce445e68d072b4442daebcdbd919'],
+    ['03', 5, 60, '33e16f529388e0c0818893a1b3253dca5f0181cb807378b295c29ff4b7ef93ed'],
+    ['05', 5, 60, '2607089db134ac239bbf03f0867202916597e46910559e228800ed5b3b09a179'],
+    ['06', 4, 61, 'ad337cb4d16606ff06740cbb8ac07290ca12af9fe6e43d50e29721108ee3983e'],
+    ['08', 5, 62, '75e754f8bf86c975003cc7388531f5a42654719cf2bbb09050ef0c89b7a923f7'],
+    ['09', 8, 62, '3c5e585fef1729a823425762384119efc776edbc536580c8025d7492f360bab4'],
+    ['14', 5, 64, '5bd574587f7ecd824aecfbe4bb7b6e30710f1e63b7d5424641ec44282275059f'],
+    ['16', 6, 65, '94f1e321cad5db561c185017ee9da0728f95c3c844504b476773fe553fbcc61a'],
+    ['17', 4, 65, '94ca4376738a2ac6098a8d1dce4b3d8bd2b6d218bc02fb41cc46a3627a5567e0'],
+  ];
+  const selected = poems.filter(poem => poem.authorId === 'tao-yuanming');
+  assert.equal(selected.length, cases.length);
+  for (const [number, count, page, hash] of cases) {
+    const poem = selected.find(item => item.id === `tao-yuanming-drinking-ming-${number}`);
+    assert.ok(poem, number);
+    assert.equal(poem.authorOriginal, '陶淵明');
+    assert.equal(poem.language, 'Chinese');
+    assert.equal(poem.lang, 'zh-Hant');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['China']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    assert.equal(lineCount(poem), count);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(new URL(poem.source).hash, `#page=${page}`);
+    assert.match(poem.context, /not a diplomatic edition/);
+    assert.match(poem.context, /Wikisource transcription by its contributors/);
+    assert.match(poem.rights, /CC BY-SA 4\.0/);
+    for (const query of ['Tao Yuanming', '陶淵明', poem.text.split('\n')[0]]) {
+      assert.ok(filterPoems(poems, { language: 'Chinese', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const fifth = selected.find(poem => poem.id.endsWith('-05'));
+  assert.match(fifth.text, /悠然見南山/);
+  assert.match(fifth.context, /望 as a reading/);
+  assert.deepEqual(groupPoets(poems).find(group => group.id === 'tao-yuanming').poems.map(poem => poem.id), cases.map(([number]) => `tao-yuanming-drinking-ming-${number}`));
+});
 test('Li Qingzhao lyrics retain the 1881 readings, boundaries and attribution caveats', () => {
   const cases = [
     ['southern-song', 8, 5, '8392dd6486cc789bfeeb1afb4fe1bfffb43bf8901300f83fbced6a1cdeef924d'],
