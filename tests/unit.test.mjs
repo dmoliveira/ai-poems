@@ -63,6 +63,75 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.equal(byId('castellana-003').anonymous, true);
   assert.equal(byId('tang-108').year, null);
 });
+test('Poe selections preserve complete 1900 readings, sections and source caveats', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/poe-1900.json', import.meta.url), 'utf8'));
+  assert.deepEqual(Object.fromEntries(Object.entries(manifest.witnesses).map(([name, item]) => [name, item.sha256])), {
+    'pg76996.txt': 'c5a676010d4c071819f42c4a471cee5cfcf9baec9d41c0a4101e76d1b341eb2a',
+    'poe-1900.pdf': 'fa8832989d630f0666e7fb693cf37c4386b091370e419528e16cdfa788c87865',
+  });
+  const cases = [
+    ['raven', 'The Raven', 108, [3, 12], [43, 52], '520e89d4e7a22ef037289fd7b93bf14829c45261f62c29abca0305fc31011ce7'],
+    ['bells', 'The Bells', 117, [15, 20], [55, 60], '5f7570fa0aefc7bd9a4cc01478f1f9ea23ec60a3dfb40927bf9a00d1bc4be81b'],
+    ['annabel-lee', 'Annabel Lee', 41, [41, 42], [81, 82], '6cc68ef4fd1307b22bdc5ae3e9b4579a1d5c405fe11458302e255cc20f9e6703'],
+    ['city-in-the-sea', 'The City in the Sea', 53, [48, 50], [88, 90], '1d5f55e990d983db1b68352ecbf3f9f215b320b2017ce1fe44b86eb1e1f58eb9'],
+    ['conqueror-worm', 'The Conqueror Worm', 40, [50, 53], [90, 93], '33a56273278a9a1b64d962c43acd9aa1ce759300f13461489cd1627a786d7ef0'],
+    ['sleeper', 'The Sleeper', 61, [54, 56], [94, 96], '3349a59acfcaeb207be1e2b9fe390cb5cad67f362deed90a90b46905e48f241b'],
+    ['dreamland', 'Dreamland', 56, [58, 62], [98, 102], '8bafeabd3a815f4b8d4113419eff424acd710acb3bd47ad6882ec96f6054767e'],
+    ['eldorado', 'Eldorado', 24, [64, 64], [104, 104], '6c3caeccb95cfb485dc610903113672fbe92857c3eec44196d5ea571ed03b1a3'],
+    ['dream-within-a-dream', 'A Dream within a Dream', 24, [72, 72], [112, 112], 'f0a22b20f58c15e6c648931fbef214b7ec328e9fa1d164933bd17f7f9bd6bd1b'],
+    ['haunted-palace', 'The Haunted Palace', 48, [76, 81], [116, 121], 'a5db5a913ec1f79c0367f81115557225c941339063c5100b0f08a5a04b5bd760'],
+  ];
+  const selected = poems.filter(poem => poem.authorId === 'edgar-allan-poe');
+  assert.equal(selected.length, 10);
+  assert.deepEqual(manifest.poems.map(item => item.slug), cases.map(([slug]) => slug));
+  const normalized = value => value.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+  const earlier = poems.filter(poem => !poem.id.startsWith('poe-1900-'));
+  for (const [index, [slug, title, count, printed, leaves, hash]] of cases.entries()) {
+    const item = manifest.poems[index];
+    const poem = selected.find(entry => entry.id === `poe-1900-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.title, title);
+    assert.equal(poem.author, 'Edgar Allan Poe');
+    assert.equal(poem.authorYears, '1809–1849');
+    assert.deepEqual(associatedPlaces(poem), ['United States']);
+    assert.equal(poem.language, 'English');
+    assert.equal(poem.lang, 'en');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.match(poem.yearLabel, /1900 edition.*composition date not established/);
+    assert.equal(poem.source, 'https://www.gutenberg.org/ebooks/76996');
+    assert.equal(new URL(poem.contextSource).hash, `#page=${leaves[0]}`);
+    assert.deepEqual(item.printedPages, printed);
+    assert.deepEqual(item.pdfLeaves, leaves);
+    assert.equal(lineCount(poem), count);
+    assert.deepEqual(poem.text.split('\n\n').map(part => part.split('\n').length), item.segments);
+    assert.equal(item.textSha256, hash);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(poem.text.split('\n')[0], item.first);
+    assert.equal(poem.text.split('\n').at(-1), item.last);
+    assert.doesNotMatch(poem.text, /\[|\]|Illustration|_/);
+    assert.match(poem.context, /OCR and visual checks.*source copy is not identified/);
+    assert.match(poem.context, /not a diplomatic transcription.*final author-approved text/);
+    assert.match(poem.rights, /public domain in the United States.*Chris Curnow.*Turgut Dincer.*Linda Cantoni/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    const firstVerse = poem.text.split('\n').filter(Boolean)[slug === 'bells' ? 1 : 0];
+    assert.ok(!earlier.some(old => normalized(old.text.split('\n').find(Boolean) || '') === normalized(firstVerse)), `${slug} duplicates an existing incipit`);
+    for (const query of ['Edgar Allan Poe', title, firstVerse]) assert.ok(filterPoems(poems, { query, language: 'English' }).includes(poem), query);
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const raven = selected.find(poem => poem.id === 'poe-1900-raven');
+  assert.equal(raven.text.split('\n\n').length, 18);
+  assert.match(raven.text, /darkness gave no token[\s\S]*not an instant[\s\S]*sign of parting/);
+  assert.match(raven.context, /stillness gave no token.*not a minute.*sign in parting/);
+  const bells = selected.find(poem => poem.id === 'poe-1900-bells');
+  assert.deepEqual(bells.text.split('\n').filter(line => /^(I|II|III|IV)$/.test(line)), ['I', 'II', 'III', 'IV']);
+  assert.equal(lineCount(bells) - 4, 113);
+  assert.match(bells.text, /On the moon!\nOh, from out the sounding cells,/);
+  assert.match(bells.context, /four numbered parts form one work.*line count includes the four part headings/);
+  assert.deepEqual(groupPoets(poems).find(group => group.id === 'edgar-allan-poe').poems.map(poem => poem.id), cases.map(([slug]) => `poe-1900-${slug}`));
+});
 test('Lorca romances preserve the reviewed 1928 works, sections and source caveats', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/lorca-romancero-1928.json', import.meta.url), 'utf8'));
   const selected = poems.filter(poem => poem.authorId === 'federico-garcia-lorca');

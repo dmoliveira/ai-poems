@@ -1,0 +1,64 @@
+{
+  "witnesses": {
+    "pg76996.txt": {
+      "url": "https://www.gutenberg.org/files/76996/76996-0.txt",
+      "sha256": "c5a676010d4c071819f42c4a471cee5cfcf9baec9d41c0a4101e76d1b341eb2a"
+    },
+    "poe-1900.pdf": {
+      "url": "https://archive.org/download/poemsillustrated00poeerich/poemsillustrated00poeerich.pdf",
+      "sha256": "fa8832989d630f0666e7fb693cf37c4386b091370e419528e16cdfa788c87865"
+    }
+  },
+  "poems": [
+    {
+      "slug": "raven", "title": "The Raven", "heading": "THE RAVEN", "nextHeading": "THE BELLS",
+      "printedPages": [3, 12], "pdfLeaves": [43, 52], "segments": [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6], "illustrations": 3,
+      "first": "Once upon a midnight dreary, while I pondered, weak and weary,", "last": "Shall be lifted—nevermore!", "textSha256": "520e89d4e7a22ef037289fd7b93bf14829c45261f62c29abca0305fc31011ce7"
+    },
+    {
+      "slug": "bells", "title": "The Bells", "heading": "THE BELLS", "nextHeading": "ULALUME",
+      "printedPages": [15, 20], "pdfLeaves": [55, 60], "segments": [1, 14, 1, 21, 1, 34, 1, 44], "illustrations": 4,
+      "first": "I", "last": "To the moaning and the groaning of the bells.", "textSha256": "5f7570fa0aefc7bd9a4cc01478f1f9ea23ec60a3dfb40927bf9a00d1bc4be81b"
+    },
+    {
+      "slug": "annabel-lee", "title": "Annabel Lee", "heading": "ANNABEL LEE", "nextHeading": "FOR ANNIE",
+      "printedPages": [41, 42], "pdfLeaves": [81, 82], "segments": [6, 6, 8, 6, 7, 8], "illustrations": 1,
+      "first": "It was many and many a year ago", "last": "In her tomb by the side of the sea.", "textSha256": "6cc68ef4fd1307b22bdc5ae3e9b4579a1d5c405fe11458302e255cc20f9e6703"
+    },
+    {
+      "slug": "city-in-the-sea", "title": "The City in the Sea", "heading": "THE CITY IN THE SEA", "nextHeading": "THE CONQUEROR WORM",
+      "printedPages": [48, 50], "pdfLeaves": [88, 90], "segments": [11, 12, 6, 12, 12], "illustrations": 2,
+      "first": "Lo! Death has reared himself a throne", "last": "Shall do it reverence.", "textSha256": "1d5f55e990d983db1b68352ecbf3f9f215b320b2017ce1fe44b86eb1e1f58eb9"
+    },
+    {
+      "slug": "conqueror-worm", "title": "The Conqueror Worm", "heading": "THE CONQUEROR WORM", "nextHeading": "The SLEEPER",
+      "printedPages": [50, 53], "pdfLeaves": [90, 93], "segments": [8, 8, 8, 8, 8], "illustrations": 2,
+      "first": "Lo! ’tis a gala night", "last": "And its hero the Conqueror Worm.", "textSha256": "33a56273278a9a1b64d962c43acd9aa1ce759300f13461489cd1627a786d7ef0"
+    },
+    {
+      "slug": "sleeper", "title": "The Sleeper", "heading": "The SLEEPER", "nextHeading": "THE COLISEUM",
+      "printedPages": [54, 56], "pdfLeaves": [94, 96], "segments": [18, 19, 8, 16], "illustrations": 3,
+      "first": "At midnight, in the month of June,", "last": "It was the dead who groaned within.", "textSha256": "3349a59acfcaeb207be1e2b9fe390cb5cad67f362deed90a90b46905e48f241b"
+    },
+    {
+      "slug": "dreamland", "title": "Dreamland", "heading": "DREAMLAND", "nextHeading": "EULALIE",
+      "printedPages": [58, 62], "pdfLeaves": [98, 102], "segments": [8, 12, 18, 12, 6], "illustrations": 1,
+      "first": "By a route obscure and lonely,", "last": "From this ultimate dim Thule.", "textSha256": "8bafeabd3a815f4b8d4113419eff424acd710acb3bd47ad6882ec96f6054767e"
+    },
+    {
+      "slug": "eldorado", "title": "Eldorado", "heading": "ELDORADO", "nextHeading": "TO F——",
+      "printedPages": [64, 64], "pdfLeaves": [104, 104], "segments": [6, 6, 6, 6], "illustrations": 2,
+      "first": "Gaily bedight,", "last": "“If you seek for Eldorado!”", "textSha256": "6c3caeccb95cfb485dc610903113672fbe92857c3eec44196d5ea571ed03b1a3"
+    },
+    {
+      "slug": "dream-within-a-dream", "title": "A Dream within a Dream", "heading": "A DREAM WITHIN A DREAM", "nextHeading": "TO ZANTE",
+      "printedPages": [72, 72], "pdfLeaves": [112, 112], "segments": [11, 13], "illustrations": 2,
+      "first": "Take this kiss upon the brow!", "last": "But a dream within a dream?", "textSha256": "f0a22b20f58c15e6c648931fbef214b7ec328e9fa1d164933bd17f7f9bd6bd1b"
+    },
+    {
+      "slug": "haunted-palace", "title": "The Haunted Palace", "heading": "The HAUNTED PALACE", "nextHeading": "SILENCE",
+      "printedPages": [76, 81], "pdfLeaves": [116, 121], "segments": [8, 8, 8, 8, 8, 8], "illustrations": 4,
+      "first": "In the greenest of our valleys", "last": "And laugh—but smile no more.", "textSha256": "a5db5a913ec1f79c0367f81115557225c941339063c5100b0f08a5a04b5bd760"
+    }
+  ]
+}
