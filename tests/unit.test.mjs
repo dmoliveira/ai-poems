@@ -162,6 +162,74 @@ test('Brazilian originals retain their reviewed edition texts, evidence and disc
   assert.ok(home.includes('/ai-poems/assets/flags/br.svg'));
   assert.ok(home.includes(`Brazil</strong><small>${placeCounts(poems).find(p => p.place === 'Brazil').count} poems`));
 });
+test('Gonçalves Dias additions preserve 1860 readings, complete works and earlier variants', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/goncalves-dias-cantos-1860.json', import.meta.url), 'utf8'));
+  const expected = [
+    ['guerreiro', 88], ['piaga', 83], ['indio', 59], ['pedido', 28], ['leito', 36],
+    ['maraba', 54], ['tamoyo', 90], ['mangueira', 49], ['olhos', 58], ['cumprimento', 50],
+    ['urge', 21], ['tumulo', 11], ['menina', 40], ['concha', 24], ['pedes', 16],
+  ];
+  assert.deepEqual(manifest.poems.map(item => [item.slug, item.lines]), expected);
+  const selected = expected.map(([slug, count]) => {
+    const item = manifest.poems.find(entry => entry.slug === slug);
+    const poem = poems.find(entry => entry.id === `dias-cantos-1860-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, 'Gonçalves Dias');
+    assert.equal(poem.authorId, 'goncalves-dias');
+    assert.equal(poem.authorYears, '1823–1864');
+    assert.deepEqual(associatedPlaces(poem), ['Brazil']);
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.year, item.year ?? null);
+    assert.equal(poem.creationPlace, undefined);
+    if (item.year) assert.equal(poem.yearLabel, item.yearLabel);
+    else assert.match(poem.yearLabel, /Printed 1860.*composition date not established/);
+    assert.equal(poem.collection, 'Cantos (1860 edition)');
+    assert.equal(poem.source, 'https://www.gutenberg.org/ebooks/74854');
+    assert.equal(new URL(poem.contextSource).hash, `#page=${item.pages[0] + 28}`);
+    assert.match(poem.context, /1860 scan.*earlier separately printed edition.*not a diplomatic or exhaustive collation/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.equal(lineCount(poem), count);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Brazil', query: 'goncalves dias' }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+    return poem;
+  });
+  const bySlug = slug => selected.find(poem => poem.id === `dias-cantos-1860-${slug}`);
+  assert.equal((bySlug('guerreiro').text.match(/^[IVX]+\.$/gm) || []).length, 9);
+  assert.match(bySlug('guerreiro').text, /Que estimem a vida/);
+  assert.match(bySlug('guerreiro').context, /Que estimão a vida/);
+  assert.equal((bySlug('piaga').text.match(/^[IVX]+\.$/gm) || []).length, 3);
+  assert.match(bySlug('piaga').text, /Seos estridulos torva soltar/);
+  assert.match(bySlug('piaga').context, /Seus estridulos/);
+  assert.match(bySlug('indio').text, /Que antes me dera por feliz de ver-te/);
+  assert.match(bySlug('indio').context, /Que eu fôra/);
+  assert.match(bySlug('leito').text, /^Porque tardas, Jatyr[\s\S]*A brisa da manhã sacuda as folhas!$/);
+  assert.match(bySlug('maraba').text, /Qual d’uma palmeira/);
+  assert.match(bySlug('maraba').text, /E as doces palavras[\s\S]*Que sou Marabá!$/);
+  assert.match(bySlug('maraba').context, /closing marks absent from the scan/);
+  assert.equal((bySlug('tamoyo').text.match(/^[IVX]+\.$/gm) || []).length, 10);
+  assert.match(bySlug('tamoyo').text, /Robuste, fragueiro,[\s\S]*Das setas ligeiras,/);
+  assert.match(bySlug('tamoyo').context, /1851 reads ‘Robusto/);
+  assert.doesNotMatch(bySlug('olhos').text, /Elles verdes são/);
+  assert.doesNotMatch(bySlug('urge').text, /Move incessante as azas/);
+  assert.match(bySlug('cumprimento').text, /^Se ao misero cantor[\s\S]*A estrella, que fulge[\s\S]*Estes versos na mente/);
+  assert.match(bySlug('tumulo').text, /Como offrenda de amor/);
+  assert.match(bySlug('tumulo').context, /25 October 1848.*not independently established/);
+  assert.doesNotMatch(bySlug('menina').text, /CHENIER|28 de Julho/);
+  assert.match(bySlug('concha').text, /Que faces no teu scismar\?/);
+  assert.match(bySlug('concha').context, /1851 edition has ‘Que fazes/);
+  assert.match(bySlug('pedes').text, /^Tu pedes-me um canto[\s\S]*Ao bardo trahido só resta chorar\.$/);
+  assert.equal(manifest.poems.find(item => item.slug === 'pedes').datingLeaf, 311);
+  assert.equal(bySlug('pedes').year, 1849);
+  assert.match(bySlug('pedes').context, /1851 edition dates this composition 9 March 1849/);
+  assert.ok(filterPoems(poems, { from: '1849', to: '1849' }).includes(bySlug('pedes')));
+  assert.equal(groupPoets(poems).find(group => group.id === 'goncalves-dias').poems.length, 19);
+});
 test('Auta de Souza originals retain 1910 scan readings, boundaries and provenance', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/auta-horto-reviewed.json', import.meta.url), 'utf8'));
   const expected = [

@@ -1,0 +1,109 @@
+{
+  "sourceSha256": {
+    "gutenberg-74854.html": "61e74b500bb71a713277385bbd64adf48e5e0094f0353b01548f70ad4c2e942f",
+    "cantos-1860-ufsc.pdf": "88bf89d667389c99a04e4e55d44a1df3e5ef0dac56f4fe51ff918e2f1b9d6a35",
+    "primeiros-cantos-1846.pdf": "bde3b8fab31615a6055cbea7a1cfbd2ca48d52fbb2b53c2e17e96401ee14560b",
+    "ultimos-cantos-1851.pdf": "b1cbd0fbac32a1a016d0f055a98de2124b14c4214f14a53bd2c0ff01875402b8"
+  },
+  "poems": [
+    {
+      "slug": "guerreiro", "anchor": "CANTO_DO_GUERREIRO", "title": "O Canto do Guerreiro",
+      "pages": [4, 6], "comparisonEdition": 1846, "comparisonLeaves": [15, 18],
+      "headings": ["I.", "II.", "III.", "IV.", "V.", "VI.", "VII.", "VIII.", "IX."],
+      "lines": 88, "sha256": "1ba2e45ebc711368116cc9884bd1fb089fcdef912c0c7c21b37c04156a9c900e",
+      "note": "The nine numbered sections are one poem. The 1846 printing has ‘Que estimão a vida’ and ‘Que eu faço avançar’, where 1860 has ‘Que estimem a vida’ and ‘Que faço avançar’. This is a nineteenth-century literary depiction, not documented Indigenous testimony."
+    },
+    {
+      "slug": "piaga", "anchor": "CANTO_DO_PIAGA.", "title": "O Canto do Piaga",
+      "pages": [7, 9], "comparisonEdition": 1846, "comparisonLeaves": [19, 23],
+      "headings": ["I.", "II.", "III."],
+      "corrections": [["Seus estridulos torva soltar?", "Seos estridulos torva soltar?"]],
+      "lines": 83, "sha256": "a8ded7defa1740124f6c03da1701662b1ad24623b5acd5f404c9dee27ca64f99",
+      "note": "The three numbered sections form one poem. The 1860 scan reads ‘Seos estridulos’, restored here from the transcription's ‘Seus estridulos’. The 1846 edition has ‘Nem a lua entre nuvens de fogo’, where 1860 reads ‘Nem a lua de fogo entre nuvens’. This is a nineteenth-century literary depiction, not documented Indigenous testimony."
+    },
+    {
+      "slug": "indio", "anchor": "CANTO_DO_INDIO", "title": "O Canto do Indio",
+      "pages": [9, 11], "comparisonEdition": 1846, "comparisonLeaves": [24, 27],
+      "lines": 59, "sha256": "973e11cb689b89335a55fe0dfa813f48fc28511a0bdeb3a75390c9df5633f30a",
+      "note": "The 1846 printing has ‘Que eu fôra, por te vêr, bem venturoso’, where 1860 reads ‘Que antes me dera por feliz de ver-te’. This is a nineteenth-century literary depiction, not documented Indigenous testimony."
+    },
+    {
+      "slug": "pedido", "anchor": "PEDIDO", "title": "Pedido",
+      "pages": [22, 23], "comparisonEdition": 1846, "comparisonLeaves": [69, 70],
+      "lines": 28, "sha256": "9e060a885a2adace3bb1547a73520ac90a6305072c67b6cbfcd8c611243d4e17"
+    },
+    {
+      "slug": "leito", "anchor": "II_FOLHAS_VERDES", "title": "Leito de folhas verdes",
+      "pages": [280, 281], "comparisonEdition": 1851, "comparisonLeaves": [25, 27],
+      "lines": 36, "sha256": "5c241594166987b86978dd674e194a0813b4ffb02c59f1949a68085385a9e55d",
+      "note": "The 1860 edition numbers this work II within Poesias Americanas. Its separate explanatory endnote is not included in the verse."
+    },
+    {
+      "slug": "maraba", "anchor": "IV_MARABA", "title": "Marabá",
+      "pages": [296, 297], "comparisonEdition": 1851, "comparisonLeaves": [52, 54],
+      "corrections": [["«Qual duma palmeira,»", "«Qual d’uma palmeira,»"]],
+      "lines": 54, "sha256": "5aa13b7ac9f3ff8a840588d1abe0ad8c12037a79dcb32082d2fa4351d5ccf051",
+      "note": "The 1860 scan reads ‘Qual d’uma palmeira’, restored from the transcription's ‘Qual duma palmeira’; the 1851 printing has ‘Como uma palmeira’. The 1860 ‘do cactos’ also differs from 1851's ‘de cactos’. Quotation punctuation follows the transcription, including closing marks absent from the scan. The final passage belongs to this work; its separate explanatory endnote is omitted. This is a nineteenth-century literary depiction, not documented Indigenous testimony."
+    },
+    {
+      "slug": "tamoyo", "anchor": "V_CANCAO_DO_TAMOYO", "title": "Canção do Tamoyo",
+      "pages": [298, 300], "comparisonEdition": 1851, "comparisonLeaves": [55, 59], "metadata": ["(Natalicia.)"],
+      "headings": ["I.", "II.", "III.", "IV.", "V.", "VI.", "VII.", "VIII.", "IX.", "X."],
+      "corrections": [["Das seta ligeiras,", "Das setas ligeiras,"]],
+      "lines": 90, "sha256": "f632e8faad4dc29bb924060803b191ea38b8f3abf952f945dedf0db2d29ce780",
+      "note": "The subtitle is ‘Natalicia’; its ten numbered sections form one poem. The 1860 scan prints ‘Das setas ligeiras’, restored from the transcription's ‘Das seta ligeiras’. It prints ‘Robuste, fragueiro’, retained here; 1851 reads ‘Robusto, fragueiro’. This is a nineteenth-century literary depiction, not documented Indigenous testimony."
+    },
+    {
+      "slug": "mangueira", "anchor": "VI_A_MANGUEIRA", "title": "A Mangueira",
+      "pages": [301, 302], "comparisonEdition": 1851, "comparisonLeaves": [60, 62],
+      "lines": 49, "sha256": "c366bd94a81a0ec8af233c538e11f6396d1758bb02086000cccfc93f3533fc73",
+      "note": "In one stanza the 1860 printing reads ‘O cançado viandante’ and ‘aragem susurrante’, versus ‘O cansado viandante’ and ‘aragem sussurrante’ in 1851."
+    },
+    {
+      "slug": "olhos", "anchor": "OLHOS_VERDES", "title": "Olhos verdes",
+      "pages": [314, 315], "comparisonEdition": 1851, "comparisonLeaves": [84, 86], "epigraphContainers": [1],
+      "lines": 58, "sha256": "eeeeef6adcfc5106b2b1212b5cb0e0fadba133146138371e96d7fefa8d50e2ce",
+      "note": "The separately printed epigraph attributed to ‘CAM., Rim.’ is not included in the verse."
+    },
+    {
+      "slug": "cumprimento", "anchor": "CUMPRIMENTO_DE_UM_VOTO", "title": "Cumprimento de um voto",
+      "pages": [316, 317], "comparisonEdition": 1851, "comparisonLeaves": [87, 90],
+      "metadata": ["Feito ás Sras. de Itapacorá, que abrilhantarão a festa do Illm. Sr. ANTONIO JOSÉ RODRIGUES TORRES .", "PORTO DAS CAIXAS —25 de agosto 1850."],
+      "lines": 50, "sha256": "986b909e66f60ba61246b269b0b18de546531abc815f12a271bcb247f5f84223",
+      "note": "The three passages under the title form one printed work. The heading refers to the ladies of Itapacorá and prints Porto das Caixas, 25 August 1850; this is not independent proof of the exact composition date or place. The 1851 edition reads ‘Afinada por voz’ and ‘vós sois como ellas’, versus 1860's ‘Afinada por vós’ and ‘vós sois qual são ellas’."
+    },
+    {
+      "slug": "urge", "anchor": "URGE_O_TEMPO", "title": "Urge o tempo",
+      "pages": [325, 325], "comparisonEdition": 1851, "comparisonLeaves": [105, 106], "epigraphContainers": [1],
+      "lines": 21, "sha256": "b60f4f1ebda9e04549cc21b9fed8eb244e490efb66c3ae8b85018879b0fc134e",
+      "note": "The separately printed epigraph attributed to A. de Gusmão is not included in the verse. The 1851 printing has ‘Não acaba, não muda’ and ‘intacta, mais bella’; 1860 has ‘Não acaba, nem muda’ and ‘intacta, inda mais bella’."
+    },
+    {
+      "slug": "tumulo", "anchor": "SOBRE_O_TUMULO_DE_UM_MENINO", "title": "Sobre o tumulo de um menino",
+      "pages": [326, 326], "comparisonEdition": 1851, "comparisonLeaves": [107, 107], "metadata": ["25 de Outubro de 1848."],
+      "corrections": [["Como off’renda de amor ao Deos que o rege;", "Como offrenda de amor ao Deos que o rege;"]],
+      "lines": 11, "sha256": "92de5d0e52cad5031d6c47bb638a91d99d852672cfcb45bb0d8f78f2002a01e4",
+      "note": "The heading prints 25 October 1848; the exact composition date is not independently established. The scan reads ‘offrenda’, restored here from the transcription's ‘off’renda’."
+    },
+    {
+      "slug": "menina", "anchor": "MENINA_E_MOCA", "title": "Menina e moça",
+      "pages": [326, 327], "comparisonEdition": 1851, "comparisonLeaves": [108, 110], "epigraphContainers": [1],
+      "excludedLines": ["28 de Julho."], "metadata": ["28 de Julho."],
+      "lines": 40, "sha256": "977c0a2e6dd8d324f0889d957708ed1c9cde271ae5ec7746eac471082e9475d7",
+      "note": "The separately printed epigraph attributed to Chénier and the date ‘28 de Julho’ without a year are not part of the verse. The 1851 printing reads ‘inceta a vida’, where 1860 has ‘enceta a vida’."
+    },
+    {
+      "slug": "concha", "anchor": "A_CONCHA_E_A_VIRGEM", "title": "A concha e a virgem",
+      "pages": [350, 351], "comparisonEdition": 1851, "comparisonLeaves": [153, 154],
+      "lines": 24, "sha256": "57cbf9b268eb04feeec491f3327c64d18c77a3349778c8f994d9d8a6f2474892",
+      "note": "The 1860 scan prints ‘Que faces no teu scismar?’, retained here; the 1851 edition has ‘Que fazes no teu scismar?’."
+    },
+    {
+      "slug": "pedes", "anchor": "QUE_ME_PEDES", "title": "Que me pedes",
+      "pages": [370, 370], "comparisonEdition": 1851, "comparisonLeaves": [208, 209],
+      "year": 1849, "yearLabel": "Dated 9 March 1849 in the 1851 endnote", "datingLeaf": 311,
+      "lines": 16, "sha256": "baa97537a2f18d79d017b5afc369612de8762756e0979dad06c9b13a25b8545a",
+      "note": "An endnote in the 1851 edition dates this composition 9 March 1849; its place is not established here."
+    }
+  ]
+}
