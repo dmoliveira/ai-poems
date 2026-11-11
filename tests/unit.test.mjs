@@ -122,7 +122,7 @@ test('Tao Yuanming selections retain complete Ming readings and source attributi
     ['16', 6, 65, '94f1e321cad5db561c185017ee9da0728f95c3c844504b476773fe553fbcc61a'],
     ['17', 4, 65, '94ca4376738a2ac6098a8d1dce4b3d8bd2b6d218bc02fb41cc46a3627a5567e0'],
   ];
-  const selected = poems.filter(poem => poem.authorId === 'tao-yuanming');
+  const selected = poems.filter(poem => cases.some(([number]) => poem.id === `tao-yuanming-drinking-ming-${number}`));
   assert.equal(selected.length, cases.length);
   for (const [number, count, page, hash] of cases) {
     const poem = selected.find(item => item.id === `tao-yuanming-drinking-ming-${number}`);
@@ -150,7 +150,53 @@ test('Tao Yuanming selections retain complete Ming readings and source attributi
   const fifth = selected.find(poem => poem.id.endsWith('-05'));
   assert.match(fifth.text, /悠然見南山/);
   assert.match(fifth.context, /望 as a reading/);
-  assert.deepEqual(groupPoets(poems).find(group => group.id === 'tao-yuanming').poems.map(poem => poem.id), cases.map(([number]) => `tao-yuanming-drinking-ming-${number}`));
+  const group = groupPoets(poems).find(item => item.id === 'tao-yuanming');
+  assert.deepEqual(group.poems.filter(poem => selected.includes(poem)).map(poem => poem.id), cases.map(([number]) => `tao-yuanming-drinking-ming-${number}`));
+});
+test('further Tao Yuanming poems retain Ming variants, complete boundaries and credits', () => {
+  const cases = [
+    ['04', 6, 60, '038b11564ec307accbcf341f62243da770812a8f7877419d22587dd97755521a'],
+    ['07', 5, 61, 'ac89720651d73188e9112ed94100ec4c6e2895a3244dbd2fd66ccd179f452207'],
+    ['11', 6, 63, 'a432b0932c32db1e1d2a1a0288cee6b4f659e14e65ba8be127ff8d30661ebe9f'],
+    ['12', 6, 63, 'd8646dd26c6f71d46f873b312eb98aa822146084424ad343ba4cd60f94115e90'],
+    ['13', 5, 64, 'd96dd030c335cbb85601413e943de05063e0e8c15e85f193c86dcc7822c2f5bd'],
+    ['15', 5, 65, '017122f71a6c2b17f1badfef360af7cf0ad1a9f30c0f5bae98ce5ea86767d304'],
+    ['18', 5, 66, '8cc85642d655ee1a01bcb6163324fb42a411e63c620a1c0cf1c88a192aa77bae'],
+    ['19', 7, 66, '331473393b528a922a3ef6739e5471b764db0df775e32595402a37d71522deca'],
+  ];
+  const selected = poems.filter(poem => cases.some(([number]) => poem.id === `tao-yuanming-drinking-ming-${number}`));
+  assert.equal(selected.length, cases.length);
+  assert.ok(poems.filter(poem => poem.authorId === 'tao-yuanming').length >= 18);
+  for (const [number, count, page, hash] of cases) {
+    const poem = selected.find(item => item.id === `tao-yuanming-drinking-ming-${number}`);
+    assert.ok(poem, number);
+    assert.equal(poem.authorOriginal, '陶淵明');
+    assert.equal(poem.language, 'Chinese');
+    assert.equal(poem.lang, 'zh-Hant');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['China']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    assert.equal(lineCount(poem), count);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(new URL(poem.source).hash, `#page=${page}`);
+    assert.match(poem.context, /not a diplomatic edition/);
+    assert.match(poem.context, /Wikisource transcription by its contributors/);
+    assert.match(poem.rights, /CC BY-SA 4\.0/);
+    assert.match(poem.rights, /https:\/\/creativecommons\.org\/licenses\/by-sa\/4\.0\//);
+    for (const query of ['Tao Yuanming', '陶淵明', poem.text.split('\n')[0]]) {
+      assert.ok(filterPoems(poems, { language: 'Chinese', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const get = number => selected.find(poem => poem.id.endsWith(`-${number}`));
+  assert.match(get('04').text, /厲響思清晨，遠去何所依/);
+  assert.match(get('04').context, /厲響思清遠/);
+  assert.match(get('12').context, /continues across the turn/);
+  assert.match(get('15').context, /歲月相催逼/);
+  assert.match(get('18').context, /載醪袪所惑/);
+  assert.match(get('19').context, /終死歸田里/);
 });
 test('Li Qingzhao lyrics retain the 1881 readings, boundaries and attribution caveats', () => {
   const cases = [
