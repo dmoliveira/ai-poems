@@ -300,6 +300,73 @@ test('Teasdale poems support English search, preserved saves and JavaScript-free
   await fallback.close();
 });
 
+test('Further Xue Tao poems support Chinese search, saved data and JavaScript-free mobile reading', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('xue-tao-further-1906-'));
+  assert.equal(selected.length, 12);
+  const seed = { saved: ['yu-xuanji-1899-willow', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const filters = { language: 'Chinese', country: 'China' };
+  const filterUrl = `${base}?language=Chinese&country=China#explore`;
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(filterUrl);
+  await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const query of ['Xue Tao', '薛濤']) {
+    await page.getByLabel('Search the poetry library').fill(query);
+    const count = filterPoems(poems, { ...filters, query }).length;
+    assert.equal(count, 26);
+    await page.getByText(`${count} poems found`, { exact: true }).waitFor();
+  }
+  const samples = [
+    ['ninth-day-two', '金菊寒花滿院香'], ['painting', '白波分去遠荊吳'],
+    ['new-clothes-two', '五靈仙馭五雲車'], ['zhang', '鷺識朱衣自不驚'],
+  ];
+  for (const [slug, fragment] of samples) {
+    const poem = selected.find(item => item.id === `xue-tao-further-1906-${slug}`);
+    for (const query of [poem.title, fragment]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { ...filters, query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.goto(filterUrl);
+    await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...samples.map(([slug]) => `xue-tao-further-1906-${slug}`)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Chinese a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    const response = await staticPage.goto(`${base}poems/${poem.id}/`);
+    assert.equal(response.status(), 200);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), poem.text);
+    assert.equal(await verse.getAttribute('lang'), 'zh-Hant');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+    assert.ok((await staticPage.locator('.story').textContent()).includes(poem.context));
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(poem.rights));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await staticPage.goto(`${base}poets/xue-tao/`);
+  for (const poem of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${poem.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await fallback.close();
+});
+
 test('Xue Tao poems support Chinese search, saved data and JavaScript-free mobile reading', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('xue-tao-1906-'));
   assert.equal(selected.length, 14);
@@ -315,7 +382,7 @@ test('Xue Tao poems support Chinese search, saved data and JavaScript-free mobil
     await page.getByLabel('Search the poetry library').fill(query);
     const count = filterPoems(poems, { ...filters, query }).length;
     await page.getByText(`${count} poems found`, { exact: true }).waitFor();
-    assert.equal(count, selected.length);
+    assert.equal(count, selected.length + poems.filter(poem => poem.id.startsWith('xue-tao-further-1906-')).length);
   }
   const samples = [['pipes', '罷閱梵書聊一弄'], ['governor-one', '因令明月當庭燎'], ['scholar', '何用春闈榜下看'], ['willow', '一任南飛又北飛']];
   for (const [slug, fragment] of samples) {
