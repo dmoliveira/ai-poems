@@ -63,6 +63,50 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.equal(byId('castellana-003').anonymous, true);
   assert.equal(byId('tang-108').year, null);
 });
+test('Yu Xuanji poems retain dated-facsimile readings and attribution uncertainty', () => {
+  const cases = [
+    ['willow', '賦得江邊柳', 'c21ba6ddf9bc1a04e5be7e3693a6f7d52b3d804dc89c68eac4171430f7b49483'],
+    ['neighbour', '贈鄰女', '620e147610c893844abcfcf95bcdb3246f245f1187b1c277475c2c4983d76c29'],
+  ];
+  const selected = poems.filter(poem => poem.id.startsWith('yu-xuanji-1899-'));
+  assert.equal(selected.length, cases.length);
+  const get = slug => selected.find(poem => poem.id === `yu-xuanji-1899-${slug}`);
+  for (const [slug, title, hash] of cases) {
+    const poem = get(slug);
+    assert.ok(poem, slug);
+    assert.equal(poem.title, title);
+    assert.equal(poem.author, 'Yu Xuanji');
+    assert.equal(poem.authorId, 'yu-xuanji');
+    assert.equal(poem.authorOriginal, '魚玄機');
+    assert.equal(poem.language, 'Chinese');
+    assert.equal(poem.lang, 'zh-Hant');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['China']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.equal(lineCount(poem), 8);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(new URL(poem.source).hash, '#page=3');
+    assert.equal(new URL(poem.contextSource).searchParams.get('oldid'), '669708');
+    assert.match(poem.context, /catalogue credits Wu Weiye.*printed heading names Yu Xuanji/);
+    assert.match(poem.context, /reason for the conflict is not established/);
+    assert.match(poem.context, /not a diplomatic transcription/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /CC BY-SA 4\.0/);
+    assert.match(poem.rights, /is distributed under CC BY-SA 4\.0/);
+    assert.match(poem.rights, /維基小霸王/);
+    for (const query of ['Yu Xuanji', '魚玄機', poem.text.split('\n')[0]]) {
+      assert.ok(filterPoems(poems, { language: 'Chinese', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  assert.match(get('willow').context, /瀟瀟風雨夜.*蕭蕭風雨夜/);
+  assert.match(get('neighbour').context, /懶起粧.*嬾起妝.*寄李憶員外/);
+  const group = groupPoets(poems).find(item => item.id === 'yu-xuanji');
+  assert.equal(group.poems.length, cases.length);
+  for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
+});
 test('Teasdale poems retain complete Love Songs readings and edition caveats', async () => {
   const manifestText = await readFile(new URL('../scripts/sources/teasdale-love-songs.json', import.meta.url), 'utf8');
   assert.equal(createHash('sha256').update(manifestText).digest('hex'), '1cfefd190bf9f3a2363a6ebde45c1438d3a8f241f5df7b005472df1887393171');

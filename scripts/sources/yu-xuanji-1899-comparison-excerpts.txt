@@ -1,0 +1,9 @@
+# Curated excerpts from Chinese Wikisource, 御定全唐詩 (四庫全書本)/卷804,
+# revision 669708, contributors including 維基小霸王. This selection is
+# distributed under CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/
+# These are not the complete raw revision. Printed alternatives remain in SK notes.
+=== willow ===
+{{SK anchor|翠}}{{SK notes|一作草}}色連{{SK notes|一作迷}}荒岸煙姿入逺樓影{{SK notes|一作葉}}鋪秋水面花落釣人{{SK notes|一作磯}}頭根老藏魚{{SK notes|一作龍}}窟枝低繫{{SK notes|一作拂}}客舟蕭蕭風雨夜驚夢復添愁
+
+=== neighbour ===
+{{SK anchor|羞日遮}}{{SK notes|一作障}}羅袖愁春嬾起妝易求無價寳難得有心郎枕上潛垂淚花間暗斷腸自能窺宋玉何必恨王昌
