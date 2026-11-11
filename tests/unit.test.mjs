@@ -107,6 +107,78 @@ test('Yu Xuanji poems retain dated-facsimile readings and attribution uncertaint
   assert.equal(group.poems.length, cases.length);
   for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
 });
+test('three Tang poets retain complete volume 805 readings and source caveats', () => {
+  const cases = [
+    ['ly-lake', 'li-ye', 8, 5, 151, 'a9fa2e440682f2ea284bbc2d1983e60e9b49b9e913df5064975583692970d4f5'],
+    ['ly-seven', 'li-ye', 8, 5, 151, 'b21e7716946de06b9d9520ddc06c17062dc40e0b6f185f5397c9b901e18a1e92'],
+    ['ly-zhu', 'li-ye', 8, 5, 152, '82bd91687c3d436b0abcc662da0073d8acca0153eb6bdc26775e076dd2e5f77e'],
+    ['ly-han', 'li-ye', 8, 5, 152, '59538aa94d250f692298a0743bc89b5365031686c921c749b334beab69ae01d0'],
+    ['ly-cui', 'li-ye', 8, 5, 153, 'bb1becfc74091d56e4a822a75450b7fca9a69884a40429adb71f2ab20593ddbe'],
+    ['ly-springs', 'li-ye', 16, 7, 153, 'b4010ab1a636a2812d889a71ac301cfaab48f0653df53ae480d7c76a038f32af'],
+    ['ly-longing', 'li-ye', 8, 5, 154, '57f3c2851b4d847a6ae4816021d6f4a28ded664baea8fa19cf0a7d85d8395b0f'],
+    ['ly-reflection', 'li-ye', 8, 7, 155, '54b14331bba0c7101a91eedd331c170e158c43135506e48d5efe1d8295d530ab'],
+    ['ly-eight', 'li-ye', 4, 6, 156, '492c6c0fbc1508e429081778f7bffd76d0edd80cd1896be7df6a76c7f19be6ea'],
+    ['ly-yan', 'li-ye', 8, 5, 156, '6ab7031f4b0b8ce72d620ec66885adf3d69259366cbdd8a9eb7a1a07266573bc'],
+    ['ly-letter', 'li-ye', 4, 7, 157, '694ba1f8a6ecf8aa69a2bbd67fb61c00773223d33c9459cb5ce82fc053e9ae2e'],
+    ['ly-fish', 'li-ye', 4, 5, 157, '6ea1da961ca6268e15577d2fb226d595eb0b9e6d81df8fa2f1f9e42081b00959'],
+    ['ly-dwelling', 'li-ye', 4, 7, 157, '0387f2c10e6f080a73204632ffe34aab7d61c8990a431c0197ac79dcdb6ae625'],
+    ['ly-moon', 'li-ye', 4, 7, 158, 'b9a1b39d7db0d1fcb3f945a2e9446bd609a6755f09f17a760c3cf6d2e830577e'],
+    ['ly-spring', 'li-ye', 4, 5, 158, '17922125a428f2cb7dc2de0475803cdab765a73735747291aec6857b0b4b7981'],
+    ['yc-sisters', 'yuan-chun', 8, 5, 159, '1a301934d44348687773d79d5b4d85de98afc1c5b345f56d02ad44c26c420fea'],
+    ['yc-qin', 'yuan-chun', 8, 5, 159, 'd305df419e6aa9de636fc4f15b08aa6aef36b9e6bdbf4d7cfbc35a5c4944e696'],
+    ['hy-boat', 'haiyin', 8, 5, 160, '342076091506c0701684e87395d707f399286d9dc8ef75cee72644f6a86c99b7'],
+  ];
+  const selected = poems.filter(poem => poem.id.startsWith('qt805-'));
+  const get = slug => selected.find(poem => poem.id === `qt805-${slug}`);
+  const titles = [
+    '湖上臥病喜陸鴻漸至', '寄校書七兄', '寄朱放', '送韓揆之江西', '道意寄崔侍郎',
+    '從蕭叔子聽彈琴賦得三峽流泉歌', '相思怨', '感興', '八至', '送閻二十六赴剡縣',
+    '得閻伯鈞書', '結素魚貽友人', '偶居', '明月夜留別', '春閨怨', '寄洛中諸姊', '秦中春望', '舟夜一章',
+  ];
+  const authors = { 'li-ye': ['Li Ye', '李冶'], 'yuan-chun': ['Yuan Chun', '元淳'], haiyin: ['Haiyin', '海印'] };
+  assert.equal(selected.length, cases.length);
+  assert.ok(!selected.some(poem => poem.title.includes('恩命追入') || poem.title === '句'));
+  for (const [index, [slug, authorId, count, width, page, hash]] of cases.entries()) {
+    const poem = get(slug);
+    assert.ok(poem, slug);
+    assert.equal(poem.authorId, authorId);
+    assert.equal(poem.title, titles[index]);
+    assert.deepEqual([poem.author, poem.authorOriginal], authors[authorId]);
+    assert.equal(poem.language, 'Chinese');
+    assert.equal(poem.lang, 'zh-Hant');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['China']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    const lines = poem.text.split('\n');
+    assert.equal(lines.length, count);
+    assert.ok(lines.every(line => [...line.slice(0, -1)].length === width));
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(poem.source, `https://archive.org/download/06060124.cn/06060124.cn.pdf#page=${page}`);
+    assert.match(poem.contextSource, /oldid=669710$/);
+    assert.match(poem.context, /relationship to this scanned copy is not established/);
+    assert.match(poem.context, /reproduction date is not identified/);
+    assert.match(poem.context, /not a diplomatic transcription/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /維基小霸王.*CC BY-SA 4\.0/);
+    for (const query of [poem.author, poem.authorOriginal, lines[0]]) {
+      assert.ok(filterPoems(poems, { language: 'Chinese', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  assert.match(get('ly-springs').text, /飛泉走浪絃中起/);
+  assert.match(get('ly-longing').text, /絃腸一時斷。$/);
+  assert.match(get('ly-longing').context, /SKchar placeholder.*‘弦’/);
+  assert.match(get('ly-han').context, /‘相看指楊柳’.*‘相看折楊柳’/);
+  assert.match(get('ly-fish').context, /‘數尺如殘雪’.*‘尺素如殘雪’/);
+  assert.match(get('ly-spring').context, /‘數枝桃已紅’.*‘數株桃已紅’/);
+  assert.match(get('ly-eight').text, /至高至明日月/);
+  for (const [authorId, count] of [['li-ye', 15], ['yuan-chun', 2], ['haiyin', 1]]) {
+    const group = groupPoets(poems).find(item => item.id === authorId);
+    assert.equal(group.poems.length, count);
+  }
+});
 test('Li He poems retain distinct complete Siku readings and source caveats', () => {
   const cases = [
     ['one', 72, '68c9dbf340b1bb085b33ad19452efb658912e96ba9f41d107b085a6b2f907480'],
