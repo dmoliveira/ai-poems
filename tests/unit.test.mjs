@@ -156,6 +156,64 @@ test('Teasdale poems retain complete Love Songs readings and edition caveats', a
   assert.equal(group.poems.length, slugs.length);
   for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
 });
+test('Further Xue Tao poems preserve print variants and separate work boundaries', () => {
+  const cases = [
+    ['li-editor', '19', '1495623f3df60675388d41869218fca477afe72915727fdfd12c343d1ead7108'],
+    ['ninth-day-one', '19', '8fef70b6db6778c7b90edf742e73c7811ae3f644d2cab9b4ba4ccb4c78e9e49f'],
+    ['ninth-day-two', '19–20', '3ac698b47334b3f4e4ed2f4dbc032a2f4abed6549d108b5eb4470cb566982f39'],
+    ['painting', '20', '6a40b9e8e6982dd1511edf6f54e1e23ae90df7e8c4ab110e3f5d755d9123b732'],
+    ['flower', '20', 'e8e172bc33297e3490f349f15e126d4da652550b0e0298bda0c44d1541a361e5'],
+    ['reply-yang', '24', 'a816a172bfcbcffaded9e7f82d116cbd11e65e07dde04af0236247291d6cd204'],
+    ['new-clothes-one', '24', '34ce5bf5bdb7d66d9918a33a4f61796e151da1e5bda4f87d5cce891b0910f328'],
+    ['new-clothes-two', '24', 'c4421a99a1228b9221135935cf0715a4a3968dd878578ce52895cea4cbeda21d'],
+    ['zhang', '24–25', 'a6b0c7a99d988d76ee5d3bb5e18cb3936cbf434ebb057dfe7b7762bee1d52e59'],
+    ['jialing', '26', '5496eabc8b4397f2dba3e6325f79bfd84607bc7df4048dea8a278419addb8e86'],
+    ['duan-minister', '26', '14d74df07eb27396a78aed4d6aba4a874263c3aa376de2659a44075f7f27fa40'],
+    ['duan-scholar', '26', 'a4b95b9bc27a1546ad9e6af403ddccc4314a3927f75c9717008e45fcdbd1b416'],
+  ];
+  const selected = poems.filter(poem => poem.id.startsWith('xue-tao-further-1906-'));
+  assert.equal(selected.length, cases.length);
+  const get = slug => selected.find(poem => poem.id === `xue-tao-further-1906-${slug}`);
+  for (const [slug, pages, hash] of cases) {
+    const poem = get(slug);
+    assert.ok(poem, slug);
+    assert.equal(poem.author, 'Xue Tao');
+    assert.equal(poem.authorId, 'xue-tao');
+    assert.equal(poem.authorOriginal, '薛濤');
+    assert.equal(poem.language, 'Chinese');
+    assert.equal(poem.lang, 'zh-Hant');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['China']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.equal(lineCount(poem), 4);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(poem.source, 'https://taiwanebook.ncl.edu.tw/en/book/NCL-000474792/reader');
+    assert.equal(new URL(poem.contextSource).searchParams.get('oldid'), '679301');
+    assert.ok(poem.context.includes(`reader ${pages.includes('–') ? 'pp.' : 'p.'} ${pages}`));
+    assert.match(poem.context, /not an autograph or proof of every attribution/);
+    assert.match(poem.context, /not a diplomatic transcription/);
+    assert.match(poem.rights, /is distributed under CC BY-SA 4\.0/);
+    assert.match(poem.rights, /維基小霸王/);
+    for (const query of ['Xue Tao', '薛濤', poem.text.split('\n')[0]]) {
+      assert.ok(filterPoems(poems, { language: 'Chinese', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  assert.match(get('painting').context, /遠荊吳.*峽口圖.*繞荆吳.*峽石圖/);
+  assert.match(get('flower').context, /玉彩.*月輪.*霞.*日/);
+  assert.match(get('reply-yang').context, /雲窗.*雪牕/);
+  assert.match(get('new-clothes-one').context, /冰繭淨.*氷繭靜/);
+  assert.match(get('new-clothes-two').context, /五靈仙馭.*五雲仙馭/);
+  assert.match(get('zhang').context, /鷺識朱衣.*鷺識朱牕/);
+  assert.match(get('jialing').context, /城.*alternate to.*江/);
+  assert.match(get('duan-scholar').context, /next heading is not visible/);
+  assert.ok(!get('new-clothes-three'));
+  const group = groupPoets(poems).find(item => item.id === 'xue-tao');
+  assert.equal(group.poems.length, 14 + cases.length);
+  for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
+});
 test('Xue Tao poems preserve 1906 readings, comparison variants and attribution caveats', () => {
   const cases = [
     ['friend', '14', 'e181165ccd2ecfee5ee32f273e55323045eee4a491a6ef80e658e58cf15fd1f8'],
@@ -211,7 +269,7 @@ test('Xue Tao poems preserve 1906 readings, comparison variants and attribution 
   assert.match(get('willow').context, /一任南飛.*一晌南飛/);
   assert.match(get('distant-one').context, /second requires further review/);
   const group = groupPoets(poems).find(item => item.id === 'xue-tao');
-  assert.equal(group.poems.length, cases.length);
+  assert.equal(group.poems.length, cases.length + poems.filter(poem => poem.id.startsWith('xue-tao-further-1906-')).length);
   for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
 });
 test('Whitman poems retain complete 1918 edition readings and source caveats', () => {
