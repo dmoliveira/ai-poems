@@ -261,7 +261,7 @@ test('Li Qingzhao lyrics retain the 1881 readings, boundaries and attribution ca
     ['long-gate', 8, 9, '7916b56e81711a58c9d47d7c3c180a3697fe2b64473486893ef5a6fbe485ea38'],
     ['chrysanthemum', 8, 10, '9f8c5d81184f21ba25bcf5f208b6e7dd93915914ce000c5a681d3216039ae802'],
   ];
-  const selected = poems.filter(poem => poem.authorId === 'li-qingzhao');
+  const selected = poems.filter(poem => poem.authorId === 'li-qingzhao' && !poem.id.startsWith('li-qingzhao-1881-more-'));
   assert.equal(selected.length, cases.length);
   const bySlug = slug => selected.find(poem => poem.id === `li-qingzhao-1881-${slug}`);
   for (const [slug, count, page, hash] of cases) {
@@ -299,7 +299,60 @@ test('Li Qingzhao lyrics retain the 1881 readings, boundaries and attribution ca
     assert.equal(poem.displayTitleLang, 'zh-Hant');
     assert.ok(filterPoems(poems, { query: poem.displayTitle }).includes(poem));
   }
-  assert.deepEqual(groupPoets(poems).find(group => group.id === 'li-qingzhao').poems.map(poem => poem.id), cases.map(([slug]) => `li-qingzhao-1881-${slug}`));
+  const priorGroupIds = groupPoets(poems).find(group => group.id === 'li-qingzhao').poems.map(poem => poem.id).filter(id => !id.startsWith('li-qingzhao-1881-more-'));
+  assert.deepEqual(priorGroupIds, cases.map(([slug]) => `li-qingzhao-1881-${slug}`));
+});
+test('further Li Qingzhao lyrics preserve complete 1881 readings and textual uncertainty', () => {
+  const cases = [
+    ['cold-window', 9, 9, 'ce4e3abc3e1fa2e594c3d700cb2a5741f10caaa12170938dad2f70a27ce554c1'],
+    ['deep-courtyard', 10, 9, '56f9999ec6d1cd11c17158643bcc227040e860f8f73e54842f08c58e6a592d05'],
+    ['fallen-blossoms', 8, 10, '8d023da9d5f3c287eb6df35fe2d1439ed70576df626e090065faca9d0c060d23'],
+    ['late-undressing', 11, 10, 'ed6d02c768e50ab0ba5724c98df48c3437362bd20d28974193305b5650171e9d'],
+    ['desolate-court', 20, 11, '346e9bee1e38318864fc5eab79be230c681aabaa0d4156114851558c03e26f0a'],
+    ['seeking', 21, 11, '9cd83b105eb172fe93dddf9806abfc2328744f867e64b7ea38fecf0d841319a5'],
+  ];
+  const selected = poems.filter(poem => poem.id.startsWith('li-qingzhao-1881-more-'));
+  assert.equal(selected.length, cases.length);
+  const get = slug => selected.find(poem => poem.id === `li-qingzhao-1881-more-${slug}`);
+  for (const [slug, count, page, hash] of cases) {
+    const poem = get(slug);
+    assert.ok(poem, slug);
+    assert.equal(poem.authorId, 'li-qingzhao');
+    assert.equal(poem.authorOriginal, '李清照');
+    assert.equal(poem.language, 'Chinese');
+    assert.equal(poem.lang, 'zh-Hant');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['China']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    assert.equal(lineCount(poem), count);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(new URL(poem.source).hash, `#page=${page}`);
+    assert.match(poem.context, /not a diplomatic edition/);
+    assert.match(poem.context, /not proof of sole authorship/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.ok(!/[□�]/u.test(poem.text));
+    for (const query of ['Li Qingzhao', '李清照', poem.text.split('\n')[0].replace(/[，。？]/gu, '')]) {
+      assert.ok(filterPoems(poems, { language: 'Chinese', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  assert.match(get('cold-window').text, /酒闌愛喜團茶苦/);
+  assert.match(get('cold-window').context, /酒闌更喜團茶苦/);
+  assert.match(get('deep-courtyard').text, /人老建康城/);
+  assert.match(get('deep-courtyard').context, /人客遠安城.*人客建康城/);
+  assert.match(get('fallen-blossoms').text, /正是傷春時節/);
+  assert.match(get('fallen-blossoms').context, /superfluous/);
+  assert.match(get('late-undressing').context, /copying addition/);
+  assert.match(get('desolate-court').text, /清露晨梳/);
+  assert.match(get('desolate-court').context, /清露晨流/);
+  assert.equal(get('desolate-court').displayTitle, '念奴嬌（蕭條庭院）');
+  assert.ok(filterPoems(poems, { query: get('desolate-court').displayTitle }).includes(get('desolate-court')));
+  assert.match(get('seeking').context, /晚來風急.*晚來風力/);
+  const group = groupPoets(poems).find(item => item.id === 'li-qingzhao');
+  assert.equal(group.poems.length, 18);
+  for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
 });
 test('Poe selections preserve complete 1900 readings, sections and source caveats', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/poe-1900.json', import.meta.url), 'utf8'));
