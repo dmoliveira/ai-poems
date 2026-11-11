@@ -44,6 +44,7 @@ class TaoDrinkingImporterTests(unittest.TestCase):
         self.assertTrue(poem["source"].endswith("#page=5"))
         self.assertIn("Wikisource", poem["contextSourceTitle"])
         self.assertIn("CC BY-SA 4.0", poem["rights"])
+        self.assertIn("https://creativecommons.org/licenses/by-sa/4.0/", poem["rights"])
 
     def test_missing_or_changed_evidence_is_rejected(self):
         with patch.dict(RECORDS.__globals__, self.settings):

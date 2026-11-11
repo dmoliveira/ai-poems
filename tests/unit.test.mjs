@@ -95,6 +95,7 @@ test('Tao Yuanming selections retain complete Ming readings and source attributi
     assert.match(poem.context, /not a diplomatic edition/);
     assert.match(poem.context, /Wikisource transcription by its contributors/);
     assert.match(poem.rights, /CC BY-SA 4\.0/);
+    assert.match(poem.rights, /https:\/\/creativecommons\.org\/licenses\/by-sa\/4\.0\//);
     for (const query of ['Tao Yuanming', '陶淵明', poem.text.split('\n')[0]]) {
       assert.ok(filterPoems(poems, { language: 'Chinese', query }).includes(poem), query);
     }

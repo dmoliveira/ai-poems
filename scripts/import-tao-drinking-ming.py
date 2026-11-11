@@ -131,7 +131,9 @@ def records(directory):
             "rights": (
                 "The historical poems and pre-1931 printing are public domain in the United "
                 "States; check local law. The scan is linked, not republished. The adapted "
-                "Wikisource transcription is credited to its contributors under CC BY-SA 4.0."
+                "Wikisource transcription is credited to its contributors under CC BY-SA 4.0 "
+                "(https://creativecommons.org/licenses/by-sa/4.0/); see the linked revision "
+                "and its contributor history."
             ),
             "text": text,
             "translations": [],
