@@ -1,0 +1,40 @@
+{
+  "witnesses": {
+    "tarde-1919.pdf": {
+      "sha256": "cbcfa738725c886436e1a082af32bb5d45bf5e7437fbb1680ff995964d69647e",
+      "url": "https://digital.bbm.usp.br/bitstream/bbm/4541/1/002927_COMPLETO.pdf"
+    },
+    "tarde-hathitrust-1919.djvu": {
+      "sha256": "c93d501d3d82159efa96f938bfd1df9caabaceed50408b135f14442cfb8e58c3",
+      "url": "https://commons.wikimedia.org/wiki/File:Tarde_(1919).djvu"
+    }
+  },
+  "poems": [
+    {
+      "slug": "fogo",
+      "title": "Fogo fatuo",
+      "displayTitle": "Fogo-fátuo",
+      "printedPages": [126, 127],
+      "uspLeaves": [128, 129],
+      "princetonLeaves": [130, 131],
+      "textSha256": "073cca97ab1bf34890c154f7e71a37d024bb08701b7132283062b26fbc07ba79"
+    },
+    {
+      "slug": "remorso",
+      "title": "Remorso",
+      "printedPages": [130, 131],
+      "uspLeaves": [130, 131],
+      "princetonLeaves": [134, 135],
+      "textSha256": "82ed6ee9fcd0a84390244af0656cffc014b1f1f86f798b1aa4d531a6c2177bae"
+    },
+    {
+      "slug": "symphonia",
+      "title": "Symphonia",
+      "displayTitle": "Sinfonia",
+      "printedPages": [206, 207],
+      "uspLeaves": [206, 207],
+      "princetonLeaves": [210, 211],
+      "textSha256": "aa3f1836df15d15e36e70046c6e98d7829a1a136b55a5471a495727bb1ff465e"
+    }
+  ]
+}

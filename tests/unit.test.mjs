@@ -239,7 +239,75 @@ test('Bilac sonnets preserve complete 1919 readings, page mappings and compariso
   assert.match(bySlug('sinos').context, /Aos sinos.*mais vasta.*Os sinos.*mais casta/);
   assert.ok(filterPoems(poems, { query: 'virgens selvas e de oceano largo' }).includes(bySlug('lingua')));
   assert.ok(filterPoems(poems, { query: 'andaimes do edificio' }).includes(bySlug('poeta')));
-  assert.deepEqual(groupPoets(poems).find(group => group.id === 'olavo-bilac').poems.map(poem => poem.id), cases.map(([slug]) => `bilac-tarde-1919-${slug}`));
+  assert.deepEqual(groupPoets(poems).find(group => group.id === 'olavo-bilac').poems.map(poem => poem.id), [...cases.map(([slug]) => `bilac-tarde-1919-${slug}`), 'bilac-tarde-1919-fogo', 'bilac-tarde-1919-remorso', 'bilac-tarde-1919-symphonia']);
+});
+test('further Bilac sonnets retain complete 1919 readings and disclosed variants', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/bilac-tarde-more-1919.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/bilac-tarde-more-1919.txt', import.meta.url), 'utf8');
+  const parts = source.split(/^=== ([a-z]+) ===\n/gm);
+  assert.equal(parts.shift(), '');
+  const readings = new Map();
+  while (parts.length) readings.set(parts.shift(), parts.shift().trim());
+  assert.deepEqual(Object.fromEntries(Object.entries(manifest.witnesses).map(([name, witness]) => [name, witness.sha256])), {
+    'tarde-1919.pdf': 'cbcfa738725c886436e1a082af32bb5d45bf5e7437fbb1680ff995964d69647e',
+    'tarde-hathitrust-1919.djvu': 'c93d501d3d82159efa96f938bfd1df9caabaceed50408b135f14442cfb8e58c3',
+  });
+  const cases = [
+    ['fogo', 'Fogo fatuo', 'Fogo-fátuo', [126, 127], [128, 129], [130, 131], '073cca97ab1bf34890c154f7e71a37d024bb08701b7132283062b26fbc07ba79'],
+    ['remorso', 'Remorso', undefined, [130, 131], [130, 131], [134, 135], '82ed6ee9fcd0a84390244af0656cffc014b1f1f86f798b1aa4d531a6c2177bae'],
+    ['symphonia', 'Symphonia', 'Sinfonia', [206, 207], [206, 207], [210, 211], 'aa3f1836df15d15e36e70046c6e98d7829a1a136b55a5471a495727bb1ff465e'],
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), cases.map(([slug]) => slug));
+  for (const [index, [slug, title, display, printed, usp, princeton, hash]] of cases.entries()) {
+    const item = manifest.poems[index];
+    const poem = poems.find(entry => entry.id === `bilac-tarde-1919-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.title, title);
+    assert.equal(poem.displayTitle, display);
+    if (display) assert.equal(poem.displayTitleLang, 'pt');
+    assert.equal(poem.author, 'Olavo Bilac');
+    assert.equal(poem.authorId, 'olavo-bilac');
+    assert.equal(poem.authorYears, '1865–1918');
+    assert.deepEqual(associatedPlaces(poem), ['Brazil']);
+    assert.equal(poem.language, 'Portuguese');
+    assert.equal(poem.lang, 'pt');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.match(poem.yearLabel, /Published 1919.*composition date not established/);
+    assert.equal(poem.form, 'Sonnet');
+    assert.deepEqual(item.printedPages, printed);
+    assert.deepEqual(item.uspLeaves, usp);
+    assert.deepEqual(item.princetonLeaves, princeton);
+    assert.equal(poem.text, readings.get(slug));
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 3, 3]);
+    assert.equal(lineCount(poem), 14);
+    assert.equal(item.textSha256, hash);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(new URL(poem.source).searchParams.get('page'), String(princeton[0]));
+    if (slug !== 'remorso') assert.equal(new URL(poem.contextSource).hash, `#page=${usp[0]}`);
+    else assert.equal(poem.contextSource, 'https://www.escritas.org/pt/t/4899/remorso');
+    assert.match(poem.context, /follows the Princeton\/HathiTrust copy.*checked line by line against the USP copy/);
+    assert.match(poem.context, /copies of the same printing, not independent editions/);
+    assert.match(poem.context, /Modern transcriptions were comparison aids/);
+    assert.match(poem.context, /not a diplomatic edition.*final author-approved text/);
+    assert.match(poem.rights, /public domain in the United States.*Commons marks the Princeton scan public domain/);
+    assert.match(poem.rights, /USP requests noncommercial use.*not reproduced/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    for (const query of ['olavo bilac', title, ...(display ? [display] : [])]) {
+      assert.ok(filterPoems(poems, { language: 'Portuguese', country: 'Brazil', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const bySlug = slug => poems.find(poem => poem.id === `bilac-tarde-1919-${slug}`);
+  assert.match(bySlug('fogo').text, /^Cabellos brancos![\s\S]*Para querer o que não ha na vida!$/);
+  assert.match(bySlug('remorso').text, /suffoquei calando,[\s\S]*Sinto o que esperdicei na juventude;/);
+  assert.match(bySlug('remorso').context, /esperdicei.*calando.*desperdicei.*calado.*not independently checked/);
+  assert.match(bySlug('remorso').rights, /recantodasletras\.com\.br.*CC BY-NC 2\.5 Brazil/);
+  assert.match(bySlug('symphonia').text, /^Meu coração, na incerta adolescencia[\s\S]*Para glorificar tudo que amou na terra!$/);
+  assert.ok(filterPoems(poems, { query: 'sinto o que esperdicei na juventude' }).includes(bySlug('remorso')));
+  assert.ok(filterPoems(poems, { query: 'voluptuoso adagio em harpas e violinos' }).includes(bySlug('symphonia')));
 });
 test('Gonçalves Dias additions preserve 1860 readings, complete works and earlier variants', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/goncalves-dias-cantos-1860.json', import.meta.url), 'utf8'));
