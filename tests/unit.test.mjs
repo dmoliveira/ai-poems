@@ -2288,6 +2288,7 @@ test('Ḥāfiẓ Ibrāhīm language poem retains its complete 1922 reading and c
   assert.equal(poem.year, null);
   assert.equal(poem.creationPlace, undefined);
   assert.match(poem.yearLabel, /Published by June 1907.*composition date not established/);
+  assert.equal(item.titlePagePdfPage, 215);
   assert.deepEqual(item.printedPages, [16, 17, 18, 19]);
   assert.deepEqual(item.pdfPages, [238, 239, 240, 241]);
   assert.deepEqual(item.comparisonPrintedPages, [253, 254, 255]);
