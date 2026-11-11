@@ -63,6 +63,52 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.equal(byId('castellana-003').anonymous, true);
   assert.equal(byId('tang-108').year, null);
 });
+test('Blake copy Y selections retain separate complete readings and plate sources', () => {
+  const cases = [
+    ['lamb', 20, 347905, '14426c99504835ecffa5498b10952fa517507df24e05c0c174c1d9f5ed16a522'],
+    ['infant-joy', 12, 347934, 'e7c5c750231dcab6c7a382f2dce989ce25f26006aaf676da491bafb76ec737a7'],
+    ['sick-rose', 8, 347973, 'd5ab0a979eb3160a3f458e5d80c1b9d4488ecf611ebe106f2cbc6b069f1245d0'],
+    ['fly', 20, 347974, '439d296452b045cde5cfd277ec84979d8ff38f6c495b9beef9d5ec7af638c2f7'],
+    ['tyger', 24, 347983, '36872941517ffc2fac9c045517194bd0d72923b29a171219b36963586c3e758d'],
+    ['pretty-rose-tree', 8, 347980, '4b70ff0e91ceb0f9bc004211611d7652ba1d85ce2b423744a3ce03720bf45dbd'],
+    ['sun-flower', 8, 347980, 'c2342639ff884b688fbd5512105689bc0c37161496553961ceb9ef392aa1241f'],
+    ['lilly', 4, 347980, '802aa1038b50fd3bca6d72f9efb91d65ca6e803ac3ef341df95d0253187ab2a8'],
+    ['garden-of-love', 12, 347987, 'a687bf22fee9a3c722cd597457e91b011e355341d482e9e8aaaadfa5f6eb4cc0'],
+    ['london', 16, 347997, 'b9d82818586cc6d8c63049503d0be8400cbef115721961f9e71eb3ed241695d4'],
+    ['infant-sorrow', 8, 348004, '77828d27dfff43b5a371825848980dc55975bcf9fbd7c9fae2e9403081f4e738'],
+    ['poison-tree', 16, 348006, '14d05fc4130b439b3e350db507d3e5d9b2642e82cc81b8f5f4c6e131bd754027'],
+  ];
+  const selected = poems.filter(poem => poem.authorId === 'william-blake');
+  assert.equal(selected.length, cases.length);
+  for (const [slug, count, object, hash] of cases) {
+    const poem = selected.find(item => item.id === `blake-copy-y-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.language, 'English');
+    assert.equal(poem.lang, 'en');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    assert.equal(lineCount(poem), count);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(new URL(poem.source).pathname, `/art/collection/search/${object}`);
+    assert.equal(new URL(poem.contextSource).pathname, '/ebooks/1934');
+    assert.match(poem.context, /not a diplomatic edition/);
+    assert.match(poem.context, /1901 edition is not copy Y/);
+    assert.match(poem.rights, /public domain in the United States/);
+    for (const query of ['William Blake', poem.text.split('\n')[0]]) {
+      assert.ok(filterPoems(poems, { language: 'English', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const get = slug => selected.find(poem => poem.id.endsWith(`-${slug}`));
+  assert.match(get('tyger').text, /dare sieze the fire/);
+  assert.match(get('lamb').text, /Dost thou know/);
+  assert.match(get('infant-sorrow').text, /swadling bands/);
+  assert.match(get('lilly').text, /beauty bright\.$/);
+  assert.ok(filterPoems(poems, { query: 'The Lily' }).includes(get('lilly')));
+  assert.deepEqual(groupPoets(poems).find(group => group.id === 'william-blake').poems.map(poem => poem.id), cases.map(([slug]) => `blake-copy-y-${slug}`));
+});
 test('Tao Yuanming selections retain complete Ming readings and source attribution', () => {
   const cases = [
     ['01', 5, 59, '744cbce15be402a6ca5eebdd55f380ec35d3eddc8b3b8f8973025d89d727f55f'],
