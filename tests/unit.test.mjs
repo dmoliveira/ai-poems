@@ -858,6 +858,73 @@ test('French classics retain their proofread texts, edition credits and complete
   for (const id of ids) assert.ok(poet.poems.some(p => p.id === id), id);
   assert.ok(poet.poems.some(p => p.id === 'demain-des-laube-hugo'));
 });
+test('Baudelaire originals preserve distinct complete 1861 readings and evidence', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/baudelaire-fleurs-1861.json', import.meta.url), 'utf8'));
+  const expected = [
+    4, 11, 22, 24, 27, 34, 35, 36, 39, 40, 43, 46, 47, 48, 50, 53,
+    55, 59, 63, 64, 65, 66, 67, 68, 70, 71, 72, 77, 78, 79, 80, 81,
+    82, 85, 86, 92, 93, 95, 98, 104, 107, 108, 109, 112, 118, 122, 124, 125,
+  ];
+  const sonnets = [4, 11, 22, 27, 34, 35, 39, 40, 43, 46, 55, 59, 63, 64, 65, 66, 67, 68, 70, 72, 79, 81, 82, 92, 93, 107, 108, 109, 112, 122, 124, 125];
+  assert.deepEqual(manifest.poems.map(item => item.number), expected);
+  assert.deepEqual(manifest.poems.filter(item => item.form === 'Sonnet').map(item => item.number), sonnets);
+  assert.equal(Object.keys(manifest.pages).length, 100);
+  assert.equal(Object.keys(manifest.scanSha256).length, 9);
+  const all = poems.filter(poem => poem.authorId === 'charles-baudelaire');
+  assert.equal(all.length, 62);
+  assert.equal(all.filter(poem => poem.id.startsWith('baudelaire-fleurs-1861-')).length, expected.length);
+  const incipit = poem => poem.text.split('\n').find(Boolean).normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+  assert.equal(new Set(all.map(incipit)).size, all.length, 'legacy works and repeated titles stay distinct');
+  for (const item of manifest.poems) {
+    const id = `baudelaire-fleurs-1861-${String(item.number).padStart(3, '0')}`;
+    const poem = all.find(entry => entry.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.title, item.title);
+    assert.equal(poem.author, 'Charles Baudelaire');
+    assert.equal(poem.authorYears, '1821–1867');
+    assert.equal(poem.language, 'French');
+    assert.equal(poem.lang, 'fr');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.form, sonnets.includes(item.number) ? 'Sonnet' : 'Verse');
+    if (poem.form === 'Sonnet') assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 3, 3]);
+    assert.deepEqual(associatedPlaces(poem), ['France']);
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.match(poem.yearLabel, /1861.*composition date not established/);
+    assert.equal(poem.source, item.source);
+    assert.ok(new URL(poem.source).searchParams.has('oldid'));
+    assert.equal(poem.contextSource, 'https://www.gutenberg.org/cache/epub/61565/pg61565-images.html');
+    assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*Check local law/);
+    assert.equal(lineCount(poem), item.lines);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
+    assert.ok(item.pages.every(page => manifest.pages[page]?.revid && manifest.pages[page]?.sha256));
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(filterPoems(poems, { language: 'French', country: 'France', author: poem.author }).includes(poem));
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const byNumber = number => all.find(poem => poem.id === `baudelaire-fleurs-1861-${String(number).padStart(3, '0')}`);
+  for (const number of [24, 27, 39]) {
+    assert.equal(byNumber(number).title, byNumber(number).text.split('\n')[0]);
+    assert.match(byNumber(number).context, /without a title/);
+  }
+  assert.deepEqual(byNumber(53).text.split('\n\n').map(stanza => stanza.split('\n').length), [12, 2, 12, 2, 12, 2]);
+  assert.equal((byNumber(53).text.match(/Là, tout n’est qu’ordre et beauté/g) || []).length, 3);
+  assert.equal(byNumber(77).title, 'Spleen');
+  assert.equal(byNumber(78).title, 'Spleen');
+  assert.match(byNumber(77).disambiguation, /^Je suis comme le roi/);
+  assert.match(byNumber(78).disambiguation, /^Quand le ciel bas et lourd/);
+  assert.match(byNumber(93).text, /Ô toi que j’eusse aimée, ô toi qui le savais !$/);
+  for (const number of [53, 86, 95]) assert.match(byNumber(number).context, /page transitions can be ambiguous/);
+  for (const query of ['la nature est un temple', 'luxe, calme et volupté', 'la rue assourdissante autour de moi hurlait']) {
+    assert.ok(filterPoems(poems, { query }).some(poem => expected.some(number => poem.id === byNumber(number).id)), query);
+  }
+  assert.equal(groupPoets(poems).find(group => group.id === 'charles-baudelaire').poems.length, 62);
+  assert.deepEqual(filterPoems(poems, { author: 'Charles Baudelaire', form: 'Sonnet' }).map(poem => poem.id), sonnets.map(number => byNumber(number).id));
+  for (const number of [2, 3, 8, 10, 12, 13, 14, 15, 17, 18, 30, 33, 37, 38, 51, 60, 126]) {
+    assert.equal(byNumber(number), undefined, `legacy, Latin or multipart work ${number} is not reimported`);
+  }
+});
 test('Apollinaire originals retain complete 1920 readings and source evidence', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/apollinaire-alcools-1920.json', import.meta.url), 'utf8'));
   const expected = [1, 2, 4, 6, 7, 8, 10, 12, 14, 15, 17, 18, 19, 21, 23, 25, 27, 29, 31, 32, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 45, 47, 48, 49];

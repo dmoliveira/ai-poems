@@ -1,0 +1,1194 @@
+{
+  "gutenbergSha256": "3e69dc8197f84710aa1b9b8fcb0918b82ddde19b55f7a32c6673d15c9b093ae0",
+  "scanSha256": {
+    "title-page.jpg": "8045ba9fbfd97e530ea479c934a64859480869990c2002e568fac693fa994d24",
+    "scan-130.jpg": "d0be0eda76db5cede5eb990b550623ef405d1014851bc046c217684558218aa9",
+    "scan-131.jpg": "3f9a69f1f7375e4a204011016f80c984d0ca51e2fd2479afd5c18366e9632c22",
+    "scan-132.jpg": "a01cd5c0db46ddde818d8266dc1d94639bffe63f4a5fe95906bbce71f823a6e9",
+    "scan-202.jpg": "d9ae92b5fd05d5264f2962525977f9e9a843025d6dc69dbeef4739d64a568ec6",
+    "scan-204.jpg": "74ecd6c02db141d2d7589881e84dbbc7fb8218ac435e4d3167e8bd33117d15af",
+    "scan-205.jpg": "8802a1553bc3e0aa47b563551bf8a6b25d020ed58abe2d00c4fa8236ab1811a3",
+    "scan-230.jpg": "6ebad79686d4c4e7ae04e36e8bad8cb10289bf39988820aa42de8483a36d90b6",
+    "scan-231.jpg": "f7162aae45fc566636abe43b2667766cfb9df8848230ff0979dcd2d9e7b3ba3f"
+  },
+  "pages": {
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/100": {
+      "pageid": 272707,
+      "revid": 7547103,
+      "sha256": "69ee6dee6a9271084dcc4179ac5035c784ccf5189d6230d768e868c84e3f003c"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/101": {
+      "pageid": 272709,
+      "revid": 12997724,
+      "sha256": "a13c8746a5c0a56d53dc736fb855e106a952bbce6ceb7eda810e8b72894b9b2c"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/102": {
+      "pageid": 272710,
+      "revid": 7547109,
+      "sha256": "f2ac094f6a6f9e49be11d4a40b9a809d2e3fc91cc72577bb619bf826a09ccd4c"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/107": {
+      "pageid": 272719,
+      "revid": 12997729,
+      "sha256": "17cb9067bca59ede0f0b420a1d3508b89c1c5e6f3def1d459723b24b038de734"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/108": {
+      "pageid": 272720,
+      "revid": 7547125,
+      "sha256": "a8cb045c4a1ab16dbf01bec477baf6d9514e78b1035787e896f44644a76340c4"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/114": {
+      "pageid": 272731,
+      "revid": 12997738,
+      "sha256": "07c8745ef57d6b2752b925f15669aa29c899a3340f151597dd309830367fd2f6"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/115": {
+      "pageid": 272732,
+      "revid": 7547144,
+      "sha256": "c564cac048809852964a33932378ef5a26f2347a5405aef08f723cb5ca4bbd67"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/116": {
+      "pageid": 272734,
+      "revid": 12997740,
+      "sha256": "80423043b8d5d3af05d0afa077579ccab395bfa81ac2c6c4653d33d278786d1f"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/117": {
+      "pageid": 272735,
+      "revid": 7547150,
+      "sha256": "f1248432644b70563400438e96a40dca55579910df895f398c08643d9e850423"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/118": {
+      "pageid": 272736,
+      "revid": 12997741,
+      "sha256": "16a05453d67a9cd2f5e9a4a16cfe6491c650344e0b12dfecbf9f01c8390c87eb"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/119": {
+      "pageid": 272737,
+      "revid": 7547155,
+      "sha256": "23ebac2a3978a1648a3af620c798e3893be3dc756284cd69081255b325f6b4f5"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/122": {
+      "pageid": 272745,
+      "revid": 12997746,
+      "sha256": "c6bcad39feabb69f3bb490f9179b72ca895d530a9e1b412b98a9257177c17172"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/123": {
+      "pageid": 272746,
+      "revid": 7547163,
+      "sha256": "f74054df9876c2ee603195785cfc40c59944fbe634ddfc968dfaa2d25a922ddb"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/130": {
+      "pageid": 272760,
+      "revid": 12997759,
+      "sha256": "cb40abadde453208def99746076f418905dcbc01cda3a66f0b8e64b5b3e0ddb3"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/131": {
+      "pageid": 272761,
+      "revid": 12997761,
+      "sha256": "daed4f255f9798ba96353b2e1b738632aba28b1bff566b020c08f4b61b0fd01b"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/132": {
+      "pageid": 272762,
+      "revid": 12997762,
+      "sha256": "23c8a3987b8452717358d8389c8156f15dec0ed662b8e4911fbf0fda4d1e2e2f"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/136": {
+      "pageid": 272788,
+      "revid": 12997766,
+      "sha256": "0e4e40348e9dfb177dc201aede15dbc97dd53e56a9e88b806f050954a096b0c3"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/137": {
+      "pageid": 272789,
+      "revid": 7547202,
+      "sha256": "0dddbe532f5f9605047914cadc2f24e2eb5bc01f67c4d71d2856ec472de07ec3"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/146": {
+      "pageid": 272805,
+      "revid": 12997771,
+      "sha256": "c6c1566b1e0b3fee77649ab83ba880b7548a84419f16a7d134a1e0e2b30fd720"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/147": {
+      "pageid": 272806,
+      "revid": 7547214,
+      "sha256": "25770989a2c40194cd6bf00c7c506b0c002c68fb71341fc255a8a59b6ff23f01"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/155": {
+      "pageid": 272820,
+      "revid": 12997779,
+      "sha256": "009970dbd17f706045d8e4f8d5cb065a254800968cb1a3504545f3201299db6a"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/156": {
+      "pageid": 272821,
+      "revid": 7547224,
+      "sha256": "ac6fcc4fc667b7273146eb17d9dd0f9bff6c2cfd221ecefbbe3506935e0c5b87"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/157": {
+      "pageid": 272822,
+      "revid": 12997780,
+      "sha256": "8a1a65d1b436f3ffcf817e86fcfb9d7116b1a797fd557ac316ebb847d2f4e673"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/158": {
+      "pageid": 272823,
+      "revid": 7547226,
+      "sha256": "da343f621c054b3dec57501e40805d420320b5bca8a6fbf1c1f4ede384336b41"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/159": {
+      "pageid": 272825,
+      "revid": 12997782,
+      "sha256": "8e3fb41b291d93fa7783fc25e84ff106996a78ff2907275b0ed365ac7669398a"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/160": {
+      "pageid": 272826,
+      "revid": 7547228,
+      "sha256": "46d23cf0049810071008e5c140e1216e7b17fd350a08a9355ed26070afbac95d"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/161": {
+      "pageid": 272828,
+      "revid": 12997785,
+      "sha256": "cdba79b05bdc741b1c16431db4c3ae050922227289aff07cfaa22b9dea65d063"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/162": {
+      "pageid": 272829,
+      "revid": 7547231,
+      "sha256": "fda2da9394ef132b56f334e8b0e1f4915ebc17b8c0c52bf1451317618ca15f64"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/163": {
+      "pageid": 272831,
+      "revid": 12997787,
+      "sha256": "75df7ba796c298297df44e0cd40cd42c27319026260d111929e62b1cda878681"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/164": {
+      "pageid": 272832,
+      "revid": 7547235,
+      "sha256": "de2195a944c073bc8fc3056562b59fdfc7e7dda10a2703d4a485ed503bcb0656"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/165": {
+      "pageid": 272834,
+      "revid": 12997788,
+      "sha256": "91cac9375391d7488d99ae05865dc010c1106e64c53c3973c30f654c585630da"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/166": {
+      "pageid": 272835,
+      "revid": 7547241,
+      "sha256": "e17fa0da0fb023054f3e638c568f28d9a979637e37bf9e97750df510ea3ed912"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/169": {
+      "pageid": 272840,
+      "revid": 12997791,
+      "sha256": "be432c4a8350fecc141535c766faf3af4ec5b5be70142ead1375c5365c7a0767"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/170": {
+      "pageid": 272841,
+      "revid": 7547249,
+      "sha256": "6250875cc1d3e90d4262839fd22b8fe24bc03d922dda54fb58de40073b2222ec"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/171": {
+      "pageid": 272843,
+      "revid": 12997792,
+      "sha256": "583d9627dfe275b823df3e3b65618670ca006efc0c45675509492eb63a729f9a"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/172": {
+      "pageid": 272844,
+      "revid": 7547251,
+      "sha256": "b54266f0a7d5cc6186843bcda0c6c8b35230336d14db875daafe5eeb2eca2687"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/173": {
+      "pageid": 272846,
+      "revid": 12997793,
+      "sha256": "0ca32c5a34b400be5f203b2904f310e2610889daf16a7c655caa36ca7b2b8814"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/174": {
+      "pageid": 272847,
+      "revid": 7547256,
+      "sha256": "cd6b966bcb460d8f97517b64570a8d104c19aa37dbf1ca03cfc812467882880c"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/183": {
+      "pageid": 272860,
+      "revid": 12997798,
+      "sha256": "608374d4a155ba3bee5feed174c03b235bf6f6505f1cfbce2ce005a1d18c7243"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/184": {
+      "pageid": 272861,
+      "revid": 7547297,
+      "sha256": "8c5a174f065a92c948c75a3c67ebc477403a4615378e32108c0761b33215b468"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/185": {
+      "pageid": 272865,
+      "revid": 12997799,
+      "sha256": "9605b4b05203aa4cc30535a702dac1fb9d522c1c49ea43bc3f2fe0ee358703c4"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/186": {
+      "pageid": 272866,
+      "revid": 7547302,
+      "sha256": "38e7963d36f118d9a74001a7f7cc375c5f4d135acce2c45b399a7d1f5ab65875"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/187": {
+      "pageid": 272868,
+      "revid": 12997800,
+      "sha256": "71be1a62828b56657d9b7821c8024e66052ef2d1f6ce5fc7d5b88bddd3233ee1"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/188": {
+      "pageid": 272869,
+      "revid": 7547307,
+      "sha256": "a4584c530e7a64169021d700257902267a40428357b80642060df3c0d9556757"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/189": {
+      "pageid": 272870,
+      "revid": 12997801,
+      "sha256": "63515ef41aa44bb102e89a97cae1b3fe21ab54860f00d11ac7dc89a507a86cfe"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/190": {
+      "pageid": 272871,
+      "revid": 7547313,
+      "sha256": "9ef528734a127dde2ceaa679059766121497b497a21a0c1d2522a4fe79237064"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/191": {
+      "pageid": 272875,
+      "revid": 12997802,
+      "sha256": "682d987107f758068cda56cabd8fdd45f1772faa0d14569f6a3c3e7017f8bba5"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/192": {
+      "pageid": 272876,
+      "revid": 7547318,
+      "sha256": "dd42cb9e6d7b368f4a830a8afd2429911c522bcb0e41e6cea0968159539e6ade"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/193": {
+      "pageid": 272878,
+      "revid": 12997803,
+      "sha256": "5cdf342ce1fa8a998af55ae7f8c96d80f5bfa1609ba9461df1db548e0a5472f9"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/194": {
+      "pageid": 272879,
+      "revid": 7547323,
+      "sha256": "6b67c47c941682efb722032f1df45e319379ed435ee80c0e922deb0a2a38b5b6"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/200": {
+      "pageid": 272915,
+      "revid": 12997814,
+      "sha256": "9233287a169f767b77dddc3dd7d89d91ccb9e11733b8871162860fcef9aaed5c"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/201": {
+      "pageid": 272916,
+      "revid": 13042957,
+      "sha256": "132b4e95f8473df3da46e2b983ef4ac31665e6bdb75dcae08fa7e80bfe787638"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/202": {
+      "pageid": 272919,
+      "revid": 7547339,
+      "sha256": "d55244bd08760b392019dc2dc01e6d32ab32289c15942f1ae10a626114a54165"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/204": {
+      "pageid": 272929,
+      "revid": 12997815,
+      "sha256": "2584fceb44b92c4c4ee46ff28c531f0876aff3f399b1257ab3d1021d6abcf064"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/205": {
+      "pageid": 272930,
+      "revid": 7547345,
+      "sha256": "9132baa059a57a663ba34d2eff1ba900a071937d227400cec4adb1680f4a8ec3"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/223": {
+      "pageid": 272964,
+      "revid": 12997857,
+      "sha256": "80b34b0e72cfda2bdba6d399a2dfeaba50f0bfeb173fdfa58a1e53eddc4a18c2"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/224": {
+      "pageid": 272965,
+      "revid": 7547393,
+      "sha256": "9207282752d89b96bc2959a0f88a877867a20472db220034f2fb4388bf661001"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/225": {
+      "pageid": 272967,
+      "revid": 12997858,
+      "sha256": "02f9179fef6778699361f4e50260562c2d7ad83a14ccc46dce5a419ad9c6fca5"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/226": {
+      "pageid": 272968,
+      "revid": 7547417,
+      "sha256": "b64246f2fe4f651a57cfaaa7636944db041c3097b2fefd5c03662cd8a9aae08b"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/230": {
+      "pageid": 272974,
+      "revid": 12997861,
+      "sha256": "471300cb84ca042e23791fae944b7cd30aae6ebc6bdbdcd4238784d2a35d1988"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/231": {
+      "pageid": 272975,
+      "revid": 7547429,
+      "sha256": "61831db5ef2b79cd616de055b729be39058db0e4ac07895615cd93a5408446c3"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/238": {
+      "pageid": 272989,
+      "revid": 12997865,
+      "sha256": "379987e900ae3dc9bc4fe04f37082445b02aada698ec11e0532e8c8de59cd2ad"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/239": {
+      "pageid": 272990,
+      "revid": 7547449,
+      "sha256": "a80e640e00f9e9a7ba084b0b1e29d9f37934409855692ec8da541f4c29519eb3"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/24": {
+      "pageid": 272580,
+      "revid": 12997866,
+      "sha256": "5189efa50b010a5d83970b7a65707c1e6e5e72526fcfc528321610c97bd20a4c"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/25": {
+      "pageid": 272581,
+      "revid": 7547403,
+      "sha256": "3354e61989d8cef12a84e129997d8825325db073d0be96be08c9f553f65ed3d9"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/252": {
+      "pageid": 272921,
+      "revid": 7547411,
+      "sha256": "374df7c1ae32cc92b1522d985db900f882a6a9c91429d8749e9f243b877c1086"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/254": {
+      "pageid": 273016,
+      "revid": 12997873,
+      "sha256": "766af2515bae756b9ea8979eea1e55c05723dd529e3f5b813a31894a14a259d6"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/255": {
+      "pageid": 273017,
+      "revid": 7547482,
+      "sha256": "7e7cfc5360bd259042cccd254d84e4c2a37c1b4f84917d3eae877630193f5698"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/261": {
+      "pageid": 273032,
+      "revid": 12997877,
+      "sha256": "749e87f5f144136977a8a60b1d7393e37644aef839d94da7c62a095827aed98b"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/262": {
+      "pageid": 273033,
+      "revid": 7547499,
+      "sha256": "07b21996cccb95c0b61ab00bde2c88a8b6372c254e8a16351d1d80417c2f3ff7"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/263": {
+      "pageid": 273035,
+      "revid": 12997878,
+      "sha256": "c5e58194d69d421977c644922d6498ea115ae9c7575fd300aca84e18e60f6425"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/264": {
+      "pageid": 273036,
+      "revid": 7547505,
+      "sha256": "f0324d5eb9ed2bfd5c73a0e2c111a4a14b9783492725b887b6cb89f8df8520e6"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/266": {
+      "pageid": 272923,
+      "revid": 7547413,
+      "sha256": "bd401d66f3b9f293adfb3d1d819d093bd7d12d5171321ddedaa3f1848d889fe2"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/268": {
+      "pageid": 273039,
+      "revid": 12997879,
+      "sha256": "fb9057689b3bafc172f6ccf62e2e4a757090d7c782d49fe25fc00e53503110be"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/269": {
+      "pageid": 273040,
+      "revid": 7547510,
+      "sha256": "47885608ac5062e811ea45ed2411715c8c03ad9f18c07dc99c4d7c4dd1ef4b21"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/276": {
+      "pageid": 273053,
+      "revid": 12997885,
+      "sha256": "242ecb5bbe6daf2d1eef4299a4847663660a1784444ca87c07060c9229816118"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/277": {
+      "pageid": 273054,
+      "revid": 7547549,
+      "sha256": "5b42b58bef736277715c596c9362126502174dac8fce670af61801879d9c9236"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/290": {
+      "pageid": 272925,
+      "revid": 7547540,
+      "sha256": "2ee6db400a8c1654a47fa35589d9620d9065c0292ec90cf0567f336f15557447"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/292": {
+      "pageid": 273149,
+      "revid": 12997893,
+      "sha256": "e9b9ebb560303096fd6a752018b37e81f0fbe66c08e87bacb8013a74182a634b"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/293": {
+      "pageid": 273150,
+      "revid": 7547576,
+      "sha256": "ae0c38baf325a81b80005521c41de6688c87b60b5153d8eec1775a093765dc9e"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/306": {
+      "pageid": 273185,
+      "revid": 12997899,
+      "sha256": "d890e5e398af626deddae21b23d1247e360db64a720a6d9c7300b2453284d910"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/307": {
+      "pageid": 273186,
+      "revid": 7547602,
+      "sha256": "60f7f170c776a574cf5b5724245d3edc66179643643993d4a43ce5d3b10fd244"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/310": {
+      "pageid": 273194,
+      "revid": 12997902,
+      "sha256": "924ddc4a6ae7c1d1dd7edfec716f94ab30837e379e06dfcb6522f749e73214d4"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/311": {
+      "pageid": 273195,
+      "revid": 7547612,
+      "sha256": "184b192d0446137f247446b0683816b2e2f924a8f412491ceb1e1d968513ae8e"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/312": {
+      "pageid": 273199,
+      "revid": 12997903,
+      "sha256": "dcd4fcc945f195adb3ca5fdeacdd21570cd6da3055b956f4c712e4b4a7cc6e07"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/313": {
+      "pageid": 273200,
+      "revid": 7547617,
+      "sha256": "01ddb98b5ff01ca757f0f3a8d6ba0ef7d7b201e3f3c60fd0731d3c1d0b31790c"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/39": {
+      "pageid": 272605,
+      "revid": 12997914,
+      "sha256": "39b3e54b31e8caaea7598af60e2ee7871aee32f7fbf40f4eb6ff261f7ad0beb8"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/40": {
+      "pageid": 272606,
+      "revid": 7547674,
+      "sha256": "dd5b8320f6a007703d3124f6c6db3928ace2deb43479f30117bd59534ab3fad2"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/62": {
+      "pageid": 272642,
+      "revid": 12997926,
+      "sha256": "09f1de108fc523632528e9d7d6722a7acb91b32741b29ebf8c9b17b91365386e"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/63": {
+      "pageid": 272643,
+      "revid": 7547732,
+      "sha256": "570ae44cedd731167b356759c9a49938e937270d97d092698667d087735a18b8"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/66": {
+      "pageid": 272649,
+      "revid": 12997928,
+      "sha256": "ab0b47ef2c69ed73e60d81867f6911be1d9dd72fad9eb7e3b9a6402b076d2088"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/71": {
+      "pageid": 272657,
+      "revid": 12997932,
+      "sha256": "89ad3ea62b0d5882cccf76ad6512b0a588cc2cbdd8013a1c337ed07631d0198c"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/72": {
+      "pageid": 272658,
+      "revid": 7547754,
+      "sha256": "b9d59fe826d9d108abf8aed355b855682057a33375dba3c09d77e7faee9a73cf"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/87": {
+      "pageid": 272684,
+      "revid": 12997944,
+      "sha256": "d16005f63682cc077bc693d2ec80c669c42553b81cc559c3015e71dc24dcc9bb"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/88": {
+      "pageid": 272686,
+      "revid": 12997945,
+      "sha256": "58e658499ba25f7f670818dab0ba1829a50b9db7829f2c7cfdd509ab38d67b5e"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/89": {
+      "pageid": 272688,
+      "revid": 12997946,
+      "sha256": "08388fb8f960be6c2336c464346a0490b3df04500ca5e86d43f43ec0ff4e79d3"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/90": {
+      "pageid": 272689,
+      "revid": 7547834,
+      "sha256": "14de1ae53963a0f6db88af74f74ac6b80cee4157892e23172ef8b3e4a52e32e2"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/91": {
+      "pageid": 272690,
+      "revid": 12997947,
+      "sha256": "078b86f9f3fe0c48382fc9bb822191aa29d10e63d58e891e974c0e9f3d330ff7"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/92": {
+      "pageid": 272691,
+      "revid": 7547839,
+      "sha256": "02f483a6e38340a2f991a496320336fb75b81586a95d2e204251b6b56f117178"
+    },
+    "Page:Baudelaire - Les Fleurs du mal 1861.djvu/99": {
+      "pageid": 272706,
+      "revid": 12997954,
+      "sha256": "51ecb9ea25e561fea5a5c269584e36416171096fe50fdc19303de911924d3778"
+    }
+  },
+  "poems": [
+    {
+      "number": 4,
+      "title": "Correspondances",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Correspondances&oldid=15069785",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/24",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/25"
+      ],
+      "lines": 14,
+      "sha256": "dcefd8194e5ec655824b85b061267a2d4eee179a6f2e8d3fe34edfc46f957dd6",
+      "form": "Sonnet"
+    },
+    {
+      "number": 11,
+      "title": "Le Guignon",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Guignon&oldid=15069822",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/39",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/40"
+      ],
+      "lines": 14,
+      "sha256": "fbaa74184236f40ae2575cd1c46a4e90c9da3ce4a57ab497462bf4f29387815a",
+      "form": "Sonnet"
+    },
+    {
+      "number": 22,
+      "title": "Parfum exotique",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Parfum_exotique&oldid=15069863",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/62",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/63"
+      ],
+      "lines": 14,
+      "sha256": "d4eeb481cd5d178a9976f598255f4edd760fe95ebc13080749ecf69c16b29b91",
+      "form": "Sonnet"
+    },
+    {
+      "number": 24,
+      "title": "Je t’adore à l’égal de la voûte nocturne,",
+      "untitled": true,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/%C2%AB_Je_t%E2%80%99adore_%C3%A0_l%E2%80%99%C3%A9gal_de_la_vo%C3%BBte_nocturne_%C2%BB&oldid=15069887",
+      "quality": "1 page validée, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/66"
+      ],
+      "lines": 10,
+      "sha256": "3ce9f6f34f1dc58e88aac111e0d262f94fd30791a86a2ac01259ffa2caedfd19",
+      "form": "Verse"
+    },
+    {
+      "number": 27,
+      "title": "Avec ses vêtements ondoyants et nacrés,",
+      "untitled": true,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/%C2%AB_Avec_ses_v%C3%AAtements_ondoyants_et_nacr%C3%A9s_%C2%BB&oldid=15069884",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/71",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/72"
+      ],
+      "lines": 14,
+      "sha256": "a5bfb050dc81befbaef880ddbd53693bba3570eda0c2be2cedec273149428306",
+      "form": "Sonnet"
+    },
+    {
+      "number": 34,
+      "title": "Le Chat",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Chat_(%C2%AB_Viens,_mon_beau_chat,_sur_mon_c%C5%93ur_amoureux_%C2%BB)&oldid=15069815",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/87",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/88"
+      ],
+      "lines": 14,
+      "sha256": "79a2ad9e74e8f5b53afa6f2b0a517c4cc3b8dae961e21a883eca96909d55506f",
+      "form": "Sonnet"
+    },
+    {
+      "number": 35,
+      "title": "Duellum",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Duellum&oldid=15069790",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/89",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/90"
+      ],
+      "lines": 14,
+      "sha256": "974a3dd2b8ea5effa46769d917877fae7ebeb743243db2e892aba50fa01745d5",
+      "form": "Sonnet"
+    },
+    {
+      "number": 36,
+      "title": "Le Balcon",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Balcon&oldid=15069812",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/91",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/92"
+      ],
+      "lines": 30,
+      "sha256": "a935d0d6d77d2c3b60f880e020015007e3bd20da0abc3e8c35890269e1e53b6d",
+      "form": "Verse"
+    },
+    {
+      "number": 39,
+      "title": "Je te donne ces vers afin que si mon nom",
+      "untitled": true,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/%C2%AB_Je_te_donne_ces_vers_afin_que_si_mon_nom_%C2%BB&oldid=15069886",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/99",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/100"
+      ],
+      "lines": 14,
+      "sha256": "5bc2e7513fde44d60d82a04ae22902472cfba5e9da97d84c406b69d65b1d97b1",
+      "form": "Sonnet"
+    },
+    {
+      "number": 40,
+      "title": "Semper eadem",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Semper_eadem&oldid=15069869",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/101",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/102"
+      ],
+      "lines": 14,
+      "sha256": "1374178ea525ec7d300e93557f924292d70ac626d5adc549c5cc55af97719bd8",
+      "form": "Sonnet"
+    },
+    {
+      "number": 43,
+      "title": "Le Flambeau vivant",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Flambeau_vivant&oldid=15069820",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/107",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/108"
+      ],
+      "lines": 14,
+      "sha256": "3cdf5a6042af2b8b9f819da923e35a1b83f9a192a9a13ce3e5f8563f7440a97d",
+      "form": "Sonnet"
+    },
+    {
+      "number": 46,
+      "title": "L’Aube spirituelle",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/L%E2%80%99Aube_spirituelle&oldid=15070596",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/114",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/115"
+      ],
+      "lines": 14,
+      "sha256": "d27ffa646fde714c8bc30cffa067d85785c9450f9e31e4f41cd5827fcbe2e575",
+      "form": "Sonnet"
+    },
+    {
+      "number": 47,
+      "title": "Harmonie du soir",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Harmonie_du_soir&oldid=15070047",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/116",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/117"
+      ],
+      "lines": 16,
+      "sha256": "71259d44bfdc10e09d717a8243778ef1204afab23b8e417c52873eda2ebf5a38",
+      "form": "Verse"
+    },
+    {
+      "number": 48,
+      "title": "Le Flacon",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Flacon&oldid=15069819",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/118",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/119"
+      ],
+      "lines": 28,
+      "sha256": "acb11f77c0e7a91b69eb634fef0eca40ad2aeb2f095c806138400ce63c2af30b",
+      "form": "Verse"
+    },
+    {
+      "number": 50,
+      "title": "Ciel brouillé",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Ciel_brouill%C3%A9&oldid=15069784",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/122",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/123"
+      ],
+      "lines": 16,
+      "sha256": "89210839b6f0deb7dc830b2b1961482d95f42396ba7dfbe62961cbe5745756e0",
+      "form": "Verse"
+    },
+    {
+      "number": 53,
+      "title": "L’Invitation au voyage",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/L%E2%80%99Invitation_au_voyage&oldid=15069857",
+      "quality": "3 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/130",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/131",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/132"
+      ],
+      "lines": 42,
+      "sha256": "5f2b729e8f0dea603c9469d3eeb42c5a0599530ee8fbd3e6a1dc3b899b78158b",
+      "form": "Verse"
+    },
+    {
+      "number": 55,
+      "title": "Causerie",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Causerie&oldid=15069780",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/136",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/137"
+      ],
+      "lines": 14,
+      "sha256": "815fae3240b0ec8b72df5caf6a3bd85ffd80fde2c2edd64d11d7ffc7ca9853ef",
+      "form": "Sonnet"
+    },
+    {
+      "number": 59,
+      "title": "Sisina",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Sisina&oldid=15070592",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/146",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/147"
+      ],
+      "lines": 14,
+      "sha256": "af94108bb00df175b921e2ae10b677072ef8c83e8793cbddf2a7058fb77be9d5",
+      "form": "Sonnet"
+    },
+    {
+      "number": 63,
+      "title": "Le Revenant",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Revenant&oldid=15069829",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/155",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/156"
+      ],
+      "lines": 14,
+      "sha256": "865d7c5ded373a28c1684a3f2916d24b17e0b5af7e1c252148ae3ecb5eccba08",
+      "form": "Sonnet"
+    },
+    {
+      "number": 64,
+      "title": "Sonnet d’automne",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Sonnet_d%E2%80%99automne&oldid=15069871",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/157",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/158"
+      ],
+      "lines": 14,
+      "sha256": "9a5c95a88aaaf1fbefd38cde43c06822e62f8cfb0a91d20db78e16a40e567947",
+      "form": "Sonnet"
+    },
+    {
+      "number": 65,
+      "title": "Tristesses de la lune",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Tristesses_de_la_lune&oldid=15069216",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/159",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/160"
+      ],
+      "lines": 14,
+      "sha256": "a316725f6218d9786c26f491ef25348e55ee04621f63ca824facd79a821379dc",
+      "form": "Sonnet"
+    },
+    {
+      "number": 66,
+      "title": "Les Chats",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Les_Chats&oldid=15069842",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/161",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/162"
+      ],
+      "lines": 14,
+      "sha256": "3b0f24258da8ae4126a83a544bdb2456941c14b2a36ce55904ba1eac7f9d3005",
+      "form": "Sonnet"
+    },
+    {
+      "number": 67,
+      "title": "Les Hiboux",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Les_Hiboux&oldid=15069844",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/163",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/164"
+      ],
+      "lines": 14,
+      "sha256": "8bbec085ae688f3e850d4caf8e840fe88b09334cc818b0820e218ac1858e97a6",
+      "form": "Sonnet"
+    },
+    {
+      "number": 68,
+      "title": "La Pipe",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/La_Pipe&oldid=15069810",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/165",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/166"
+      ],
+      "lines": 14,
+      "sha256": "5be0a6fb7ef729a3ca6e060d3c8d25c82869325ab1aec76d1f906e3641778367",
+      "form": "Sonnet"
+    },
+    {
+      "number": 70,
+      "title": "Sépulture",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/S%C3%A9pulture&oldid=15069876",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/169",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/170"
+      ],
+      "lines": 14,
+      "sha256": "d9bd85ba45f75c14d9c1d69233460ff2ca86cab70780a83fb4e792bcfd3dfba5",
+      "form": "Sonnet"
+    },
+    {
+      "number": 71,
+      "title": "Une Gravure fantastique",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Une_gravure_fantastique&oldid=15069882",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/171",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/172"
+      ],
+      "lines": 14,
+      "sha256": "7b89097679a9161752434aef7ddbd70daac338a1c7062bb87f2a0ad87cb1f7de",
+      "form": "Verse"
+    },
+    {
+      "number": 72,
+      "title": "Le Mort joyeux",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Mort_joyeux&oldid=15069825",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/173",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/174"
+      ],
+      "lines": 14,
+      "sha256": "f65683f1155b147bc6de180e61d87c2179ed37e15dbd9503452a0e748401ba7a",
+      "form": "Sonnet"
+    },
+    {
+      "number": 77,
+      "title": "Spleen",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Spleen_(%C2%AB_Je_suis_comme_le_roi_d%E2%80%99un_pays_pluvieux_%C2%BB)&oldid=15069872",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/183",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/184"
+      ],
+      "lines": 18,
+      "sha256": "d5bf6afbd77730a4718469025e0353cd5c7994208b5ef530c76051652b67fae2",
+      "form": "Verse"
+    },
+    {
+      "number": 78,
+      "title": "Spleen",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Spleen_(%C2%AB_Quand_le_ciel_bas_et_lourd_p%C3%A8se_comme_un_couvercle_%C2%BB)&oldid=15069875",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/185",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/186"
+      ],
+      "lines": 20,
+      "sha256": "57ee2dc591ec2d846fb880d32f4613fda4884343090d0ffb39c6a3cceab3ea65",
+      "form": "Verse"
+    },
+    {
+      "number": 79,
+      "title": "Obsession",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Obsession&oldid=15069862",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/187",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/188"
+      ],
+      "lines": 14,
+      "sha256": "7a844ab3d761169de1db12fa2254c15ef5414cb4112a73b54505f6b39e45d648",
+      "form": "Sonnet"
+    },
+    {
+      "number": 80,
+      "title": "Le Goût du néant",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Go%C3%BBt_du_n%C3%A9ant&oldid=15069821",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/189",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/190"
+      ],
+      "lines": 15,
+      "sha256": "985aed14efaf78bc5f8b80ebd4c78518aee6e259df6855a42f1d2ec30986c672",
+      "form": "Verse"
+    },
+    {
+      "number": 81,
+      "title": "Alchimie de la douleur",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Alchimie_de_la_douleur&oldid=15069776",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/191",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/192"
+      ],
+      "lines": 14,
+      "sha256": "e9252b9aa7e3e3f6fac3d17b3993142ad22846076338f3d58d50ab6bec342ba2",
+      "form": "Sonnet"
+    },
+    {
+      "number": 82,
+      "title": "Horreur sympathique",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Horreur_sympathique&oldid=15069794",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/193",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/194"
+      ],
+      "lines": 14,
+      "sha256": "999e96fc95e5ebc01875a0522535e568973a8e5c0bc71453dbf5fc7389988a45",
+      "form": "Sonnet"
+    },
+    {
+      "number": 85,
+      "title": "L’Horloge",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/L%E2%80%99Horloge&oldid=15069854",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/200",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/201"
+      ],
+      "lines": 24,
+      "sha256": "780e671b49b0d47c5d2e323812df871fba8a6f33b293ed91424eb431e294883f",
+      "form": "Verse"
+    },
+    {
+      "number": 86,
+      "title": "Paysage",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Paysage&oldid=15069864",
+      "quality": "3 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/202",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/204",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/205"
+      ],
+      "lines": 26,
+      "sha256": "1e092a07cc00e6c10c7ee4ecf41d9f221996e878b90f955f280f8bf35918d0e0",
+      "form": "Verse"
+    },
+    {
+      "number": 92,
+      "title": "Les Aveugles",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Les_Aveugles&oldid=15069841",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/223",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/224"
+      ],
+      "lines": 14,
+      "sha256": "f3f1c76b6fc966933aa50e59e1c50158027482d6e6e0f89b1c10abdff554f576",
+      "form": "Sonnet"
+    },
+    {
+      "number": 93,
+      "title": "À une passante",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/%C3%80_une_passante&oldid=15069894",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/225",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/226"
+      ],
+      "lines": 14,
+      "sha256": "97dbd4b335365e31da2994d199c7e3632f368b6afe0b26b7e8a1da8ac31cc48f",
+      "form": "Sonnet"
+    },
+    {
+      "number": 95,
+      "title": "Le Crépuscule du soir",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Cr%C3%A9puscule_du_soir&oldid=15069817",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/230",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/231"
+      ],
+      "lines": 38,
+      "sha256": "b04c432105ca4f5a234257b0e2abd01983dd7c0191ad1bcf80f733873264d039",
+      "form": "Verse"
+    },
+    {
+      "number": 98,
+      "title": "L’Amour du mensonge",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/L%E2%80%99Amour_du_mensonge&oldid=15069849",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/238",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/239"
+      ],
+      "lines": 24,
+      "sha256": "fd43e16493636ef7067fea84030706b835e3b2aa3d66630a707d901187928af4",
+      "form": "Verse"
+    },
+    {
+      "number": 104,
+      "title": "L’Âme du vin",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/L%E2%80%99%C3%82me_du_vin&oldid=15069860",
+      "quality": "3 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/252",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/254",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/255"
+      ],
+      "lines": 24,
+      "sha256": "83a7c3b464d74df903c94fbd7425339cddbfee6f669cee6f553891a28ccfcdea",
+      "form": "Verse"
+    },
+    {
+      "number": 107,
+      "title": "Le Vin du solitaire",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Vin_du_solitaire&oldid=15069839",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/261",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/262"
+      ],
+      "lines": 14,
+      "sha256": "08259f0a3555cf4a9ad48fdfb311d06a550dba71aa1957b7561e50a7502c8e8f",
+      "form": "Sonnet"
+    },
+    {
+      "number": 108,
+      "title": "Le Vin des amants",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Vin_des_amants&oldid=15069837",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/263",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/264"
+      ],
+      "lines": 14,
+      "sha256": "119fcf68ec5e1429e7864df5f6a155acb3a178e60221005aaa389ec98292bef3",
+      "form": "Sonnet"
+    },
+    {
+      "number": 109,
+      "title": "La Destruction",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/La_Destruction&oldid=15069800",
+      "quality": "3 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/266",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/268",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/269"
+      ],
+      "lines": 14,
+      "sha256": "54d0ea261df3b4879f2f01b4e5b9865abe65da94ac35c37cbc164c7d438dbdaa",
+      "form": "Sonnet"
+    },
+    {
+      "number": 112,
+      "title": "Les deux bonnes Sœurs",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Les_Deux_Bonnes_S%C5%93urs&oldid=15069843",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/276",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/277"
+      ],
+      "lines": 14,
+      "sha256": "993060a76cc3050888aa98a7dce7f33937417a9f2dca56539990d17c629a5a3f",
+      "form": "Sonnet"
+    },
+    {
+      "number": 118,
+      "title": "Le Reniement de saint Pierre",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_Reniement_de_saint_Pierre&oldid=15069828",
+      "quality": "3 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/290",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/292",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/293"
+      ],
+      "lines": 32,
+      "sha256": "c1d0d99954d8ff88b9c3433bf4aab60109e5a084de2d49a14ff4c51787ada583",
+      "form": "Verse"
+    },
+    {
+      "number": 122,
+      "title": "La Mort des pauvres",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/La_Mort_des_pauvres&oldid=15069806",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/306",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/307"
+      ],
+      "lines": 14,
+      "sha256": "4ba61e54f4b052321d22c3acd2a776ae4e42d06156589730ea60b2a99b23a406",
+      "form": "Sonnet"
+    },
+    {
+      "number": 124,
+      "title": "La Fin de la journée",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/La_Fin_de_la_journ%C3%A9e&oldid=15069801",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/310",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/311"
+      ],
+      "lines": 14,
+      "sha256": "6ddddaaea94921bbb6d04a9a1f34537b2f027b0b777fe307f6584ddc8b325719",
+      "form": "Sonnet"
+    },
+    {
+      "number": 125,
+      "title": "Le Rêve d’un curieux",
+      "untitled": false,
+      "source": "https://fr.wikisource.org/w/index.php?title=Les_Fleurs_du_mal_(1861)/Le_R%C3%AAve_d%E2%80%99un_curieux&oldid=15069830",
+      "quality": "2 pages validées, 0 page corrigée et 0 page non corrigée",
+      "pages": [
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/312",
+        "Page:Baudelaire - Les Fleurs du mal 1861.djvu/313"
+      ],
+      "lines": 14,
+      "sha256": "7776ee8bae16c7d14284c74b0e33881b367aebdc7291556d5e30bec580598c09",
+      "form": "Sonnet"
+    }
+  ]
+}
