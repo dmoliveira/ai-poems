@@ -63,6 +63,54 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.equal(byId('castellana-003').anonymous, true);
   assert.equal(byId('tang-108').year, null);
 });
+test('Keats poems retain complete 1909 edition readings and source caveats', () => {
+  const cases = [
+    ['nightingale', 80, 107, '3c0210c828cdf047203577c949532eca73b943e9fd056a19653ae9faa5821cdb'],
+    ['urn', 50, 113, '73719c506c78e029eea95ebe0c09c67ed635bc7e03e4c3fe47d06080c76b938e'],
+    ['psyche', 67, 117, '3393fe6e487ded96f6f728482ee1ce28f7b554ff57745876574adc1dc034f8b6'],
+    ['fancy', 94, 122, 'c6eeb7b00daa1969d7963f23b841aafc0bd27e3ef1de633ee1ed43b19ea84b57'],
+    ['bards', 40, 128, '25f8618f738383fc9b0b9ba556a576878476f138c0346f1b0973a1068dfb1e68'],
+    ['mermaid', 26, 131, 'edec4934ee948ccd0389493990592ec253832cc8a0a9970ac30fb1e047824d47'],
+    ['robin', 62, 133, '289102664df48d5170e13d940a3d87e5771a701b28e91a4328e90c72feed060f'],
+    ['autumn', 33, 137, 'e2dfb340d7a4216109e6027468b4b71e0dabf912e2abb9dc26b39333f122eea2'],
+    ['melancholy', 30, 140, 'c38b4a2a3fa1c4bc1d47d9e0071b35fa413bc35e851441ababc559772bc19a28'],
+  ];
+  const selected = poems.filter(poem => poem.id.startsWith('keats-1909-'));
+  assert.equal(selected.length, cases.length);
+  for (const [slug, count, page, hash] of cases) {
+    const poem = selected.find(item => item.id === `keats-1909-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.author, 'John Keats');
+    assert.equal(poem.authorId, 'john-keats');
+    assert.equal(poem.language, 'English');
+    assert.equal(poem.lang, 'en');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['England']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    assert.equal(lineCount(poem), count);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(new URL(poem.source).pathname, '/ebooks/23684');
+    assert.equal(new URL(poem.contextSource).pathname, `/files/23684/23684-h/images/${page}.png`);
+    assert.match(poem.context, /not a diplomatic transcription/);
+    assert.match(poem.context, /1820 copy was not independently checked/);
+    assert.match(poem.context, /Punctuation has not been independently collated/);
+    assert.match(poem.rights, /public domain in the United States/);
+    for (const query of ['John Keats', poem.text.split('\n')[0]]) {
+      assert.ok(filterPoems(poems, { language: 'English', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const get = slug => selected.find(poem => poem.id === `keats-1909-${slug}`);
+  assert.match(get('nightingale').text, /Provençal song/);
+  assert.match(get('psyche').text, /Phœbe's/);
+  assert.match(get('robin').text, /grenè shawe/);
+  assert.match(get('bards').context, /edition titles this work ‘Ode’/);
+  assert.match(get('robin').context, /To a Friend/);
+  const group = groupPoets(poems).find(item => item.id === 'john-keats');
+  for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
+});
 test('Blake copy Y selections retain separate complete readings and plate sources', () => {
   const cases = [
     ['lamb', 20, 347905, '14426c99504835ecffa5498b10952fa517507df24e05c0c174c1d9f5ed16a522'],
