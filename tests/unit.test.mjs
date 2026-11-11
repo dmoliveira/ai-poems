@@ -63,6 +63,61 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.equal(byId('castellana-003').anonymous, true);
   assert.equal(byId('tang-108').year, null);
 });
+test('Li Qingzhao lyrics retain the 1881 readings, boundaries and attribution caveats', () => {
+  const cases = [
+    ['southern-song', 8, 5, '8392dd6486cc789bfeeb1afb4fe1bfffb43bf8901300f83fbced6a1cdeef924d'],
+    ['fisher-dream', 10, 6, '385e94c3b1225c0b3d12f73440b27c69b380045e3b4cd193381cbf8a437b96d0'],
+    ['stream-pavilion', 6, 6, '1228edc032c058c36f3c6e90050b180133fe25b108a84515afd40340f0eb6c46'],
+    ['last-night', 6, 6, 'e75f8b7796b6cddb0d2154ade0f1d831bb5fa019df6c2ccf8638e46cb17e0853'],
+    ['gentle-wind', 8, 7, 'bb483e8416874d094c0366f4a479a92495dd25d9ffa98a5b112374af400e7ce5'],
+    ['small-courtyard', 6, 7, 'b875bbde5df081d5df548a2aeadc5bb6a96c5a75ea7ab4f6a4690ef40a6b6393'],
+    ['cold-food', 6, 7, '3cc8a066dc81e953f4628a3c94c86dde61bb5e63b41511fdb5140861e1002c40'],
+    ['red-lotus', 8, 8, 'c5ae4b4481427c7474219af863aaf052425f8808c6f6d2ecf6fb2a32cdff76dd'],
+    ['farewell', 8, 8, 'b8b917ff9bc87d92463e7f61eef3cbe355cf9f0ae1f004f189f2505978f2d6eb'],
+    ['warm-rain', 8, 9, '4aba24775da97876d617eb10138834773056cd9b0c6799b105fbab4be496ab40'],
+    ['long-gate', 8, 9, '7916b56e81711a58c9d47d7c3c180a3697fe2b64473486893ef5a6fbe485ea38'],
+    ['chrysanthemum', 8, 10, '9f8c5d81184f21ba25bcf5f208b6e7dd93915914ce000c5a681d3216039ae802'],
+  ];
+  const selected = poems.filter(poem => poem.authorId === 'li-qingzhao');
+  assert.equal(selected.length, cases.length);
+  const bySlug = slug => selected.find(poem => poem.id === `li-qingzhao-1881-${slug}`);
+  for (const [slug, count, page, hash] of cases) {
+    const poem = bySlug(slug);
+    assert.ok(poem, slug);
+    assert.equal(poem.authorOriginal, '李清照');
+    assert.equal(poem.language, 'Chinese');
+    assert.equal(poem.lang, 'zh-Hant');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['China']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    assert.equal(lineCount(poem), count);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(new URL(poem.source).hash, `#page=${page}`);
+    assert.match(poem.context, /not a diplomatic edition/);
+    assert.match(poem.context, /attributions and readings vary/i);
+    assert.ok(!/[□�]/u.test(poem.text));
+    for (const query of ['Li Qingzhao', '李清照', poem.text.split('\n')[0].replace(/[，。？]/gu, '')]) {
+      assert.ok(filterPoems(poems, { language: 'Chinese', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  assert.match(bySlug('fisher-dream').context, /䢜.*歸/);
+  assert.match(bySlug('stream-pavilion').context, /Su Shi.*Lü Dongbin/);
+  assert.match(bySlug('small-courtyard').context, /Zhou Bangyan.*Ouyang Xiu/);
+  assert.match(bySlug('small-courtyard').text, /遠岫出山/);
+  assert.match(bySlug('cold-food').context, /Zhong Bing.*disputed/);
+  assert.match(bySlug('cold-food').text, /江梅已過/);
+  assert.match(bySlug('warm-rain').text, /^暖雨晴風/);
+  assert.match(bySlug('chrysanthemum').text, /人比黃花瘦。$/);
+  for (const slug of ['small-courtyard', 'cold-food', 'red-lotus']) {
+    const poem = bySlug(slug);
+    assert.equal(poem.displayTitleLang, 'zh-Hant');
+    assert.ok(filterPoems(poems, { query: poem.displayTitle }).includes(poem));
+  }
+  assert.deepEqual(groupPoets(poems).find(group => group.id === 'li-qingzhao').poems.map(poem => poem.id), cases.map(([slug]) => `li-qingzhao-1881-${slug}`));
+});
 test('Poe selections preserve complete 1900 readings, sections and source caveats', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/poe-1900.json', import.meta.url), 'utf8'));
   assert.deepEqual(Object.fromEntries(Object.entries(manifest.witnesses).map(([name, item]) => [name, item.sha256])), {
