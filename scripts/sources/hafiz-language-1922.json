@@ -1,0 +1,29 @@
+{
+  "witnesses": {
+    "aub_aco003437_lo.pdf": {
+      "sha256": "702e3b145246ac4d085299c9ae42469def4fbcdf5f110e3c898775df2e76e264",
+      "url": "https://mc.dlib.nyu.edu/files/books/aub_aco003437/aub_aco003437_lo.pdf"
+    },
+    "collected-125963.pdf": {
+      "sha256": "78d00d3a59fd1314795a08b48334469c9a225de05411b53b423f8218dc757bc3",
+      "url": "https://archive.org/download/AAlexandrina-125963/125963%20-%20%D8%AF%D9%8A%D9%88%D8%A7%D9%86%20%D8%AD%D8%A7%D9%81%D8%B8%20%D8%A7%D8%A8%D8%B1%D8%A7%D9%87%D9%8A%D9%85.pdf"
+    },
+    "almanar10.pdf": {
+      "sha256": "0b52e1388d224f0d1b3b5013d7dae3acb17bb0e55709c40947583d170536db40",
+      "url": "https://archive.org/download/almanaralmanar/almanar10.pdf"
+    }
+  },
+  "poem": {
+    "title": "لسان حال اللغة العربية",
+    "displayTitle": "اللغة العربية تنعى حظها بين أهلها",
+    "couplets": 23,
+    "titlePagePdfPage": 215,
+    "printedPages": [16, 17, 18, 19],
+    "pdfPages": [238, 239, 240, 241],
+    "comparisonPrintedPages": [253, 254, 255],
+    "comparisonPdfPages": [305, 306, 307],
+    "magazinePrintedPages": [308, 309],
+    "magazinePdfPages": [232, 233],
+    "textSha256": "0b6736582baafc92911f1ff00b0d1c996096cf15aeadb5cedb0a44f2e87d61d2"
+  }
+}

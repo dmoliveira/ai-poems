@@ -2267,7 +2267,63 @@ test('additional Arabic works retain their bounded readings, credits and variant
   assert.match(hafiz.text, /ولتنتخب صفوة أبنائها/);
   assert.match(hafiz.text, /أيديكم فالقيد لا يسجح/);
   assert.match(hafiz.text, /فإنما في القلة المنجح$/);
-  assert.deepEqual(groupPoets(poems).find(group => group.id === 'hafiz-ibrahim').poems.map(poem => poem.id), [hafiz.id]);
+  assert.deepEqual(groupPoets(poems).find(group => group.id === 'hafiz-ibrahim').poems.map(poem => poem.id), [hafiz.id, 'hafiz-ibrahim-language-1922']);
+});
+test('Ḥāfiẓ Ibrāhīm language poem retains its complete 1922 reading and comparison evidence', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/hafiz-language-1922.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/hafiz-language-1922.txt', import.meta.url), 'utf8');
+  const poem = poems.find(entry => entry.id === 'hafiz-ibrahim-language-1922');
+  const item = manifest.poem;
+  assert.ok(poem);
+  assert.equal(poem.title, 'لسان حال اللغة العربية');
+  assert.equal(poem.displayTitle, 'اللغة العربية تنعى حظها بين أهلها');
+  assert.equal(poem.displayTitleLang, 'ar');
+  assert.equal(poem.author, 'Ḥāfiẓ Ibrāhīm');
+  assert.equal(poem.authorOriginal, 'حافظ إبراهيم');
+  assert.equal(poem.authorYears, 'Born 1871 or 1872; died 1932');
+  assert.deepEqual(associatedPlaces(poem), ['Egypt']);
+  assert.equal(poem.language, 'Arabic');
+  assert.equal(poem.lang, 'ar');
+  assert.equal(poem.direction, 'rtl');
+  assert.equal(poem.year, null);
+  assert.equal(poem.creationPlace, undefined);
+  assert.match(poem.yearLabel, /Published by June 1907.*composition date not established/);
+  assert.equal(item.titlePagePdfPage, 215);
+  assert.deepEqual(item.printedPages, [16, 17, 18, 19]);
+  assert.deepEqual(item.pdfPages, [238, 239, 240, 241]);
+  assert.deepEqual(item.comparisonPrintedPages, [253, 254, 255]);
+  assert.deepEqual(item.comparisonPdfPages, [305, 306, 307]);
+  assert.deepEqual(item.magazinePrintedPages, [308, 309]);
+  assert.deepEqual(item.magazinePdfPages, [232, 233]);
+  assert.deepEqual(Object.fromEntries(Object.entries(manifest.witnesses).map(([name, witness]) => [name, witness.sha256])), {
+    'aub_aco003437_lo.pdf': '702e3b145246ac4d085299c9ae42469def4fbcdf5f110e3c898775df2e76e264',
+    'collected-125963.pdf': '78d00d3a59fd1314795a08b48334469c9a225de05411b53b423f8218dc757bc3',
+    'almanar10.pdf': '0b52e1388d224f0d1b3b5013d7dae3acb17bb0e55709c40947583d170536db40',
+  });
+  assert.equal(item.couplets, 23);
+  assert.equal(source.trim().split('\n').length, 23);
+  assert.equal(poem.text, source.trim().replaceAll(' | ', '\n'));
+  assert.equal(lineCount(poem), 46);
+  assert.equal(createHash('sha256').update(poem.text).digest('hex'), '0b6736582baafc92911f1ff00b0d1c996096cf15aeadb5cedb0a44f2e87d61d2');
+  assert.equal(item.textSha256, '0b6736582baafc92911f1ff00b0d1c996096cf15aeadb5cedb0a44f2e87d61d2');
+  assert.match(poem.text, /^رجعت لنفسي فاتهمت حصاتي\nوناديت قومي فاحتسبت حياتي/);
+  assert.match(poem.text, /عقمت فلم أجزع لقوم عداتي/);
+  assert.match(poem.text, /فلا تكلوني للزمان فإني/);
+  assert.match(poem.text, /ممات لعمري لم يقس بممات$/);
+  assert.equal(poem.source, 'https://aco.dlib.nyu.edu/book/aub_aco003437/238');
+  assert.equal(poem.contextSource, 'https://archive.org/download/almanaralmanar/almanar10.pdf#page=232');
+  assert.match(poem.context, /لقوم عداتي.*لقول عداتي/);
+  assert.match(poem.context, /فإني.*فإنني/);
+  assert.match(poem.context, /not establish independent textual descent or completeness in every tradition/);
+  assert.match(poem.context, /not a fully vocalized diplomatic edition/);
+  assert.match(poem.rights, /public domain in the United States/);
+  assert.deepEqual(poem.themes, []);
+  assert.deepEqual(poem.translations, []);
+  for (const query of ['حافظ إبراهيم', 'Hafiz Ibrahim', 'لسان حال اللغة العربية', 'اللغة العربية تنعى حظها بين أهلها', 'أنا البحر في أحشائه الدر كامن']) {
+    assert.ok(filterPoems(poems, { language: 'Arabic', query }).includes(poem), query);
+  }
+  assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  assert.ok(groupPoets(poems).find(group => group.id === 'hafiz-ibrahim').poems.some(entry => entry.id === poem.id));
 });
 test('Qābāḍū originals retain historical boundaries, source rights and complete readings', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/qabadu-tunis-reviewed.json', import.meta.url), 'utf8'));
