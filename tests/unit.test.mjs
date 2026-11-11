@@ -63,6 +63,55 @@ test('historical imports retain complete lines, attribution, and edition caveats
   assert.equal(byId('castellana-003').anonymous, true);
   assert.equal(byId('tang-108').year, null);
 });
+test('Teasdale poems retain complete Love Songs readings and edition caveats', async () => {
+  const manifestText = await readFile(new URL('../scripts/sources/teasdale-love-songs.json', import.meta.url), 'utf8');
+  assert.equal(createHash('sha256').update(manifestText).digest('hex'), '1cfefd190bf9f3a2363a6ebde45c1438d3a8f241f5df7b005472df1887393171');
+  const manifest = JSON.parse(manifestText).poems;
+  const slugs = [
+    'barter', 'twilight', 'night-song-at-amalfi', 'the-look', 'a-winter-night', 'but-not-to-me',
+    'song-at-capri', 'love-me', 'pierrot', 'wild-asters', 'the-song-for-colin', 'debt', 'faults',
+    'the-fountain', 'i-shall-not-care', 'after-parting', 'a-prayer', 'spring-night', 'after-love',
+    'new-love-and-old', 'the-kiss', 'swans', 'the-river', 'spring-rain', 'jewels',
+  ];
+  const selected = poems.filter(poem => poem.id.startsWith('teasdale-love-songs-'));
+  assert.deepEqual(manifest.map(row => row.slug), slugs);
+  assert.equal(selected.length, slugs.length);
+  const get = slug => selected.find(poem => poem.id === `teasdale-love-songs-${slug}`);
+  for (const row of manifest) {
+    const poem = get(row.slug);
+    assert.ok(poem, row.slug);
+    assert.equal(poem.title, row.title);
+    assert.equal(poem.author, 'Sara Teasdale');
+    assert.equal(poem.authorId, 'sara-teasdale');
+    assert.equal(poem.language, 'English');
+    assert.equal(poem.lang, 'en');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['United States']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), row.stanzas);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), row.textSha256);
+    assert.equal(poem.source, 'https://www.gutenberg.org/ebooks/442');
+    assert.equal(poem.contextSource, `https://archive.org/details/lovesongs01teasgoog/page/n${row.pages[0] + 18}/mode/1up`);
+    assert.match(poem.context, /not established as the same copy/);
+    assert.match(poem.context, /not exhaustive punctuation collation or a diplomatic transcription/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /A\. Light and L\. Bowser/);
+    for (const query of ['Sara Teasdale', poem.text.split('\n')[0]]) {
+      assert.ok(filterPoems(poems, { language: 'English', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  assert.equal(createHash('sha256').update(get('barter').text).digest('hex'), '98a678a89e1c9328cf3c34dac6af02c34a3417a21c3e4de4e7c4ea1b1e0826de');
+  assert.match(get('spring-rain').text, /Your eyes said more to me that night\nThan your lips would ever say\. \. \. \.\n\nI thought I had forgotten,/);
+  assert.match(get('i-shall-not-care').text, /Though you should lean above me broken-hearted,\nI shall not care\./);
+  assert.match(get('swans').text, /link it with chains of gold,\nThe lake bears/);
+  assert.ok(!selected.some(poem => /Interlude|Summer Night, Riverside/i.test(poem.title)));
+  const group = groupPoets(poems).find(item => item.id === 'sara-teasdale');
+  assert.equal(group.poems.length, slugs.length);
+  for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
+});
 test('Xue Tao poems preserve 1906 readings, comparison variants and attribution caveats', () => {
   const cases = [
     ['friend', '14', 'e181165ccd2ecfee5ee32f273e55323045eee4a491a6ef80e658e58cf15fd1f8'],

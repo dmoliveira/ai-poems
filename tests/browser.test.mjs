@@ -171,6 +171,72 @@ test('country flags and counts link to the matching country results', async () =
   await context.close();
 });
 
+test('Teasdale poems support English search, preserved saves and JavaScript-free mobile reading', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('teasdale-love-songs-'));
+  assert.equal(selected.length, 25);
+  const seed = { saved: ['xue-tao-1906-friend', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const filters = { language: 'English', country: 'United States' };
+  const filterUrl = `${base}?language=English&country=United+States#explore`;
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(filterUrl);
+  await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('Sara Teasdale');
+  assert.equal(filterPoems(poems, { ...filters, query: 'Sara Teasdale' }).length, 25);
+  await page.getByText('25 poems found', { exact: true }).waitFor();
+  const samples = [
+    ['barter', 'life has loveliness to sell'],
+    ['i-shall-not-care', 'lean above me broken-hearted'],
+    ['swans', 'tremulous water to hold'],
+    ['spring-rain', 'lightning scrawled on the sky'],
+  ];
+  for (const [slug, fragment] of samples) {
+    const poem = selected.find(item => item.id === `teasdale-love-songs-${slug}`);
+    for (const query of [poem.title, fragment]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { ...filters, query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.goto(filterUrl);
+    await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...samples.map(([slug]) => `teasdale-love-songs-${slug}`)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-English a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    const response = await staticPage.goto(`${base}poems/${poem.id}/`);
+    assert.equal(response.status(), 200);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), poem.text);
+    assert.equal(await verse.getAttribute('lang'), 'en');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+    assert.ok((await staticPage.locator('.story').textContent()).includes(poem.context));
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(poem.rights));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await staticPage.goto(`${base}poets/sara-teasdale/`);
+  for (const poem of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${poem.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await fallback.close();
+});
+
 test('Xue Tao poems support Chinese search, saved data and JavaScript-free mobile reading', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('xue-tao-1906-'));
   assert.equal(selected.length, 14);
