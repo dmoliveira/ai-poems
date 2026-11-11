@@ -171,6 +171,72 @@ test('country flags and counts link to the matching country results', async () =
   await context.close();
 });
 
+test('Li Qingzhao lyrics support Chinese search, saved data and JavaScript-free reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'li-qingzhao');
+  assert.equal(selected.length, 12);
+  const seed = { saved: ['poe-1900-raven', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const filters = { language: 'Chinese', country: 'China' };
+  const filterUrl = `${base}?language=Chinese&country=China#explore`;
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(filterUrl);
+  await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const name of ['Li Qingzhao', '李清照']) {
+    await page.getByLabel('Search the poetry library').fill(name);
+    await page.getByText('12 poems found', { exact: true }).waitFor();
+  }
+  const samples = [
+    ['red-lotus', '才下眉頭'],
+    ['small-courtyard', '遠岫出山'],
+    ['chrysanthemum', '人比黃花瘦'],
+  ];
+  for (const [slug, fragment] of samples) {
+    const poem = selected.find(item => item.id === `li-qingzhao-1881-${slug}`);
+    for (const query of [poem.displayTitle || poem.title, fragment]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { ...filters, query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.goto(filterUrl);
+    await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...samples.map(([slug]) => `li-qingzhao-1881-${slug}`)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Chinese a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    const response = await staticPage.goto(`${base}poems/${poem.id}/`);
+    assert.equal(response.status(), 200);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), poem.text);
+    assert.equal(await verse.getAttribute('lang'), 'zh-Hant');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+    assert.ok((await staticPage.locator('.story').textContent()).includes(poem.context));
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(poem.rights));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await staticPage.goto(`${base}poets/li-qingzhao/`);
+  for (const poem of selected) assert.equal(await staticPage.locator(`a[href$="/poems/${poem.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Poe poems support English search, preserved saves and JavaScript-free reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'edgar-allan-poe');
   assert.equal(selected.length, 10);
