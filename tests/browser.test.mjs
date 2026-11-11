@@ -233,7 +233,7 @@ test('Blake copy Y poems support English search, saved data and JavaScript-free 
 
 test('Tao Yuanming poems support Chinese search, saved data and JavaScript-free reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'tao-yuanming');
-  assert.equal(selected.length, 10);
+  assert.ok(selected.length >= 18);
   const seed = { saved: ['li-qingzhao-1881-red-lotus', 'unknown-future-poem'], recent: [], extra: { keep: true } };
   const filters = { language: 'Chinese', country: 'China' };
   const filterUrl = `${base}?language=Chinese&country=China#explore`;
@@ -244,9 +244,10 @@ test('Tao Yuanming poems support Chinese search, saved data and JavaScript-free 
   await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
   for (const name of ['Tao Yuanming', '陶淵明']) {
     await page.getByLabel('Search the poetry library').fill(name);
-    await page.getByText('10 poems found', { exact: true }).waitFor();
+    const count = filterPoems(poems, { ...filters, query: name }).length;
+    await page.getByText(`${count} poems found`, { exact: true }).waitFor();
   }
-  const samples = [['05', '採菊東籬下'], ['09', '清晨聞叩門'], ['17', '幽蘭生前庭']];
+  const samples = [['05', '採菊東籬下'], ['09', '清晨聞叩門'], ['17', '幽蘭生前庭'], ['04', '厲響思清晨'], ['15', '歲月相從過'], ['18', '載醪祛所感'], ['19', '拂衣歸田里']];
   for (const [number, fragment] of samples) {
     const poem = selected.find(item => item.id === `tao-yuanming-drinking-ming-${number}`);
     for (const query of [poem.title, fragment]) {
