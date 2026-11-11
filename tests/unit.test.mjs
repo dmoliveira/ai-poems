@@ -2267,7 +2267,7 @@ test('additional Arabic works retain their bounded readings, credits and variant
   assert.match(hafiz.text, /ولتنتخب صفوة أبنائها/);
   assert.match(hafiz.text, /أيديكم فالقيد لا يسجح/);
   assert.match(hafiz.text, /فإنما في القلة المنجح$/);
-  assert.deepEqual(groupPoets(poems).find(group => group.id === 'hafiz-ibrahim').poems.map(poem => poem.id), [hafiz.id, 'hafiz-ibrahim-language-1922']);
+  assert.deepEqual(groupPoets(poems).find(group => group.id === 'hafiz-ibrahim').poems.map(poem => poem.id), [hafiz.id, 'hafiz-ibrahim-language-1922', 'hafiz-ibrahim-1922-virtues', 'hafiz-ibrahim-1922-privileges']);
 });
 test('Ḥāfiẓ Ibrāhīm language poem retains its complete 1922 reading and comparison evidence', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/hafiz-language-1922.json', import.meta.url), 'utf8'));
@@ -2324,6 +2324,76 @@ test('Ḥāfiẓ Ibrāhīm language poem retains its complete 1922 reading and c
   }
   assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
   assert.ok(groupPoets(poems).find(group => group.id === 'hafiz-ibrahim').poems.some(entry => entry.id === poem.id));
+});
+test('two Ḥāfiẓ Ibrāhīm poems retain complete 1922 readings, joined words and edition variants', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../scripts/sources/hafiz-virtues-1922.json', import.meta.url), 'utf8'));
+  const source = await readFile(new URL('../scripts/sources/hafiz-virtues-1922.txt', import.meta.url), 'utf8');
+  const parts = source.split(/^=== ([a-z]+) ===\n/gm);
+  assert.equal(parts.shift(), '');
+  const readings = new Map();
+  while (parts.length) readings.set(parts.shift(), parts.shift().trim());
+  assert.equal(manifest.titlePagePdfPage, 215);
+  assert.deepEqual(Object.fromEntries(Object.entries(manifest.witnesses).map(([name, witness]) => [name, witness.sha256])), {
+    'aub_aco003437_lo.pdf': '702e3b145246ac4d085299c9ae42469def4fbcdf5f110e3c898775df2e76e264',
+    'collected-125963.pdf': '78d00d3a59fd1314795a08b48334469c9a225de05411b53b423f8218dc757bc3',
+  });
+  const cases = [
+    ['virtues', 'الأخلاق الفاضلة', 'سجن الفضائل', 10, [24, 25], [246, 247], [124, 125], [496, 497], '9a6925d9d90d7390045e1cd43b8c27e914ac6356d79cd8fe319fe79371115c39'],
+    ['privileges', 'الامتيازات', 'الامتيازات الأجنبية', 18, [27, 28, 29], [249, 250, 251], [110, 111], [482, 483], 'df34b305a1a928c657f8601f6353b9fbc761fe7e6048fc8f6abde338931e536e'],
+  ];
+  assert.deepEqual(manifest.poems.map(item => item.slug), cases.map(([slug]) => slug));
+  for (const [index, [slug, title, display, couplets, printed, pdf, compPrinted, compPdf, hash]] of cases.entries()) {
+    const item = manifest.poems[index];
+    const poem = poems.find(entry => entry.id === `hafiz-ibrahim-1922-${slug}`);
+    assert.ok(poem, slug);
+    assert.equal(poem.title, title);
+    assert.equal(poem.displayTitle, display);
+    assert.equal(poem.displayTitleLang, 'ar');
+    assert.equal(poem.author, 'Ḥāfiẓ Ibrāhīm');
+    assert.equal(poem.authorOriginal, 'حافظ إبراهيم');
+    assert.equal(poem.authorId, 'hafiz-ibrahim');
+    assert.equal(poem.authorYears, 'Born 1871 or 1872; died 1932');
+    assert.deepEqual(associatedPlaces(poem), ['Egypt']);
+    assert.equal(poem.language, 'Arabic');
+    assert.equal(poem.lang, 'ar');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.year, null);
+    assert.equal(poem.creationPlace, undefined);
+    assert.match(poem.yearLabel, /Published 1922.*composition date not established/);
+    assert.deepEqual(item.printedPages, printed);
+    assert.deepEqual(item.pdfPages, pdf);
+    assert.deepEqual(item.comparisonPrintedPages, compPrinted);
+    assert.deepEqual(item.comparisonPdfPages, compPdf);
+    assert.equal(item.couplets, couplets);
+    assert.equal(poem.text, readings.get(slug));
+    assert.equal(lineCount(poem), couplets);
+    assert.equal(item.textSha256, hash);
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(poem.source, `https://aco.dlib.nyu.edu/book/aub_aco003437/${pdf[0]}`);
+    assert.equal(new URL(poem.contextSource).hash, `#page=${compPdf[0]}`);
+    assert.match(poem.context, /not necessarily in every tradition.*independent textual descent/);
+    assert.match(poem.context, /words split across printed lines are rejoined/);
+    assert.match(poem.context, /not a fully vocalized diplomatic edition/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    for (const query of ['حافظ إبراهيم', 'Hafiz Ibrahim', title, display]) {
+      assert.ok(filterPoems(poems, { language: 'Arabic', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  const virtues = poems.find(poem => poem.id === 'hafiz-ibrahim-1922-virtues');
+  assert.match(virtues.text, /^نعمن بنفسي وأشقينني فيا ليتهن ويا ليتني/);
+  assert.match(virtues.text, /بخصب النفوس فرويتهن وأظمأني/);
+  assert.match(virtues.text, /فلا تسأليني متى تنقضي ليالي الأسار ولا تحزني$/);
+  assert.match(virtues.context, /فرويتهن وأظمأني.*فروينهن وأظمأنني/);
+  assert.ok(filterPoems(poems, { query: 'بخصب النفوس فرويتهن' }).includes(virtues));
+  const privileges = poems.find(poem => poem.id === 'hafiz-ibrahim-1922-privileges');
+  assert.match(privileges.text, /^سكت فأصغروا أدبي وقلت فأكبروا أربي/);
+  assert.match(privileges.text, /لهذا الفخر من سباب/);
+  assert.match(privileges.text, /فهامت بالعلا شغفا وهمنا بابنة العنب$/);
+  assert.match(privileges.context, /من سباب.*من سبب/);
+  assert.ok(filterPoems(poems, { query: 'أمة اليابان جازت دارة الشهب' }).includes(privileges));
 });
 test('Qābāḍū originals retain historical boundaries, source rights and complete readings', async () => {
   const manifest = JSON.parse(await readFile(new URL('../scripts/sources/qabadu-tunis-reviewed.json', import.meta.url), 'utf8'));

@@ -1,0 +1,37 @@
+{
+  "witnesses": {
+    "aub_aco003437_lo.pdf": {
+      "sha256": "702e3b145246ac4d085299c9ae42469def4fbcdf5f110e3c898775df2e76e264",
+      "url": "https://mc.dlib.nyu.edu/files/books/aub_aco003437/aub_aco003437_lo.pdf"
+    },
+    "collected-125963.pdf": {
+      "sha256": "78d00d3a59fd1314795a08b48334469c9a225de05411b53b423f8218dc757bc3",
+      "url": "https://archive.org/download/AAlexandrina-125963/125963%20-%20%D8%AF%D9%8A%D9%88%D8%A7%D9%86%20%D8%AD%D8%A7%D9%81%D8%B8%20%D8%A7%D8%A8%D8%B1%D8%A7%D9%87%D9%8A%D9%85.pdf"
+    }
+  },
+  "titlePagePdfPage": 215,
+  "poems": [
+    {
+      "slug": "virtues",
+      "title": "الأخلاق الفاضلة",
+      "displayTitle": "سجن الفضائل",
+      "couplets": 10,
+      "printedPages": [24, 25],
+      "pdfPages": [246, 247],
+      "comparisonPrintedPages": [124, 125],
+      "comparisonPdfPages": [496, 497],
+      "textSha256": "9a6925d9d90d7390045e1cd43b8c27e914ac6356d79cd8fe319fe79371115c39"
+    },
+    {
+      "slug": "privileges",
+      "title": "الامتيازات",
+      "displayTitle": "الامتيازات الأجنبية",
+      "couplets": 18,
+      "printedPages": [27, 28, 29],
+      "pdfPages": [249, 250, 251],
+      "comparisonPrintedPages": [110, 111],
+      "comparisonPdfPages": [482, 483],
+      "textSha256": "df34b305a1a928c657f8601f6353b9fbc761fe7e6048fc8f6abde338931e536e"
+    }
+  ]
+}
