@@ -1,0 +1,49 @@
+{
+  "poems": [
+    {
+      "slug": "nightingale", "title": "Ode to a Nightingale", "pages": [107, 112],
+      "headings": ["<h2>ODE TO A NIGHTINGALE.</h2>"], "stanzas": [10, 10, 10, 10, 10, 10, 10, 10], "numbers": [1, 2, 3, 4, 5, 6, 7, 8],
+      "first": "My heart aches, and a drowsy numbness pains", "last": "Fled is that music:—Do I wake or sleep?", "textSha256": "3c0210c828cdf047203577c949532eca73b943e9fd056a19653ae9faa5821cdb"
+    },
+    {
+      "slug": "urn", "title": "Ode on a Grecian Urn", "pages": [113, 116],
+      "headings": ["<h2>ODE ON A GRECIAN URN.</h2>"], "stanzas": [10, 10, 10, 10, 10], "numbers": [1, 2, 3, 4, 5],
+      "first": "Thou still unravish'd bride of quietness,", "last": "Ye know on earth, and all ye need to know.", "textSha256": "73719c506c78e029eea95ebe0c09c67ed635bc7e03e4c3fe47d06080c76b938e"
+    },
+    {
+      "slug": "psyche", "title": "Ode to Psyche", "pages": [117, 121],
+      "headings": ["<h2>ODE TO PSYCHE.</h2>"], "stanzas": [23, 12, 14, 18], "numbers": [],
+      "first": "O Goddess! hear these tuneless numbers, wrung", "last": "To let the warm Love in!", "textSha256": "3393fe6e487ded96f6f728482ee1ce28f7b554ff57745876574adc1dc034f8b6"
+    },
+    {
+      "slug": "fancy", "title": "Fancy", "pages": [122, 127],
+      "headings": ["<h2>FANCY.</h2>"], "stanzas": [66, 28], "numbers": [],
+      "first": "Ever let the Fancy roam,", "last": "Pleasure never is at home.", "textSha256": "c6eeb7b00daa1969d7963f23b841aafc0bd27e3ef1de633ee1ed43b19ea84b57"
+    },
+    {
+      "slug": "bards", "title": "Ode (Bards of Passion and of Mirth)", "pages": [128, 130],
+      "headings": ["<h2>ODE.</h2>"], "stanzas": [22, 14, 4], "numbers": [],
+      "first": "Bards of Passion and of Mirth,", "last": "Double-lived in regions new!", "textSha256": "25f8618f738383fc9b0b9ba556a576878476f138c0346f1b0973a1068dfb1e68"
+    },
+    {
+      "slug": "mermaid", "title": "Lines on the Mermaid Tavern", "pages": [131, 132],
+      "headings": ["<h2>LINES</h2>", "<h4>ON</h4>", "<h2>THE MERMAID TAVERN.</h2>"], "stanzas": [12, 10, 4], "numbers": [],
+      "first": "Souls of Poets dead and gone,", "last": "Choicer than the Mermaid Tavern?", "textSha256": "edec4934ee948ccd0389493990592ec253832cc8a0a9970ac30fb1e047824d47"
+    },
+    {
+      "slug": "robin", "title": "Robin Hood", "pages": [133, 136],
+      "headings": ["<h2>ROBIN HOOD.</h2>", "<h3>TO A FRIEND.</h3>"], "stanzas": [10, 8, 14, 16, 14], "numbers": [],
+      "first": "No! those days are gone away,", "last": "Let us two a burden try.", "textSha256": "289102664df48d5170e13d940a3d87e5771a701b28e91a4328e90c72feed060f"
+    },
+    {
+      "slug": "autumn", "title": "To Autumn", "pages": [137, 139],
+      "headings": ["<h2>TO AUTUMN.</h2>"], "stanzas": [11, 11, 11], "numbers": [1, 2, 3],
+      "first": "Season of mists and mellow fruitfulness,", "last": "And gathering swallows twitter in the skies.", "textSha256": "e2dfb340d7a4216109e6027468b4b71e0dabf912e2abb9dc26b39333f122eea2"
+    },
+    {
+      "slug": "melancholy", "title": "Ode on Melancholy", "pages": [140, 142],
+      "headings": ["<h2>ODE ON MELANCHOLY.</h2>"], "stanzas": [10, 10, 10], "numbers": [1, 2, 3],
+      "first": "No, no, go not to Lethe, neither twist", "last": "And be among her cloudy trophies hung.", "textSha256": "c38b4a2a3fa1c4bc1d47d9e0071b35fa413bc35e851441ababc559772bc19a28"
+    }
+  ]
+}
