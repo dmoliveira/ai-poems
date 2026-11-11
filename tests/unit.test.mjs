@@ -107,6 +107,63 @@ test('Yu Xuanji poems retain dated-facsimile readings and attribution uncertaint
   assert.equal(group.poems.length, cases.length);
   for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
 });
+test('Li He poems retain distinct complete Siku readings and source caveats', () => {
+  const cases = [
+    ['one', 72, '68c9dbf340b1bb085b33ad19452efb658912e96ba9f41d107b085a6b2f907480'],
+    ['two', 72, '237c9c4bf25ba762cfcb305b0ce42e82c513835e6dadbf46c5c6afc47968c68a'],
+    ['three', 73, '4ab68aa92a38382c82c05a3029307716cf26f085471211e17edb6758da868f64'],
+    ['four', 74, 'e2c004ce98e74f28d6cd0b8d43081c14c3aa1b3ac20237b2ec0e96168eb24e99'],
+    ['five', 74, '4776a329c57ba69809dda602673904125c0a788a303eb9a62f5a7a922bf9d67a'],
+    ['six', 75, '69dc9458788f85c13459b99a8aa965272072a9d7ad711edd8c7d8dfc401f2c02'],
+    ['seven', 75, '78770e74dbe369469328bf4689e085102626ce4f5c0af78ead808f1c3ea4fcbb'],
+    ['eight', 76, 'ddd002b6d4aa84ad72095c64eb314d1a4ca87995e586fbe22eaca3bd16ba52b4'],
+    ['ten', 77, '046a398b63622e446141d315f1e933a932973393e9ca4f936da5f6c871527012'],
+    ['twelve', 78, '7087bab6a640275e225a37673d3184beed156d8267d0a402aeda89b837e3bc85'],
+    ['thirteen', 79, '87de5dcdf515be7d18ad72ea2fcc19614edf1feff4db132a2ec08f5e7a2bc084'],
+  ];
+  const selected = poems.filter(poem => poem.id.startsWith('li-he-siku-'));
+  const get = slug => selected.find(poem => poem.id === `li-he-siku-${slug}`);
+  assert.equal(selected.length, cases.length);
+  assert.ok(!get('nine') && !get('eleven'));
+  for (const [slug, page, hash] of cases) {
+    const poem = get(slug);
+    assert.ok(poem, slug);
+    assert.equal(poem.author, 'Li He');
+    assert.equal(poem.authorId, 'li-he');
+    assert.equal(poem.authorOriginal, '李賀');
+    assert.equal(poem.language, 'Chinese');
+    assert.equal(poem.lang, 'zh-Hant');
+    assert.equal(poem.direction, 'ltr');
+    assert.deepEqual(associatedPlaces(poem), ['China']);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.themes, []);
+    const lines = poem.text.split('\n');
+    const width = slug === 'thirteen' ? 5 : 7;
+    assert.equal(lines.length, slug === 'thirteen' ? 8 : 4);
+    assert.ok(lines.every(line => [...line.slice(0, -1)].length === width));
+    assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
+    assert.equal(poem.source, `https://archive.org/download/06049046.cn/06049046.cn.pdf#page=${page}`);
+    assert.match(poem.contextSource, /oldid=790635$/);
+    assert.match(poem.context, /relationship to this scanned copy is not established/);
+    assert.match(poem.context, /reproduction date is not identified/);
+    assert.match(poem.context, /not a diplomatic transcription/);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /維基小霸王 and Wmr-bot.*CC BY-SA 4\.0/);
+    for (const query of ['Li He', '李賀', poem.text.split('\n')[0]]) {
+      assert.ok(filterPoems(poems, { language: 'Chinese', query }).includes(poem), query);
+    }
+    assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
+  }
+  assert.match(get('three').context, /‘迊夏’.*‘迎夏’/);
+  assert.match(get('three').text, /桃膠迎夏香琥珀/);
+  assert.match(get('ten').context, /‘今朝’.*‘今日’/);
+  assert.match(get('thirteen').context, /‘燒燭照漁船’.*‘燒竹照漁船’/);
+  assert.match(get('thirteen').text, /燒燭照漁船。$/);
+  const group = groupPoets(poems).find(item => item.id === 'li-he');
+  assert.equal(group.poems.length, cases.length);
+  for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
+});
 test('Rossetti poems retain complete 1906 readings, boundaries and edition caveats', async () => {
   const manifestText = await readFile(new URL('../scripts/sources/rossetti-1906.json', import.meta.url), 'utf8');
   assert.equal(createHash('sha256').update(manifestText).digest('hex'), '0c98f4598629843bbccd24b7b7516346b8fa3a7487e8497b0450d3d696b40a2c');
