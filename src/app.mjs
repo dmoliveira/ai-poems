@@ -638,7 +638,8 @@ function setupReader() {
     preferredNote.hidden = true;
     const language = state.preferredLanguage;
     if (!language) return;
-    const index = poem.translations.findIndex(t => t.language === language);
+    const selected = selector ? Number(selector.value) : -1;
+    const index = poem.translations[selected]?.language === language ? selected : poem.translations.findIndex(t => t.language === language);
     if (poem.language === language) view = 'original';
     else if (index >= 0 && selector) { selector.value = String(index); view = 'both'; }
     else {
@@ -654,7 +655,8 @@ function setupReader() {
     if (view === 'original') view = 'translation';
     renderView();
     const durable = await result;
-    announceResult(durable, durable ? 'Translation choice saved.' : `Translation choice changed on this page. ${temporaryNotice()}`);
+    const multiple = poem.translations.filter(item => item.language === language).length > 1;
+    announceResult(durable, durable ? (multiple ? 'Language saved. This version is selected for this visit.' : 'Translation choice saved.') : `Translation choice changed on this page. ${temporaryNotice()}`);
   });
   buttons.forEach(button => button.addEventListener('click', () => { view = button.dataset.view; renderView(); }));
   document.addEventListener('verso:preferred-language', applyPreferredLanguage);

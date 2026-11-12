@@ -8,6 +8,8 @@ import { join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
 import { chamberlainTranslations } from '../content/chamberlain-translations.mjs';
+import { curated } from '../content/curated.mjs';
+import { quietNightTranslations } from '../content/quiet-night-translations.mjs';
 import { renderFeed } from '../scripts/feed.mjs';
 import { groupPoets } from '../scripts/poets.mjs';
 import { relatedPoems } from '../scripts/recommendations.mjs';
@@ -27,6 +29,46 @@ test('catalogue has distinct, sourced records in all eight original languages', 
     assert.equal(new URL(p.source).protocol, 'https:');
     for (const translation of p.translations) assert.ok(translation.translator && translation.source && translation.rights && translation.text, p.id);
   }
+});
+test('Quiet Night keeps its seven aids and appends two source-specific English versions', () => {
+  const id = 'quiet-night-thought-li-bai';
+  const poem = poems.find(item => item.id === id);
+  const original = curated.find(item => item.id === id);
+  assert.ok(poem && original);
+  assert.deepEqual(Object.keys(quietNightTranslations), [id]);
+  assert.deepEqual(poem.translations.slice(0, 7), original.translations);
+  assert.deepEqual(poem.translations.slice(7), quietNightTranslations[id]);
+  assert.deepEqual(poem.translations.map(item => item.language), ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'Japanese', 'Arabic', 'English', 'English']);
+  const historical = poem.translations.slice(7);
+  assert.deepEqual(historical.map(item => item.translator), ['L. Cranmer-Byng · London 1909', 'Shigeyoshi Obata · London and Toronto 1923']);
+  assert.deepEqual(historical.map(item => createHash('sha256').update(item.text).digest('hex')), [
+    '9fd589ea2a8098ef0c6b18d9381b2ed7a311fa46506d68d0c81928cd72e6e700',
+    '0ba69e9b6b333e7985afd7cf683e28c9bd230f7a771758c8dba64c68dbfafcc2',
+  ]);
+  assert.match(historical[0].rights, /earlier translations.*working edition is not established/);
+  assert.match(historical[1].rights, /明月.*山月.*working edition is not established/);
+  for (const item of historical) assert.match(item.rights, /public domain in the United States; check local law.*interpretation/);
+  assert.equal(filterPoems(poems, { translation: 'English', query: poem.title }).filter(item => item.id === id).length, 1);
+  const html = renderPoem(poem, poems, '/ai-poems/');
+  assert.match(html, /<option value="0">English · Verso reading aid/);
+  assert.match(html, /<option value="6">Arabic<\/option>/);
+  assert.match(html, /<option value="7">English · L\. Cranmer-Byng · London 1909 · Thoughts in a Tranquil Night<\/option>/);
+  assert.match(html, /<option value="8">English · Shigeyoshi Obata · London and Toronto 1923 · On a Quiet Night<\/option>/);
+  assert.match(html, /aria-describedby="translation-version-note"/);
+  assert.match(html, /Only the language can be saved; choose a version each visit/);
+  assert.match(html, /All available translations and reading aids \(9\)/);
+  for (const item of poem.translations) {
+    assert.ok(html.includes(escapeHtml(item.text)));
+    assert.ok(html.includes(escapeHtml(item.source)));
+  }
+  const duplicate = { ...historical[0], title: '<same & title>', translator: 'Example <translator>' };
+  const synthetic = { ...poem, translations: [duplicate, duplicate] };
+  const syntheticHtml = renderPoem(synthetic, poems, '/ai-poems/');
+  assert.match(syntheticHtml, /<option value="0">English · Example &lt;translator&gt; · &lt;same &amp; title&gt; · version 1<\/option>/);
+  assert.match(syntheticHtml, /<option value="1">English · Example &lt;translator&gt; · &lt;same &amp; title&gt; · version 2<\/option>/);
+  const singleHtml = renderPoem({ ...poem, translations: [historical[0]] }, poems, '/ai-poems/');
+  assert.match(singleHtml, /<option value="0">English<\/option>/);
+  assert.doesNotMatch(singleHtml, /translation-version-note/);
 });
 test('historical imports retain complete lines, attribution, and edition caveats', () => {
   const byId = id => {

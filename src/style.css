@@ -1747,6 +1747,20 @@ h2 em {
   width: auto;
   margin: 0;
 }
+.reading-options .translation-picker {
+  min-width: 0;
+  max-width: 100%;
+}
+.reading-options .translation-picker select {
+  min-width: 0;
+  max-width: 26ch;
+}
+.translation-version-note {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
 .typeface-control summary {
   color: var(--muted);
   cursor: pointer;

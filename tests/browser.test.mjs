@@ -4560,7 +4560,7 @@ test('reader switches languages and shows provenance and RTL text', async () => 
   assert.equal(await page.locator('#static-reading-note').isVisible(), false);
   assert.equal(await page.locator('#translations').getAttribute('open'), null);
   assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), '');
-  await page.getByText('AI-assisted, not yet independently reviewed', { exact: false }).first().waitFor();
+  await page.locator('#translation-panel').getByText('AI-assisted, not yet independently reviewed', { exact: false }).waitFor();
   assert.equal(await page.locator('#translation-panel .verse').getAttribute('dir'), 'rtl');
   await page.getByRole('button', { name: 'Side by side' }).click();
   assert.equal(await page.locator('#original-panel').isVisible(), true);
@@ -4573,6 +4573,111 @@ test('reader switches languages and shows provenance and RTL text', async () => 
   assert.equal(await relatedSave.getAttribute('aria-pressed'), 'true');
   assert.match(await relatedSave.getAttribute('aria-label'), /Remove from shelf/);
   assert.ok(poems.some(p => p.id === relatedId));
+  await context.close();
+});
+
+test('same-language versions have distinct choices while only language persists', async () => {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+  await context.addInitScript(() => {
+    if (!localStorage.getItem('verso-library-v1')) localStorage.setItem('verso-library-v1', JSON.stringify({
+      saved: ['shakespeare-sonnet-18'], recent: [], theme: 'sepia', font: 1, typeface: 'clear',
+      language: 'Arabic', preferredLanguage: '', focus: false, external: 'preserve me',
+    }));
+  });
+  const page = await context.newPage();
+  const poem = poems.find(item => item.id === 'quiet-night-thought-li-bai');
+  await page.goto(`${base}poems/${poem.id}/`);
+  const select = page.getByLabel('Translation language', { exact: true });
+  await select.waitFor({ state: 'visible' });
+  assert.equal(await select.inputValue(), '6');
+  assert.equal(await select.getAttribute('aria-describedby'), 'translation-version-note');
+  assert.equal(await page.locator('#translation-version-note').textContent(), 'Only the language can be saved; choose a version each visit.');
+  const options = await select.locator('option').allTextContents();
+  assert.equal(new Set(options).size, 9);
+  assert.deepEqual(options.slice(1, 7), ['Spanish', 'Portuguese', 'French', 'Italian', 'Japanese', 'Arabic']);
+  assert.match(options[0], /^English · Verso reading aid · AI-assisted, not yet independently reviewed/);
+  assert.match(options[7], /^English · L\. Cranmer-Byng · London 1909 · Thoughts in a Tranquil Night$/);
+  assert.match(options[8], /^English · Shigeyoshi Obata · London and Toronto 1923 · On a Quiet Night$/);
+  for (const index of [7, 8]) {
+    await select.selectOption(String(index));
+    await page.getByRole('status').getByText('Language saved. This version is selected for this visit.').waitFor();
+    const panel = page.locator('#translation-panel');
+    assert.equal(await panel.locator('h2').textContent(), poem.translations[index].title);
+    assert.equal(await panel.locator('.verse').textContent(), poem.translations[index].text);
+    assert.equal(await panel.locator('.translation-credit').textContent(), poem.translations[index].translator);
+    assert.equal(await panel.locator('.translation-rights a').getAttribute('href'), poem.translations[index].source);
+    assert.ok((await panel.locator('.translation-rights').textContent()).includes(poem.translations[index].rights));
+  }
+  const state = await page.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')));
+  assert.equal(state.language, 'English');
+  assert.equal(state.preferredLanguage, '');
+  assert.deepEqual(state.saved, ['shakespeare-sonnet-18']);
+  assert.equal(state.theme, 'sepia');
+  assert.equal(state.font, 1);
+  assert.equal(state.typeface, 'clear');
+  assert.equal(state.external, 'preserve me');
+  assert.deepEqual(Object.keys(state).sort(), ['_versoRevision', 'external', 'focus', 'font', 'language', 'preferredLanguage', 'recent', 'saved', 'theme', 'typeface'].sort());
+  const preferred = page.getByLabel('Preferred reading language', { exact: true });
+  await preferred.selectOption('English');
+  await page.getByRole('status').getByText(/Language preference saved/).waitFor();
+  assert.equal(await select.inputValue(), '8', 'applying the same language keeps the selected version');
+  assert.equal(await page.locator('#original-panel').isVisible(), true);
+  assert.equal(await page.locator('#translation-panel h2').textContent(), poem.translations[8].title);
+  await preferred.selectOption('Arabic');
+  assert.equal(await select.inputValue(), '6');
+  assert.equal(await page.locator('#translation-panel .verse').getAttribute('dir'), 'rtl');
+  await preferred.selectOption('English');
+  assert.equal(await select.inputValue(), '0', 'returning to a language selects its first version');
+  await select.selectOption('8');
+  await page.getByRole('status').getByText('Language saved. This version is selected for this visit.').waitFor();
+  await page.reload();
+  await select.waitFor({ state: 'visible' });
+  assert.equal(await select.inputValue(), '0', 'an individual version is not persisted');
+  assert.equal(await preferred.inputValue(), 'English');
+  assert.equal(await page.locator('#translation-panel .translation-credit').textContent(), poem.translations[0].translator);
+  assert.equal(await page.locator('#translation-panel .verse').textContent(), poem.translations[0].text);
+  assert.ok((await page.locator('#translation-panel .translation-credit').textContent()).includes('AI-assisted, not yet independently reviewed'));
+  await context.close();
+});
+
+test('historical versions remain readable and accessible in mobile focus mode', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const poem = poems.find(item => item.id === 'quiet-night-thought-li-bai');
+  await page.goto(`${base}poems/${poem.id}/`);
+  await page.getByRole('button', { name: 'Focus mode' }).click();
+  const select = page.getByLabel('Translation language', { exact: true });
+  for (const index of [7, 8]) {
+    await select.selectOption(String(index));
+    assert.equal(await page.locator('#translation-panel .verse').textContent(), poem.translations[index].text);
+    for (const width of [320, 390, 701, 768, 900, 1440]) {
+      await page.setViewportSize({ width, height: 844 });
+      assert.ok(await page.evaluate(() => {
+        const toolbar = document.querySelector('.reading-toolbar').getBoundingClientRect();
+        const options = document.querySelector('.reading-options').getBoundingClientRect();
+        const verse = document.querySelector('#translation-panel .verse');
+        return document.documentElement.scrollWidth <= innerWidth + 1 && options.right <= toolbar.right + 1 && verse.scrollWidth <= verse.clientWidth + 1;
+      }), `version ${index} fits at ${width}px`);
+    }
+  }
+  await page.setViewportSize({ width: 320, height: 844 });
+  const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
+  await context.close();
+});
+
+test('both Quiet Night historical versions are searchable without duplicating the work', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Chinese&readable=English#explore`);
+  const search = page.getByLabel('Search the poetry library');
+  const result = page.locator('#results a[href$="/poems/quiet-night-thought-li-bai/"]');
+  for (const query of ['牀前明月光', 'I watch the moonbeams cast a trail', 'I saw the moonlight before my couch']) {
+    await search.fill(query);
+    const count = filterPoems(poems, { language: 'Chinese', readable: 'English', query }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    assert.equal(await result.count(), 1, query);
+  }
   await context.close();
 });
 
@@ -5304,10 +5409,15 @@ test('without JavaScript, translations and their sources are discoverable withou
   assert.equal(await page.locator('.reader-save').isVisible(), false);
   const translations = page.locator('#translations');
   assert.equal(await translations.getAttribute('open'), '');
-  assert.equal(await translations.locator('section').count(), 7);
+  assert.equal(await translations.locator('section').count(), 9);
   assert.equal(await translations.locator('.verse[lang="ar"][dir="rtl"]').count(), 1);
   assert.ok(await translations.getByText(/AI-assisted, not yet independently reviewed/).count() > 0);
-  assert.equal(await translations.locator('section a[href^="https://"]').count(), 7);
+  assert.equal(await translations.locator('section a[href^="https://"]').count(), 9);
+  for (const [index, item] of poems.find(poem => poem.id === 'quiet-night-thought-li-bai').translations.entries()) {
+    const section = translations.locator('section').nth(index);
+    assert.equal(await section.locator('.verse').textContent(), item.text);
+    assert.equal(await section.locator('a').getAttribute('href'), item.source);
+  }
   const jump = page.getByRole('link', { name: /Read the available translations and reading aids/ });
   await jump.focus();
   await page.keyboard.press('Enter');
@@ -6316,6 +6426,9 @@ test('blocked browser storage does not falsely claim a durable save', async () =
   await page.getByRole('status').getByText(/Typeface changed on this page/).waitFor();
   await page.getByLabel('Translation language').selectOption({ label: 'Arabic' });
   await page.getByRole('status').getByText(/Translation choice changed on this page/).waitFor();
+  await page.getByLabel('Translation language').selectOption('8');
+  await page.getByRole('status').getByText(/Translation choice changed on this page.*lost when you leave or reload/).waitFor();
+  assert.equal(await page.locator('#translation-panel h2').textContent(), 'On a Quiet Night');
   await page.getByRole('button', { name: 'A+ Increase poem text size' }).click();
   await page.getByRole('status').getByText(/Text size changed on this page/).waitFor();
   await page.getByRole('button', { name: 'Focus mode' }).click();
