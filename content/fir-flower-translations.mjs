@@ -39,5 +39,35 @@ export const firFlowerTranslations = {
       "source": "https://www.gutenberg.org/cache/epub/48222/pg48222-images.html#FLOATING_ON_THE_POOL_OF_JO_YA_SPRING",
       "rights": "This 1921 English version is public domain in the United States; check local law. Gutenberg credits David Edwards, Christopher Wright and the Online Distributed Proofreading Team. The Chinese source edition is not established; this historical interpretation is not a claim of an exact match to the displayed Chinese. ‘The serrated hills face the Southern Constellation’ differs from the displayed Chinese’s view of the Southern Dipper across a mountain."
     }
+  ],
+  "tang-102": [
+    {
+      "language": "English",
+      "title": "Saying Good-Bye to a Friend",
+      "text": "Clear green hills at a right angle to the North wall,\nWhite water winding to the East of the city.\nHere is the place where we must part.\nThe lonely water-plants go ten thousand li;\nThe floating clouds wander everywhither as does man.\nDay is departing—it and my friend.\nOur hands separate. Now he is going.\n\"Hsiao, hsiao,\" the horse neighs.\nHe neighs again, \"Hsiao, hsiao.\"",
+      "translator": "Florence Ayscough · Chinese translation; Amy Lowell · English version · 1921",
+      "source": "https://www.gutenberg.org/cache/epub/48222/pg48222-images.html#SAYING_GOOD-BYE_TO_A_FRIEND",
+      "rights": "This 1921 English version is public domain in the United States; check local law. Gutenberg credits David Edwards, Christopher Wright and the Online Distributed Proofreading Team. The Chinese source edition is not established; this historical interpretation is not a claim of an exact match to the displayed Chinese. ‘At a right angle’ and the repeated horse-call are interpretive; the version’s ‘water-plants’ renders 孤蓬, often understood as a lone drifting plant."
+    }
+  ],
+  "tang-175": [
+    {
+      "language": "English",
+      "title": "Fêng Huang T’ai · Ascending the Terrace of the Silver-Crested Love-Pheasants at the City of the Golden Mound",
+      "text": "The silver-crested love-pheasants strutted upon the Pheasant Terrace.\nNow the pheasants are gone, the terrace is empty, and the river flows on its old, original way.\nGone are the blossoms of the Palace of Wu and overgrown the road to it.\nPassed the generations of the Chin, with their robes and head-dresses; they lie beneath the ancient mounds.\n\nThe three hills are half fallen down from Green Heaven.\nThe White Heron Island cuts the river in two.\nHere also, drifting clouds may blind the Sun,\nOne cannot see Ch'ang An, City of Eternal Peace.\n  Therefore am I sorrowful.",
+      "translator": "Florence Ayscough · Chinese translation; Amy Lowell · English version · 1921",
+      "source": "https://www.gutenberg.org/cache/epub/48222/pg48222-images.html#FENG_HUANG_TAI",
+      "rights": "This 1921 English version is public domain in the United States; check local law. Gutenberg credits David Edwards, Christopher Wright and the Online Distributed Proofreading Team. The Chinese source edition is not established; this historical interpretation is not a claim of an exact match to the displayed Chinese. ‘Silver-crested love-pheasants’ is this version’s interpretation of the mythical 鳳凰; ‘Green Heaven’ differs from the displayed 青山外 (beyond the green mountains)."
+    }
+  ],
+  "tang-268": [
+    {
+      "language": "English",
+      "title": "At the Yellow Crane Tower, Taking Leave of Mêng Hao Jan on His Departure to Kuang Ling",
+      "text": "I take leave of my dear old friend at the Yellow Crane Tower.\nIn the flower-smelling mist of the Third Month he will arrive at Yang Chou.\nThe single sail is shining far off—it is extinguished in the jade-coloured distance,\nI see only the long river flowing to the edge of Heaven.",
+      "translator": "Florence Ayscough · Chinese translation; Amy Lowell · English version · 1921",
+      "source": "https://www.gutenberg.org/cache/epub/48222/pg48222-images.html#YELLOW_CRANE_TOWER",
+      "rights": "This 1921 English version is public domain in the United States; check local law. Gutenberg credits David Edwards, Christopher Wright and the Online Distributed Proofreading Team. The Chinese source edition is not established; this historical interpretation is not a claim of an exact match to the displayed Chinese. ‘Flower-smelling mist’ and the ‘jade-coloured distance’ are interpretive renderings."
+    }
   ]
 };

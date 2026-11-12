@@ -21,9 +21,10 @@ def digest(data):
 
 def block(row, lines):
     heading = f'<h2 id="{row["anchor"]}">{row["heading"]}</h2>'
+    subtitle = f'<p class="ph4">{row["subtitle"]}</p>' if "subtitle" in row else ""
     author = f'<p class="ph3">{row["author"]}</p>'
     verse = "\n".join(f'<div class="verse">{line}</div>' for line in lines)
-    return (heading + author + '<div class="poetry-container"><div class="poetry"><div class="stanza">'
+    return (heading + subtitle + author + '<div class="poetry-container"><div class="poetry"><div class="stanza">'
             + verse + '</div></div></div><hr class="chap">')
 
 
@@ -48,7 +49,8 @@ class FirFlowerTranslationsImporterTests(unittest.TestCase):
         for index, original in enumerate(MODULE["SELECTION"], 1):
             lines = [f"First line {index} with _li_ share.", f"Last line {index}."]
             text = "\n".join(line.replace("_li_", "li") for line in lines)
-            row = {**original, "page": index, "lines": 2, "italics": 1, "sha256": digest(text.encode()),
+            row = {**original, "page": index, "lines": 2, "stanzas": (2,), "indents": (),
+                   "italics": 1, "sha256": digest(text.encode()),
                    "first": f"First line {index}", "last": f"Last line {index}.", "corrections": ()}
             self.rows.append(row)
             self.texts[row["id"]] = text
@@ -64,7 +66,7 @@ class FirFlowerTranslationsImporterTests(unittest.TestCase):
             (self.directory / name).write_bytes(data)
         self.settings = {"EVIDENCE": {name: digest(data) for name, data in self.files.items()}, "SELECTION": self.rows}
 
-    def test_four_complete_readings_keep_individual_sources_and_credits(self):
+    def test_complete_readings_keep_individual_sources_and_credits(self):
         with patch.dict(RECORDS.__globals__, self.settings):
             result = RECORDS(self.directory)
         self.assertEqual(set(result), set(self.texts))
@@ -95,6 +97,32 @@ class FirFlowerTranslationsImporterTests(unittest.TestCase):
             (source.replace("First line 1 with", "Changed line 1 with", 1), "translation changed"),
             (source.replace('</div></div></div><hr class="chap">', '</div></div></div><p>extra</p><hr class="chap">', 1),
              "poem block"),
+        ]
+        for changed, message in cases:
+            with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
+                VERSE(changed, row)
+
+    def test_subtitle_stanzas_and_deliberate_indentation_are_guarded(self):
+        text = "One.\nTwo.\n\nThree.\n  Four."
+        row = {**self.rows[0], "subtitle": "A LONG SUBTITLE", "lines": 4, "stanzas": (2, 2),
+               "indents": ((1, 1),), "italics": 0, "sha256": digest(text.encode())}
+        source = (
+            f'<h2 id="{row["anchor"]}">{row["heading"]}</h2>'
+            '<p class="ph4">A LONG\nSUBTITLE</p>'
+            f'<p class="ph3">{row["author"]}</p>'
+            '<div class="poetry-container"><div class="poetry"><div class="stanza">'
+            '<div class="verse">One.</div><div class="verse">Two.</div>'
+            '</div><div class="stanza">'
+            '<div class="verse">Three.</div><div class="verse indent2">Four.</div>'
+            '</div></div></div><hr class="chap">'
+        )
+        self.assertEqual(VERSE(source, row), text)
+        cases = [
+            (source.replace('<p class="ph4">A LONG\nSUBTITLE</p>', ''), "subtitle"),
+            (source.replace("A LONG\nSUBTITLE", "ANOTHER SUBTITLE"), "subtitle"),
+            (source.replace('class="verse indent2"', 'class="verse"'), "verse boundaries"),
+            (source.replace('</div><div class="stanza">', ''), "verse boundaries"),
+            (source.replace('class="verse">One', 'class="verse indent2">One'), "verse boundaries"),
         ]
         for changed, message in cases:
             with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
