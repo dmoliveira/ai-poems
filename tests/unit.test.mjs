@@ -766,6 +766,42 @@ test('Waley translations preserve complete readings, source credits and editoria
   assert.match(get(cases[2][0]).rights, /Milky Way/);
 });
 
+test('Fir-Flower versions retain complete readings, joint credits and interpretation caveats', () => {
+  const cases = [
+    ['tang-015', '言入黃花川', 15, 'd281a74712c16c0bd1628047ef1fa1106bf74b0209fc6635361adac01477a2bc', 'THE_BLUE-GREEN_STREAM'],
+    ['tang-016', '斜光照墟落', 10, '9a170d327732ab8db3a6fb42a4128ea977ec8d882a57e30aee6ec353e5b446a7', 'FARM_HOUSE'],
+    ['tang-022', '絕頂一茅茨', 16, '3fa98c8efaa2ed5c593ad692f945b35b707254f6f12f6ae9b90b4fedb491689c', 'SEEKING_FOR_THE_HERMIT_OF_THE_WEST'],
+    ['tang-023', '幽意無斷絕', 10, '93ac438833cab9b4ed9b09c44090707b4ebd351069adbd96017eb5a78920c530', 'FLOATING_ON_THE_POOL_OF_JO_YA_SPRING'],
+  ];
+  for (const [id, original, lines, hash, anchor] of cases) {
+    const poem = poems.find(item => item.id === id);
+    assert.equal(poem.language, 'Chinese');
+    assert.ok(poem.text.includes(original));
+    const matching = poem.translations.filter(item => item.language === 'English');
+    assert.equal(matching.length, 1);
+    const translation = matching[0];
+    assert.equal(translation.text.split('\n').length, lines);
+    assert.equal(createHash('sha256').update(translation.text).digest('hex'), hash);
+    assert.match(translation.translator, /Florence Ayscough · Chinese translation; Amy Lowell · English version/);
+    assert.equal(new URL(translation.source).hash, `#${anchor}`);
+    assert.match(translation.rights, /public domain in the United States/);
+    assert.match(translation.rights, /Chinese source edition is not established/);
+    assert.ok(filterPoems(poems, { language: 'Chinese', query: original }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Chinese', query: translation.text.split('\n')[0] }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Chinese', readable: 'English' }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Chinese', translation: 'English' }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(translation.text)));
+    assert.ok(html.includes(escapeHtml(translation.source)));
+    assert.ok(html.includes(escapeHtml(translation.rights)));
+  }
+  const rights = id => poems.find(poem => poem.id === id).translations.find(item => item.language === 'English').rights;
+  assert.match(rights('tang-015'), /white as silk/);
+  assert.match(rights('tang-016'), /heights.*not explicit.*式微/);
+  assert.match(rights('tang-022'), /Nothing-Beyond Peak.*red grass.*not explicit/);
+  assert.match(rights('tang-023'), /serrated hills.*Southern Dipper/);
+});
+
 test('early Tang translations retain complete readings, sources and interpretation caveats', () => {
   const cases = [
     ['tang-020', 'French', '夕陽度西嶺', [4, 4], '2b7160e0ccc191750ea5cc3b5dceb91ccd293e5ecf3925ecde8402a2da069c7b', 'Hervey de Saint-Denys', '325'],

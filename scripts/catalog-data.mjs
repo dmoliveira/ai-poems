@@ -3,6 +3,7 @@ import { curated } from '../content/curated.mjs';
 import { editionTranslations } from '../content/translation-editions.mjs';
 import { waleyTranslations } from '../content/waley-translations.mjs';
 import { earlyTangTranslations } from '../content/early-tang-translations.mjs';
+import { firFlowerTranslations } from '../content/fir-flower-translations.mjs';
 import { normalize } from '../src/catalog.mjs';
 
 export async function loadCatalog(recordsDirectory = new URL('../content/poems/', import.meta.url)) {
@@ -23,7 +24,7 @@ export async function loadCatalog(recordsDirectory = new URL('../content/poems/'
   for (const poem of poems) titleCounts.set(titleKey(poem), (titleCounts.get(titleKey(poem)) || 0) + 1);
   return poems.map(poem => ({
     ...poem,
-    translations: [...poem.translations, ...(editionTranslations[poem.id] || []), ...(waleyTranslations[poem.id] || []), ...(earlyTangTranslations[poem.id] || [])],
+    translations: [...poem.translations, ...(editionTranslations[poem.id] || []), ...(waleyTranslations[poem.id] || []), ...(earlyTangTranslations[poem.id] || []), ...(firFlowerTranslations[poem.id] || [])],
     ...(titleCounts.get(titleKey(poem)) > 1 ? { disambiguation: poem.text.split('\n').find(line => line.trim()) } : {}),
   }));
 }
