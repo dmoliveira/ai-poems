@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
+import { chamberlainTranslations } from '../content/chamberlain-translations.mjs';
 import { renderFeed } from '../scripts/feed.mjs';
 import { groupPoets } from '../scripts/poets.mjs';
 import { relatedPoems } from '../scripts/recommendations.mjs';
@@ -764,6 +765,42 @@ test('Waley translations preserve complete readings, source credits and editoria
   assert.match(get(cases[1][0]).rights, /number \(2\), not a title/);
   assert.match(get(cases[2][0]).rights, /‘shadow as slave’.*not explicit/);
   assert.match(get(cases[2][0]).rights, /Milky Way/);
+});
+
+test('Chamberlain versions retain complete readings, sources and interpretation caveats', () => {
+  const cases = [
+    ['summer-grass-basho', '夏草や兵どもが夢の跡', 'e2844bbb6714c9005975152d2fbbb1ca72d159339aee033294e363ba38864c49', '332'],
+    ['basho-nozarashi-28', '年暮れぬ笠着て草鞋穿きながら', '8567ef65cea3c8a2424d5ad2ca2c2489ecc12d9928d85060e739ce86633bce62', '346'],
+    ['buson-1926-12', '春雨やものかたりゆく簑と傘', 'e5180fc6782e67462f1c0be74d993450ce4bc4eb3b2c01ab878771ecffe3c411', '378'],
+    ['buson-1926-13', '遲き日のつもりて遠きむかしかな', 'c6b099fef7ab7aee116deae6d45638eb8fc188bb807fc14b35a94e58db5fd216', '377'],
+    ['chiyo-ni-1927-46', '百生や蔓一すじの心より', 'f81825ee4c0a65df56000a1d1c15ecd43518ce5034d403479f0a86b9972f2259', '375'],
+  ];
+  assert.deepEqual(Object.keys(chamberlainTranslations).sort(), cases.map(([id]) => id).sort());
+  for (const [id, original, hash, page] of cases) {
+    const poem = poems.find(item => item.id === id);
+    assert.equal(poem.language, 'Japanese');
+    assert.equal(poem.text, original);
+    const matching = poem.translations.filter(item => item.language === 'English');
+    assert.equal(matching.length, 1);
+    const translation = matching[0];
+    assert.equal(translation.text.split('\n').length, 2);
+    assert.equal(createHash('sha256').update(translation.text).digest('hex'), hash);
+    assert.equal(translation.translator, 'Basil Hall Chamberlain · 1902');
+    assert.equal(new URL(translation.source).hash, `#page=${page}`);
+    assert.match(translation.rights, /public domain in the United States.*check local law/);
+    assert.match(translation.rights, /Japanese working edition is not established/);
+    for (const query of [original, translation.text.split('\n')[0]]) assert.ok(filterPoems(poems, { language: 'Japanese', query }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Japanese', readable: 'English' }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Japanese', translation: 'English' }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    for (const text of [translation.text, translation.source, translation.rights]) assert.ok(html.includes(escapeHtml(text)));
+  }
+  const rights = id => poems.find(poem => poem.id === id).translations[0].rights;
+  assert.match(rights('summer-grass-basho'), /‘no’.*が.*‘ga’/);
+  assert.match(rights('buson-1926-12'), /monogatari.*ものかたり.*monokatari/);
+  assert.match(rights('buson-1926-13'), /printed English heading/);
+  assert.match(rights('chiyo-ni-1927-46'), /approximation.*gourd.*his own/);
+  assert.equal(poems.find(item => item.id === 'basho-nozarashi-35').translations.length, 0);
 });
 
 test('Fir-Flower versions retain complete readings, joint credits and interpretation caveats', () => {
@@ -2621,7 +2658,7 @@ test('Bashō Nozarashi verses retain scan-reviewed readings, attribution and var
     assert.equal(poem.text, item.text);
     assert.equal(createHash('sha256').update(poem.text).digest('hex'), item.sha256);
     assert.equal(lineCount(poem), 1);
-    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.translations, poem.id === 'basho-nozarashi-28' ? chamberlainTranslations[poem.id] : []);
     assert.ok(filterPoems(poems, { language: 'Japanese', country: 'Japan', author: 'Matsuo Bashō', query: poem.text }).includes(poem));
   }
   for (const number of [10, 18, 25]) assert.ok(!ids.includes(`basho-nozarashi-${number}`));
@@ -2655,7 +2692,7 @@ test('Buson verses preserve the reviewed 1926 scans and existing poet identity',
     assert.match(poem.rights, /public domain in the United States.*Check local law/);
     assert.equal(poem.text, item.text);
     assert.equal(lineCount(poem), 1);
-    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.translations, ['buson-1926-12', 'buson-1926-13'].includes(poem.id) ? chamberlainTranslations[poem.id] : []);
     assert.ok(filterPoems(poems, { language: 'Japanese', country: 'Japan', author: 'Yosa Buson', query: poem.text }).includes(poem));
     return poem;
   });
@@ -2851,7 +2888,7 @@ test('Chiyo-ni hokku preserve reviewed 1927 readings and museum attribution', as
     assert.match(poem.context, /separately printed hokku.*Museum.*character forms.*composition date and place/);
     if (item.note) assert.ok(poem.context.includes(item.note));
     assert.match(poem.rights, /public domain in the United States.*Check local law/);
-    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.translations, poem.id === 'chiyo-ni-1927-46' ? chamberlainTranslations[poem.id] : []);
     assert.deepEqual(poem.themes, []);
     assert.ok(filterPoems(poems, { language: 'Japanese', country: 'Japan', author: poem.author, query: poem.text }).includes(poem));
     assert.ok(renderPoem(poem, poems, '/ai-poems/').includes(escapeHtml(poem.source)));
@@ -4394,7 +4431,7 @@ test('available-language filtering includes originals and translations without i
   assert.ok(filterPoems(poems, { readable: 'Arabic' }).some(p => p.id === 'quiet-night-thought-li-bai'));
   assert.ok(filterPoems(poems, { readable: 'Arabic' }).some(p => p.id === 'let-the-days-do-as-they-will'));
 });
-test('Japanese additions preserve sourced edition readings and leave translations and dates unasserted', () => {
+test('Japanese additions preserve sourced edition readings and uncertain dates', () => {
   const expected = [
     ['summer-grass-basho', '夏草や兵どもが夢の跡', 'matsuo-basho', 'oldid=247172'],
     ['mogami-river-basho', '五月雨をあつめて早し最上川', 'matsuo-basho', 'oldid=247172'],
@@ -4412,11 +4449,11 @@ test('Japanese additions preserve sourced edition readings and leave translation
     assert.equal(poem.creationPlace, undefined);
     assert.equal(poem.year, null);
     assert.equal(lineCount(poem), 1);
-    assert.deepEqual(poem.translations, []);
+    assert.deepEqual(poem.translations, id === 'summer-grass-basho' ? chamberlainTranslations[id] : []);
     assert.ok(poem.source.includes(source));
     assert.ok(poem.contextSource && poem.contextSourceTitle);
     assert.match(poem.rights, /public domain in the United States/i);
-    assert.ok(!filterPoems([poem], { readable: 'English' }).length);
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, id === 'summer-grass-basho' ? 1 : 0);
     assert.ok(filterPoems([poem], { query: text }).length);
   }
   for (const id of ['summer-grass-basho', 'mogami-river-basho']) {
