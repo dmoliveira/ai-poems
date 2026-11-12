@@ -766,6 +766,46 @@ test('Waley translations preserve complete readings, source credits and editoria
   assert.match(get(cases[2][0]).rights, /Milky Way/);
 });
 
+test('early Tang translations retain complete readings, sources and interpretation caveats', () => {
+  const cases = [
+    ['tang-020', 'French', '夕陽度西嶺', [4, 4], '2b7160e0ccc191750ea5cc3b5dceb91ccd293e5ecf3925ecde8402a2da069c7b', 'Hervey de Saint-Denys', '325'],
+    ['tang-020', 'English', '夕陽度西嶺', [4, 4, 4, 4], '558110adc7f5e86aa5f8c6121a8ad14765e412a1dba95d6ae91211514de31438', 'Cranmer-Byng', '48'],
+    ['tang-128', 'French', '故人具雞黍', [4, 4], '21335adca8fb397531e2904d9cd284df3b8861270427717853464f17c2d1935e', 'Hervey de Saint-Denys', '323'],
+    ['tang-041', 'English', '長安一片月', [6], '512a22b636a7b6486996aa37bf4430343abaca643841bb7d1330e989805727d9', 'Herbert A. Giles', '131'],
+  ];
+  for (const [id, language, original, stanzas, hash, credit, page] of cases) {
+    const poem = poems.find(item => item.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.language, 'Chinese');
+    assert.ok(poem.text.includes(original));
+    const matching = poem.translations.filter(item => item.language === language);
+    assert.equal(matching.length, 1);
+    const translation = matching[0];
+    assert.deepEqual(translation.text.split('\n\n').map(stanza => stanza.split('\n').length), stanzas);
+    assert.equal(createHash('sha256').update(translation.text).digest('hex'), hash);
+    assert.ok(translation.translator.includes(credit));
+    assert.equal(new URL(translation.source).hash, `#page=${page}`);
+    assert.match(translation.rights, /public domain in the United States/);
+    assert.match(translation.rights, /not established/);
+    assert.ok(filterPoems(poems, { language: 'Chinese', query: original }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Chinese', query: translation.text.split('\n')[0] }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Chinese', readable: language }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Chinese', translation: language }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(translation.text)));
+    assert.ok(html.includes(escapeHtml(translation.source)));
+    assert.ok(html.includes(escapeHtml(translation.rights)));
+  }
+  const get = (id, language) => poems.find(poem => poem.id === id).translations.find(item => item.language === language);
+  assert.match(get('tang-020', 'French').rights, /Ting-Kong.*not established/);
+  assert.match(get('tang-020', 'English').rights, /earlier English and French translations/);
+  assert.match(get('tang-020', 'English').rights, /does not name its individual source/);
+  assert.match(get('tang-128', 'French').rights, /rice.*millet/);
+  assert.match(get('tang-128', 'French').rights, /Wang Wei is not established/);
+  assert.match(get('tang-041', 'English').rights, /‘crescent’.*‘Kansuh’.*‘Tartars’/);
+  assert.match(get('tang-041', 'English').rights, /not endorsed/);
+});
+
 test('further Tao Yuanming poems retain Ming variants, complete boundaries and credits', () => {
   const cases = [
     ['04', 6, 60, '038b11564ec307accbcf341f62243da770812a8f7877419d22587dd97755521a'],

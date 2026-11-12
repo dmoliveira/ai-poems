@@ -877,6 +877,84 @@ test('Blake copy Y poems support English search, saved data and JavaScript-free 
   await staticContext.close();
 });
 
+test('early Tang translations support French and English discovery and static reading', async () => {
+  const cases = [
+    ['tang-020', 'French', '夕陽度西嶺', 'Le soleil a franchi'],
+    ['tang-020', 'English', '夕陽度西嶺', 'Over the chain of giant peaks'],
+    ['tang-128', 'French', '故人具雞黍', 'Un ancien ami m’offre une poule'],
+    ['tang-041', 'English', '長安一片月', 'Beneath the light of the crescent moon'],
+  ];
+  const seed = { saved: ['tang-006', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const saved = new Set();
+  await page.goto(`${base}?language=Chinese#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Chinese' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const [id, language, original, translated] of cases) {
+    const poem = poems.find(item => item.id === id);
+    const translation = poem.translations.find(item => item.language === language);
+    const filters = { language: 'Chinese', readable: language };
+    await page.goto(`${base}?language=Chinese&readable=${language}#explore`);
+    await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+    for (const query of [original, translated]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { ...filters, query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByLabel('Translation language').selectOption({ label: language });
+    await page.getByRole('button', { name: 'Side by side' }).click();
+    assert.equal(await page.locator('#translation-panel .verse').textContent(), translation.text);
+    assert.equal(await page.locator('#translation-panel .verse').getAttribute('lang'), language === 'French' ? 'fr' : 'en');
+    assert.equal(await page.locator('#translation-panel .translation-credit').textContent(), translation.translator);
+    assert.ok((await page.locator('#translation-panel .translation-rights').textContent()).includes(translation.rights));
+    assert.equal(await page.locator('#translation-panel .translation-rights a').getAttribute('href'), translation.source);
+    if (!saved.has(id)) {
+      await page.getByRole('button', { name: /Save poem/ }).click();
+      await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+      saved.add(id);
+    }
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...saved]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await page.goto(base);
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('French');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.goto(`${base}poems/tang-020/`);
+  const french = poems.find(poem => poem.id === 'tang-020').translations.find(item => item.language === 'French');
+  await page.locator('#translation-panel').getByText(/Hervey de Saint-Denys/).waitFor();
+  assert.equal(await page.locator('#translation-panel .verse').textContent(), french.text);
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const id of ['tang-020', 'tang-128', 'tang-041']) {
+    const poem = poems.find(item => item.id === id);
+    const response = await staticPage.goto(`${base}poems/${id}/`);
+    assert.equal(response.status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#translations section').count(), poem.translations.length);
+    for (const [index, translation] of poem.translations.entries()) {
+      const section = staticPage.locator('#translations section').nth(index);
+      assert.equal(await section.locator('.verse').textContent(), translation.text);
+      assert.equal(await section.locator('.verse').getAttribute('lang'), translation.language === 'French' ? 'fr' : 'en');
+      assert.ok((await section.textContent()).includes(translation.translator));
+      assert.ok((await section.textContent()).includes(translation.rights));
+      assert.equal(await section.locator('a').getAttribute('href'), translation.source);
+    }
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), id);
+  }
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Waley translations support bilingual discovery, saved data and static reading', async () => {
   const cases = [
     ['tao-yuanming-drinking-ming-05', '採菊東籬下', 'I pluck chrysanthemums under the eastern hedge'],
