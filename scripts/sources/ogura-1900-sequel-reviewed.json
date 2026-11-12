@@ -1,0 +1,31 @@
+{
+  "scanSha256": "e8a3955ff0784b75374eeebaeecc290febfab6eeeab0b14922d1860e537b32fb",
+  "comparisonSha256": "413e93d7e9fb0024879d3fe92959bccfa8c526798ab42a8d674b24a0c27eed13",
+  "poems": [
+    {"number": 41, "page": 89, "author": "Mibu no Tadami", "authorOriginal": "壬生忠見", "authorId": "mibu-no-tadami", "text": "戀すてふ\n我名はまだき\n立にけり\n人しれずこそ\n思ひそめしか"},
+    {"number": 42, "page": 90, "author": "Kiyohara no Motosuke", "authorOriginal": "清原元輔", "authorId": "kiyohara-no-motosuke", "text": "契りきな\nかたみに袖を\nしぼりつつ\n末の松山\n波こさじとは"},
+    {"number": 43, "page": 91, "author": "Fujiwara no Atsutada", "authorOriginal": "藤原敦忠", "authorId": "fujiwara-no-atsutada", "text": "あひみての\n後の心に\nくらぶれば\n昔は物も\nおもはざりけり", "note": "The 1900 printing reads 昔は物も; the modern Wikisource comparison reads 昔はものを."},
+    {"number": 44, "page": 92, "author": "Fujiwara no Asatada", "authorOriginal": "藤原朝忠", "authorId": "fujiwara-no-asatada", "text": "あふ事の\n絶てしなくば\nなかなかに\n人をも身をも\n恨みざらまし"},
+    {"number": 45, "page": 93, "author": "Fujiwara no Koretada (Kentokukō)", "authorOriginal": "藤原伊尹", "authorId": "fujiwara-no-koretada", "text": "あはれとも\nいふべき人は\nおもほえで\n身のいたづらに\n成ぬべきかな"},
+    {"number": 46, "page": 94, "author": "Sone no Yoshitada", "authorOriginal": "曽禰好忠", "authorId": "sone-no-yoshitada", "text": "ゆらの戸を\nわたる舟人\n梶をたえ\nゆくへもしらぬ\nこひの道かな"},
+    {"number": 47, "page": 96, "author": "Egyō Hōshi", "authorOriginal": "恵慶法師", "authorId": "egyo-hoshi", "text": "八重葎\nしげれる宿の\nさびしさに\n人こそ見えね\n秋はきにけり", "note": "The 1900 printing has さびしさに; the modern Wikisource comparison has さびしきに."},
+    {"number": 48, "page": 97, "author": "Minamoto no Shigeyuki", "authorOriginal": "源重之", "authorId": "minamoto-no-shigeyuki", "text": "風をいたみ\n岩うつ浪の\nおのれのみ\nくだけて物を\n思ふ比かな", "note": "The printed 比 is read koro (頃) here."},
+    {"number": 49, "page": 100, "author": "Ōnakatomi no Yoshinobu", "authorOriginal": "大中臣能宣", "authorId": "onakatomi-no-yoshinobu", "text": "みかきもり\n衛士のたく火の\nよるはもえて\n昼は消つつ\n物をこそ思へ", "note": "The 1900 printing reads よるはもえて; the modern Wikisource comparison has 夜はもえ."},
+    {"number": 50, "page": 102, "author": "Fujiwara no Yoshitaka", "authorOriginal": "藤原義孝", "authorId": "fujiwara-no-yoshitaka", "text": "君がため\n惜からざりし\n命さへ\nながくもがなと\n思ひける哉"},
+    {"number": 51, "page": 104, "author": "Fujiwara no Sanekata", "authorOriginal": "藤原実方", "authorId": "fujiwara-no-sanekata", "text": "かくとだに\nえやはいぶきの\nさしも草\nさしもしらじな\nもゆる思ひを"},
+    {"number": 52, "page": 106, "author": "Fujiwara no Michinobu", "authorOriginal": "藤原道信", "authorId": "fujiwara-no-michinobu", "text": "明ぬれば\nくるる物とは\n知ながら\n猶うらめしき\n朝ぼらけかな"},
+    {"number": 53, "page": 106, "author": "Mother of Michitsuna (Michitsuna no Haha)", "authorOriginal": "藤原道綱母", "authorId": "michitsuna-no-haha", "text": "歎つつ\n獨りぬる夜の\n明るまは\nいかに久しき\n物とかはしる"},
+    {"number": 54, "page": 107, "author": "Takashina no Takako (Gidō Sanshi no Haha)", "authorOriginal": "高階貴子", "authorId": "takashina-no-takako", "text": "わすれじの\n行末までは\nかたければ\nけふを限りの\n命ともがな"},
+    {"number": 55, "page": 108, "author": "Fujiwara no Kintō", "authorOriginal": "藤原公任", "authorId": "fujiwara-no-kinto", "text": "瀧の音は\n絶て久しく\n成ぬれど\n名こそ流れて\n猶聞えけれ"},
+    {"number": 56, "page": 110, "author": "Izumi Shikibu", "authorOriginal": "和泉式部", "authorId": "izumi-shikibu", "text": "あらざらん\n此世の外の\n思ひ出に\n今ひとたびの\nあふよしもがな", "note": "The 1900 printing ends あふよしもがな; the modern Wikisource comparison has 逢ふこともがな."},
+    {"number": 57, "page": 111, "author": "Murasaki Shikibu", "authorOriginal": "紫式部", "authorId": "murasaki-shikibu", "text": "めぐりあひて\nみしやそれとも\nわかぬまに\n雲隠にし\nよはの月影", "note": "The 1900 printing ends よはの月影; the modern Wikisource comparison has 夜半の月かな."},
+    {"number": 58, "page": 112, "author": "Daini no Sanmi", "authorOriginal": "大弐三位", "authorId": "daini-no-sanmi", "text": "有馬山\n猪名のささ原\n風ふけば\nいでそよ人を\n忘やはする"},
+    {"number": 59, "page": 114, "author": "Akazome Emon", "authorOriginal": "赤染衛門", "authorId": "akazome-emon", "text": "やすらはで\nねなまし物を\nさよ更て\nかたぶくまでの\n月をみしかな"},
+    {"number": 60, "page": 117, "author": "Koshikibu no Naishi", "authorOriginal": "小式部内侍", "authorId": "koshikibu-no-naishi", "text": "大江山\nいく野の道の\n遠ければ\nまだふみもみず\n天のはしだて"},
+    {"number": 61, "page": 118, "author": "Ise no Taifu", "authorOriginal": "伊勢大輔", "authorId": "ise-no-taifu", "text": "いにしへの\nならの都の\n八重櫻\nけふここのへに\nにほひぬるかな"},
+    {"number": 62, "page": 119, "author": "Sei Shōnagon", "authorOriginal": "清少納言", "authorId": "sei-shonagon", "text": "夜をこめて\n鳥のそらねは\nはかるとも\nよにあふ坂の\n關はゆるさじ"},
+    {"number": 63, "page": 121, "author": "Fujiwara no Michimasa", "authorOriginal": "藤原道雅", "authorId": "fujiwara-no-michimasa", "text": "今はただ\n思ひ絶なん\nとばかりを\n人づてならで\nいふよしもがな"},
+    {"number": 64, "page": 124, "author": "Fujiwara no Sadayori", "authorOriginal": "藤原定頼", "authorId": "fujiwara-no-sadayori", "text": "朝ぼらけ\nうぢの川霧\nたえだえに\nあらはれわたる\nせぜのあじろ木"},
+    {"number": 65, "page": 125, "author": "Sagami", "authorOriginal": "相模", "authorId": "sagami-poet", "text": "恨わび\nほさぬ袖だに\nある物を\nこひに朽なん\n名こそをしけれ"}
+  ]
+}

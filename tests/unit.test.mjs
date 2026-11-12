@@ -18,8 +18,48 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('further Ogura waka retain complete 1900 readings, poets and documented variants', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('ogura-1900-') && Number(poem.id.slice(-3)) >= 41);
+  const pages = [89, 90, 91, 92, 93, 94, 96, 97, 100, 102, 104, 106, 106, 107, 108, 110, 111, 112, 114, 117, 118, 119, 121, 124, 125];
+  assert.equal(selected.length, 25);
+  assert.equal(new Set(selected.map(poem => poem.authorId)).size, 25);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), 'f90a0b0b32778ac1b7b7a4bf3314b7744452d1e31b7af49e2325df33b6288299');
+  assert.equal(createHash('sha256').update(JSON.stringify(selected.map(({ id, author, authorOriginal, authorId, source }) => ({ id, author, authorOriginal, authorId, source })))).digest('hex'), '8c6c118126d49c431f1c41df0fd15876208632088a96a7bce72ce75f331ddf02');
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.id, `ogura-1900-${String(index + 41).padStart(3, '0')}`);
+    assert.equal(poem.title, poem.text.split('\n')[0]);
+    assert.equal(lineCount(poem), 5);
+    assert.equal(poem.form, 'Waka');
+    assert.equal(poem.language, 'Japanese');
+    assert.equal(poem.lang, 'ja');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.country, 'Japan');
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.equal(poem.source, `https://archive.org/download/hyakuninkeichu/hyakuninkeichu_text.pdf#page=${pages[index]}`);
+    assert.match(poem.contextSource, /oldid=240235#/);
+    assert.match(poem.context, /not the modern card-text comparison.*five line breaks are editorial/);
+    assert.match(poem.rights, /public domain in the United States.*Check local law/);
+    assert.ok(filterPoems(selected, { query: poem.authorOriginal }).some(item => item.id === poem.id));
+    assert.ok(filterPoems(selected, { query: poem.text.split('\n')[1] }).some(item => item.id === poem.id));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(poem.text)));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+  }
+  assert.equal(selected[15].author, 'Izumi Shikibu');
+  assert.equal(selected[16].author, 'Murasaki Shikibu');
+  assert.equal(selected[21].author, 'Sei Shōnagon');
+  for (const [number, pattern] of [
+    [43, /昔は物も.*昔はものを/], [47, /さびしさに.*さびしきに/],
+    [49, /よるはもえて.*夜はもえ/], [56, /あふよしもがな.*逢ふこともがな/],
+    [57, /よはの月影.*夜半の月かな/],
+  ]) assert.match(selected[number - 41].context, pattern);
+});
 test('Ogura waka preserve forty complete print readings and qualified attributions', () => {
-  const selected = poems.filter(poem => poem.id.startsWith('ogura-1900-'));
+  const selected = poems.filter(poem => poem.id.startsWith('ogura-1900-') && Number(poem.id.slice(-3)) <= 40);
   const pages = [21, 23, 27, 31, 32, 35, 36, 39, 41, 43, 44, 47, 49, 50, 52, 53, 55, 58, 59, 60, 61, 62, 65, 68, 70, 71, 73, 74, 76, 77, 78, 79, 80, 81, 82, 85, 85, 86, 87, 88];
   assert.equal(selected.length, 40);
   assert.equal(new Set(selected.map(poem => poem.authorId)).size, 40);

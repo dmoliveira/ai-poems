@@ -3015,7 +3015,7 @@ test('Chiyo-ni hokku support Japanese search, preserved saves and static mobile 
 });
 
 test('Ogura waka support Japanese discovery, saved data and complete static mobile reading', async () => {
-  const selected = poems.filter(poem => poem.id.startsWith('ogura-1900-'));
+  const selected = poems.filter(poem => poem.id.startsWith('ogura-1900-') && Number(poem.id.slice(-3)) <= 40);
   assert.equal(selected.length, 40);
   const seed = { saved: ['issa-1902-14'], recent: [], extra: { keep: true } };
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
@@ -3061,6 +3061,58 @@ test('Ogura waka support Japanese discovery, saved data and complete static mobi
     assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   }
   await staticPage.goto(`${base}poets/prince-motoyoshi/`);
+  assert.equal(await staticPage.locator(`a[href$="/poems/${poem.id}/"]`).count(), 1);
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
+test('further Ogura waka support native-name search, saved data and static mobile reading', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('ogura-1900-') && Number(poem.id.slice(-3)) >= 41);
+  assert.equal(selected.length, 25);
+  const seed = { saved: ['ogura-1900-020'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Japanese&country=Japan#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('紫式部');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  await page.getByLabel('Search the poetry library').fill('よはの月影');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  const poem = selected.find(item => item.id === 'ogura-1900-057');
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  assert.equal(await page.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+  assert.equal(await page.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+  assert.ok((await page.locator('.story').textContent()).includes('夜半の月かな'));
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.ok(stored.saved.includes(seed.saved[0]));
+  assert.ok(stored.saved.includes(poem.id));
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const item of selected) assert.equal(await staticPage.locator(`#index-original-Japanese a[href$="/poems/${item.id}/"]`).count(), 1);
+  for (const item of selected) {
+    await staticPage.goto(`${base}poems/${item.id}/`);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), item.text);
+    assert.equal(await verse.getAttribute('lang'), 'ja');
+    assert.equal(await verse.getAttribute('dir'), 'ltr');
+    assert.equal(await staticPage.getByRole('link', { name: item.sourceTitle }).getAttribute('href'), item.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${item.contextSourceTitle} ↗` }).getAttribute('href'), item.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes(item.rights));
+    assert.ok((await staticPage.locator('.story').textContent()).includes(item.context));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  }
+  await staticPage.goto(`${base}poets/murasaki-shikibu/`);
   assert.equal(await staticPage.locator(`a[href$="/poems/${poem.id}/"]`).count(), 1);
   assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
   await staticContext.close();
