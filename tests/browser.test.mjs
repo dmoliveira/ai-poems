@@ -877,6 +877,75 @@ test('Blake copy Y poems support English search, saved data and JavaScript-free 
   await staticContext.close();
 });
 
+test('Obata versions support Chinese and English discovery and static reading', async () => {
+  const ids = ['tang-316', 'tang-317', 'tang-318', 'tang-255', 'tang-269', 'tang-101', 'tang-100'];
+  const seed = { saved: ['quiet-night-thought-li-bai', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(`${base}?language=Chinese#explore`);
+  await page.getByText(`${filterPoems(poems, { language: 'Chinese' }).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const id of ids) {
+    const poem = poems.find(item => item.id === id);
+    const translation = poem.translations[0];
+    const filters = { language: 'Chinese', readable: 'English' };
+    await page.goto(`${base}?language=Chinese&readable=English#explore`);
+    for (const query of [poem.text.split('\n')[0], translation.text.split('\n')[0]]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { ...filters, query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByLabel('Translation language').selectOption({ label: 'English' });
+    await page.getByRole('button', { name: 'Side by side' }).click();
+    assert.equal(await page.locator('#translation-panel .verse').textContent(), translation.text);
+    assert.equal(await page.locator('#translation-panel .verse').getAttribute('lang'), 'en');
+    assert.equal(await page.locator('#translation-panel .translation-credit').textContent(), translation.translator);
+    assert.ok((await page.locator('#translation-panel .translation-rights').textContent()).includes(translation.rights));
+    assert.equal(await page.locator('#translation-panel .translation-rights a').getAttribute('href'), translation.source);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...ids]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await page.goto(base);
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('English');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.goto(`${base}poems/tang-269/`);
+  await page.locator('#translation-panel').getByText(/Shigeyoshi Obata/).waitFor();
+  await page.getByRole('button', { name: 'Focus mode' }).click();
+  await page.setViewportSize({ width: 320, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), []);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const id of ids) {
+    const poem = poems.find(item => item.id === id);
+    const translation = poem.translations[0];
+    assert.equal((await staticPage.goto(`${base}poems/${id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    const section = staticPage.locator('#translations section');
+    assert.equal(await section.count(), 1);
+    assert.equal(await section.locator('.verse').textContent(), translation.text);
+    assert.equal(await section.locator('.verse').getAttribute('lang'), 'en');
+    assert.ok((await section.textContent()).includes(translation.translator));
+    assert.ok((await section.textContent()).includes(translation.rights));
+    assert.equal(await section.locator('a').getAttribute('href'), translation.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), id);
+  }
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await fallback.close();
+});
+
 test('Chamberlain versions support Japanese and English discovery and static reading', async () => {
   const ids = ['summer-grass-basho', 'basho-nozarashi-28', 'buson-1926-12', 'buson-1926-13', 'chiyo-ni-1927-46'];
   const seed = { saved: ['old-pond-basho', 'unknown-future-poem'], recent: [], extra: { keep: true } };
