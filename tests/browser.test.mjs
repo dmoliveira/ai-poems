@@ -883,6 +883,9 @@ test('Fir-Flower versions support bilingual search, saved data and static readin
     ['tang-016', '斜光照墟落', 'The slanting sun shines on the cluster of small houses'],
     ['tang-022', '絕頂一茅茨', 'On the Nothing-Beyond Peak'],
     ['tang-023', '幽意無斷絕', 'Solitary meditation is not suddenly snapped off'],
+    ['tang-102', '青山橫北郭', 'Clear green hills at a right angle to the North wall'],
+    ['tang-175', '鳳凰臺上鳳凰遊', 'The silver-crested love-pheasants strutted'],
+    ['tang-268', '故人西辭黃鶴樓', 'I take leave of my dear old friend at the Yellow Crane Tower'],
   ];
   const seed = { saved: ['tang-006', 'unknown-future-poem'], recent: [], extra: { keep: true } };
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
@@ -907,6 +910,11 @@ test('Fir-Flower versions support bilingual search, saved data and static readin
     await page.getByLabel('Translation language').selectOption({ label: 'English' });
     await page.getByRole('button', { name: 'Side by side' }).click();
     assert.equal(await page.locator('#translation-panel .verse').textContent(), translation.text);
+    if (id === 'tang-175') {
+      assert.match(translation.text, /\n\nThe three hills/);
+      assert.match(translation.text, /\n  Therefore am I sorrowful\.$/);
+      assert.equal(await page.locator('#translation-panel .verse').evaluate(node => getComputedStyle(node).whiteSpace), 'pre-wrap');
+    }
     assert.equal(await page.locator('#translation-panel .verse').getAttribute('lang'), 'en');
     assert.equal(await page.locator('#translation-panel .translation-credit').textContent(), translation.translator);
     assert.ok((await page.locator('#translation-panel .translation-rights').textContent()).includes(translation.rights));

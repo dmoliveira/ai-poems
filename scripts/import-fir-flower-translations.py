@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reproduce four 1921 Ayscough and Lowell translations of existing poems."""
+"""Reproduce seven 1921 Ayscough and Lowell translations of existing poems."""
 
 import argparse
 import hashlib
@@ -70,6 +70,45 @@ SELECTION = (
             "Chinese’s view of the Southern Dipper across a mountain."
         ),
     },
+    {
+        "id": "tang-102", "anchor": "SAYING_GOOD-BYE_TO_A_FRIEND",
+        "heading": "SAYING GOOD-BYE TO A FRIEND", "author": "BY LI T'AI-PO",
+        "title": "Saying Good-Bye to a Friend", "page": 156, "lines": 9, "italics": 1,
+        "sha256": "7d253c3f38424d897643c264a420ad6f8e78dd8397049b7c2a01f1476bf0af42",
+        "first": "Clear greoi hills", "last": "U^ao, hsiao.",
+        "corrections": (
+            ("greoi", "green"), ("Here la", "Here is"), ("'Ilie", "The"), ("thousand It", "thousand li"),
+            ("fHend", "friend"), ("H^ao, h^ao", "Hsiao, hsiao"), ("U^ao", "Hsiao"),
+        ),
+        "note": (
+            "‘At a right angle’ and the repeated horse-call are interpretive; the version’s "
+            "‘water-plants’ renders 孤蓬, often understood as a lone drifting plant."
+        ),
+    },
+    {
+        "id": "tang-175", "anchor": "FENG_HUANG_TAI", "heading": "FÊNG HUANG T'AI",
+        "subtitle": "ASCENDING THE TERRACE OF THE SILVER-CRESTED LOVE-PHEASANTS AT THE CITY OF THE GOLDEN MOUND",
+        "author": "BY LI T'AI-PO", "page": 127, "lines": 9, "stanzas": (4, 5), "indents": ((1, 4),), "italics": 0,
+        "title": "Fêng Huang T’ai · Ascending the Terrace of the Silver-Crested Love-Pheasants at the City of the Golden Mound",
+        "sha256": "0f0e50bf088bc8c73581def438373c4d26452ce70138b12ce567ddf4ee5dd0ed",
+        "first": "The ^Iver-crested", "last": "Therefore am I sorrowful.",
+        "corrections": (("^Iver-crested", "silver-crested"), ("Tarace", "Terrace"),
+                        ("generadons", "generations"), ("&llen", "fallen")),
+        "note": (
+            "‘Silver-crested love-pheasants’ is this version’s interpretation of the mythical 鳳凰; "
+            "‘Green Heaven’ differs from the displayed 青山外 (beyond the green mountains)."
+        ),
+    },
+    {
+        "id": "tang-268", "anchor": "YELLOW_CRANE_TOWER",
+        "heading": "AT THE YELLOW CRANE TOWER, TAKING LEAVE OF MÊNG HAO JAN ON HIS DEPARTURE TO KUANG LING",
+        "author": "BY LI T'AI-PO", "page": 199, "lines": 4, "italics": 0,
+        "title": "At the Yellow Crane Tower, Taking Leave of Mêng Hao Jan on His Departure to Kuang Ling",
+        "sha256": "e0e84c24a3d352bb576806d5afffd6365c7d940b78e5ef63e33f2a4f71e91a64",
+        "first": "I TAKE leave", "last": "flowing to the edge of Heaven.",
+        "corrections": (("Tlie ungle", "The single"),),
+        "note": "‘Flower-smelling mist’ and the ‘jade-coloured distance’ are interpretive renderings.",
+    },
 )
 
 
@@ -87,6 +126,14 @@ def verse(source, row):
     if " ".join(heading.split()) != row["heading"]:
         raise ValueError(f"Unexpected heading: {row['id']}")
     section = section[section.index('</h2>') + len('</h2>'):].strip()
+    if "subtitle" in row:
+        opening, closing = '<p class="ph4">', '</p>'
+        if not section.startswith(opening) or closing not in section:
+            raise ValueError(f"Unexpected subtitle: {row['id']}")
+        subtitle = section[len(opening):section.index(closing)]
+        if " ".join(subtitle.split()) != row["subtitle"]:
+            raise ValueError(f"Unexpected subtitle: {row['id']}")
+        section = section[section.index(closing) + len(closing):].strip()
     author = f'<p class="ph3">{row["author"]}</p>'
     if not section.startswith(author):
         raise ValueError(f"Unexpected author: {row['id']}")
@@ -96,11 +143,24 @@ def verse(source, row):
     if not section.startswith(start_block) or not section.endswith(end_block):
         raise ValueError(f"Unexpected poem block: {row['id']}")
     block = section[len(start_block):-len(end_block)]
-    pattern = r'<div class="verse">([^<>]*)</div>'
-    raw_lines = re.findall(pattern, block)
-    if re.sub(pattern, "", block).strip() or len(raw_lines) != row["lines"]:
+    pattern = r'<div class="(verse(?: indent2)?)">([^<>]*)</div>'
+    parts = block.split('</div><div class="stanza">')
+    expected_stanzas = row.get("stanzas", (row["lines"],))
+    stanzas, indents = [], []
+    for stanza_index, part in enumerate(parts):
+        matches = re.findall(pattern, part)
+        if re.sub(pattern, "", part).strip():
+            raise ValueError(f"Unexpected verse boundaries: {row['id']}")
+        lines = []
+        for line_index, (kind, raw) in enumerate(matches):
+            if kind == "verse indent2":
+                indents.append((stanza_index, line_index))
+            lines.append(("  " if kind == "verse indent2" else "") + " ".join(html.unescape(raw).split()))
+        stanzas.append(lines)
+    if (tuple(map(len, stanzas)) != expected_stanzas or sum(map(len, stanzas)) != row["lines"]
+            or tuple(indents) != row.get("indents", ())):
         raise ValueError(f"Unexpected verse boundaries: {row['id']}")
-    text = "\n".join(" ".join(html.unescape(line).split()) for line in raw_lines)
+    text = "\n\n".join("\n".join(lines) for lines in stanzas)
     if text.count("_li_") != row["italics"]:
         raise ValueError(f"Unexpected italic markers: {row['id']}")
     text = text.replace("_li_", "li")

@@ -768,10 +768,13 @@ test('Waley translations preserve complete readings, source credits and editoria
 
 test('Fir-Flower versions retain complete readings, joint credits and interpretation caveats', () => {
   const cases = [
-    ['tang-015', '言入黃花川', 15, 'd281a74712c16c0bd1628047ef1fa1106bf74b0209fc6635361adac01477a2bc', 'THE_BLUE-GREEN_STREAM'],
-    ['tang-016', '斜光照墟落', 10, '9a170d327732ab8db3a6fb42a4128ea977ec8d882a57e30aee6ec353e5b446a7', 'FARM_HOUSE'],
-    ['tang-022', '絕頂一茅茨', 16, '3fa98c8efaa2ed5c593ad692f945b35b707254f6f12f6ae9b90b4fedb491689c', 'SEEKING_FOR_THE_HERMIT_OF_THE_WEST'],
-    ['tang-023', '幽意無斷絕', 10, '93ac438833cab9b4ed9b09c44090707b4ebd351069adbd96017eb5a78920c530', 'FLOATING_ON_THE_POOL_OF_JO_YA_SPRING'],
+    ['tang-015', '言入黃花川', [15], 'd281a74712c16c0bd1628047ef1fa1106bf74b0209fc6635361adac01477a2bc', 'THE_BLUE-GREEN_STREAM'],
+    ['tang-016', '斜光照墟落', [10], '9a170d327732ab8db3a6fb42a4128ea977ec8d882a57e30aee6ec353e5b446a7', 'FARM_HOUSE'],
+    ['tang-022', '絕頂一茅茨', [16], '3fa98c8efaa2ed5c593ad692f945b35b707254f6f12f6ae9b90b4fedb491689c', 'SEEKING_FOR_THE_HERMIT_OF_THE_WEST'],
+    ['tang-023', '幽意無斷絕', [10], '93ac438833cab9b4ed9b09c44090707b4ebd351069adbd96017eb5a78920c530', 'FLOATING_ON_THE_POOL_OF_JO_YA_SPRING'],
+    ['tang-102', '青山橫北郭', [9], '7d253c3f38424d897643c264a420ad6f8e78dd8397049b7c2a01f1476bf0af42', 'SAYING_GOOD-BYE_TO_A_FRIEND'],
+    ['tang-175', '鳳凰臺上鳳凰遊', [4, 5], '0f0e50bf088bc8c73581def438373c4d26452ce70138b12ce567ddf4ee5dd0ed', 'FENG_HUANG_TAI'],
+    ['tang-268', '故人西辭黃鶴樓', [4], 'e0e84c24a3d352bb576806d5afffd6365c7d940b78e5ef63e33f2a4f71e91a64', 'YELLOW_CRANE_TOWER'],
   ];
   for (const [id, original, lines, hash, anchor] of cases) {
     const poem = poems.find(item => item.id === id);
@@ -780,7 +783,7 @@ test('Fir-Flower versions retain complete readings, joint credits and interpreta
     const matching = poem.translations.filter(item => item.language === 'English');
     assert.equal(matching.length, 1);
     const translation = matching[0];
-    assert.equal(translation.text.split('\n').length, lines);
+    assert.deepEqual(translation.text.split('\n\n').map(stanza => stanza.split('\n').length), lines);
     assert.equal(createHash('sha256').update(translation.text).digest('hex'), hash);
     assert.match(translation.translator, /Florence Ayscough · Chinese translation; Amy Lowell · English version/);
     assert.equal(new URL(translation.source).hash, `#${anchor}`);
@@ -800,6 +803,13 @@ test('Fir-Flower versions retain complete readings, joint credits and interpreta
   assert.match(rights('tang-016'), /heights.*not explicit.*式微/);
   assert.match(rights('tang-022'), /Nothing-Beyond Peak.*red grass.*not explicit/);
   assert.match(rights('tang-023'), /serrated hills.*Southern Dipper/);
+  assert.match(rights('tang-102'), /right angle.*water-plants.*孤蓬/);
+  assert.match(rights('tang-175'), /mythical 鳳凰.*Green Heaven.*青山外/);
+  assert.match(rights('tang-268'), /Flower-smelling mist.*jade-coloured distance/);
+  const pheasants = poems.find(poem => poem.id === 'tang-175').translations.find(item => item.language === 'English');
+  assert.match(pheasants.title, /Fêng Huang T’ai · Ascending the Terrace/);
+  assert.match(pheasants.text, /\n\nThe three hills/);
+  assert.match(pheasants.text, /\n  Therefore am I sorrowful\.$/);
 });
 
 test('early Tang translations retain complete readings, sources and interpretation caveats', () => {
