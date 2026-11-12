@@ -10,6 +10,7 @@ import { loadCatalog } from '../scripts/catalog-data.mjs';
 import { chamberlainTranslations } from '../content/chamberlain-translations.mjs';
 import { curated } from '../content/curated.mjs';
 import { quietNightTranslations } from '../content/quiet-night-translations.mjs';
+import { obataLiBaiTranslations } from '../content/obata-li-bai-translations.mjs';
 import { renderFeed } from '../scripts/feed.mjs';
 import { groupPoets } from '../scripts/poets.mjs';
 import { relatedPoems } from '../scripts/recommendations.mjs';
@@ -17,6 +18,47 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('seven Obata versions preserve complete readings, sources and jurisdiction caveats', () => {
+  const cases = [
+    ['tang-316', 57, 8, 'af036d1807bca04a4df952d345e485bee4654ab6e7bdf841c6647bfc7527da59'],
+    ['tang-317', 58, 9, '4bf8475c0e5e0c6982c1b964dc3467e792e3720a47ffc946decbcbf2c28617c8'],
+    ['tang-318', 59, 6, '64770744c5268f396b47e0a4f533cd9817401087d4920f4a879348d802d2e4a1'],
+    ['tang-255', 72, 4, '23232aa5284bf36b405c8492a1f3ac439e272c116adebd853fcb3453be4d6129'],
+    ['tang-269', 102, 8, 'dd3a015a9ec9280f7da5e647657173b9698de8b179c41a929243af0149c15288'],
+    ['tang-101', 106, 8, '437dbe13e3cba46caddaa53b1549a9667d702bb93cfedc79b979f28bcad66393'],
+    ['tang-100', 114, 15, '8a3c7792c65771d4af1985ba683cfa337d2ea7a493df039c38840989a6173ff3'],
+  ];
+  assert.deepEqual(Object.keys(obataLiBaiTranslations), cases.map(([id]) => id));
+  for (const [id, page, count, hash] of cases) {
+    const poem = poems.find(item => item.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.author, 'Li Bai');
+    assert.equal(poem.language, 'Chinese');
+    assert.deepEqual(poem.translations, obataLiBaiTranslations[id]);
+    assert.equal(poem.translations.length, 1);
+    const item = poem.translations[0];
+    assert.equal(item.language, 'English');
+    assert.equal(item.translator, 'Shigeyoshi Obata · London and Toronto 1923');
+    assert.equal(item.text.split('\n').length, count);
+    assert.equal(createHash('sha256').update(item.text).digest('hex'), hash);
+    assert.equal(item.source, `https://archive.org/download/worksoflipochine00libauoft/worksoflipochine00libauoft.pdf#page=${page}`);
+    assert.match(item.rights, /public domain in the United States.*died in 1971.*life-plus-70 jurisdictions.*Check local law/);
+    assert.match(item.rights, /working edition is not established.*interpretation.*not a claim of an exact match/);
+    for (const query of [poem.text.split('\n')[0], item.text.split('\n')[0]]) {
+      assert.ok(filterPoems(poems, { language: 'Chinese', readable: 'English', query }).some(candidate => candidate.id === id), `${id}: ${query}`);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(item.text)));
+    assert.ok(html.includes(escapeHtml(item.source)));
+    assert.ok(html.includes(escapeHtml(item.rights)));
+    assert.match(html, /<option value="0">English<\/option>/);
+  }
+  for (const id of ['tang-316', 'tang-317', 'tang-318']) assert.match(obataLiBaiTranslations[id][0].rights, /title identifies Lady Yang.*occasion is not established/);
+  assert.match(obataLiBaiTranslations['tang-255'][0].rights, /羅襪.*stockings or socks/);
+  assert.match(obataLiBaiTranslations['tang-269'][0].rights, /啼不住.*1922 New York printing reads/);
+  assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
+  assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
+});
 test('catalogue has distinct, sourced records in all eight original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
