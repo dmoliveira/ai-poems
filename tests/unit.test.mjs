@@ -18,6 +18,47 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Ogura waka preserve forty complete print readings and qualified attributions', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('ogura-1900-'));
+  const pages = [21, 23, 27, 31, 32, 35, 36, 39, 41, 43, 44, 47, 49, 50, 52, 53, 55, 58, 59, 60, 61, 62, 65, 68, 70, 71, 73, 74, 76, 77, 78, 79, 80, 81, 82, 85, 85, 86, 87, 88];
+  assert.equal(selected.length, 40);
+  assert.equal(new Set(selected.map(poem => poem.authorId)).size, 40);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '8e4b655b84a89025fa86c959bbdc623d938320afbfa02da4fa77320f34bc444f');
+  assert.equal(createHash('sha256').update(JSON.stringify(selected.map(({ id, author, authorOriginal, authorId, source }) => ({ id, author, authorOriginal, authorId, source })))).digest('hex'), '10625b24bec92d555c2456a565a5f8447faec303e14dc867abf63ea2f89ceb56');
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.id, `ogura-1900-${String(index + 1).padStart(3, '0')}`);
+    assert.equal(poem.title, poem.text.split('\n')[0]);
+    assert.equal(lineCount(poem), 5);
+    assert.equal(poem.form, 'Waka');
+    assert.equal(poem.language, 'Japanese');
+    assert.equal(poem.lang, 'ja');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.country, 'Japan');
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.year, null);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.equal(poem.source, `https://archive.org/download/hyakuninkeichu/hyakuninkeichu_text.pdf#page=${pages[index]}`);
+    assert.match(poem.contextSource, /oldid=240235#/);
+    assert.match(poem.context, /not the modern card-text comparison.*five line breaks are editorial/);
+    assert.match(poem.rights, /public domain in the United States.*Check local law/);
+    assert.ok(filterPoems(selected, { query: poem.authorOriginal }).some(item => item.id === poem.id));
+    assert.ok(filterPoems(selected, { query: poem.text.split('\n')[1] }).some(item => item.id === poem.id));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(poem.text)));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+  }
+  for (const number of [1, 3, 5, 6, 27]) assert.match(selected[number - 1].author, /\(attributed\)/);
+  assert.match(selected[4].context, /Kokin Wakashū.*anonymous/);
+  assert.match(selected[26].context, /questions the attribution/);
+  assert.match(selected[12].context, /なりける.*なりぬる/);
+  assert.match(selected[19].context, /あはんこそ思ふ.*逢はむとぞ思ふ/);
+  assert.match(selected[24].context, /しられて.*しられで/);
+  assert.match(selected[26].context, /いづみ川.*いつみ川/);
+  assert.match(selected[32].context, /花の散らん.*花の散るらむ/);
+  assert.match(selected[35].context, /いづこ.*いつこ/);
+});
 test('seven Obata versions preserve complete readings, sources and jurisdiction caveats', () => {
   const cases = [
     ['tang-316', 57, 8, 'af036d1807bca04a4df952d345e485bee4654ab6e7bdf841c6647bfc7527da59'],
@@ -4549,7 +4590,8 @@ test('Japanese additions preserve sourced edition readings and uncertain dates',
   const laterBuson = poems.filter(p => p.id.startsWith('buson-1926-')).length;
   const issa = poems.filter(p => p.id.startsWith('issa-1902-')).length;
   const chiyo = poems.filter(p => p.id.startsWith('chiyo-ni-1927-')).length;
-  assert.equal(filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length, 5 + laterBasho + laterBuson + issa + chiyo);
+  const ogura = poems.filter(p => p.id.startsWith('ogura-1900-')).length;
+  assert.equal(filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length, 5 + laterBasho + laterBuson + issa + chiyo + ogura);
   assert.equal(filterPoems(poems, { query: '松尾芭蕉' }).length, 3 + laterBasho);
   assert.equal(filterPoems(poems, { query: '与謝蕪村' }).length, 2 + laterBuson);
 });
