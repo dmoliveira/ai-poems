@@ -709,7 +709,7 @@ test('Tao Yuanming selections retain complete Ming readings and source attributi
     assert.equal(poem.direction, 'ltr');
     assert.deepEqual(associatedPlaces(poem), ['China']);
     assert.equal(poem.year, null);
-    assert.deepEqual(poem.translations, []);
+    assert.equal(poem.translations.length, ['05', '09'].includes(number) ? 1 : 0);
     assert.deepEqual(poem.themes, []);
     assert.equal(lineCount(poem), count);
     assert.equal(createHash('sha256').update(poem.text).digest('hex'), hash);
@@ -729,6 +729,43 @@ test('Tao Yuanming selections retain complete Ming readings and source attributi
   const group = groupPoets(poems).find(item => item.id === 'tao-yuanming');
   assert.deepEqual(group.poems.filter(poem => selected.includes(poem)).map(poem => poem.id), cases.map(([number]) => `tao-yuanming-drinking-ming-${number}`));
 });
+test('Waley translations preserve complete readings, source credits and editorial caveats', () => {
+  const cases = [
+    ['tao-yuanming-drinking-ming-05', 10, '5d710c65d4837ca0dbd0742dd8d5d4bb48d2bd8ab0824eaef1675bb521ea4829', '42290', '1918', '採菊東籬下'],
+    ['tao-yuanming-drinking-ming-09', 16, '3a9ef63e0bf2998d7c7eef60262e8c45912563f26ded2b86b69075a896aca619', '42290', '1918', '清晨聞叩門'],
+    ['tang-006', 14, '52a5d7d887987b92a00a9e3b7ae57f4207ab6b011d8a92f583cc0837c48c1eee', '16500', '1919', '花間一壺酒'],
+  ];
+  for (const [id, lines, hash, ebook, year, originalFragment] of cases) {
+    const poem = poems.find(item => item.id === id);
+    assert.ok(poem, id);
+    assert.equal(poem.language, 'Chinese');
+    assert.ok(poem.text.includes(originalFragment));
+    assert.equal(poem.translations.length, 1);
+    const translation = poem.translations[0];
+    assert.equal(translation.language, 'English');
+    assert.equal(translation.text.split('\n').length, lines);
+    assert.equal(createHash('sha256').update(translation.text).digest('hex'), hash);
+    assert.equal(translation.source, `https://www.gutenberg.org/ebooks/${ebook}`);
+    assert.match(translation.translator, new RegExp(`Arthur Waley.*${year}`));
+    assert.match(translation.rights, /public domain in the United States/);
+    assert.match(translation.rights, /Chinese source edition is not established/);
+    assert.match(translation.rights, /interpretive rendering/);
+    assert.ok(filterPoems(poems, { language: 'Chinese', query: originalFragment }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Chinese', query: translation.text.split('\n')[0] }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Chinese', readable: 'English' }).includes(poem));
+    assert.ok(filterPoems(poems, { language: 'Chinese', translation: 'English' }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(translation.text)));
+    assert.ok(html.includes(escapeHtml(translation.source)));
+    assert.ok(html.includes(escapeHtml(translation.rights)));
+  }
+  const get = id => poems.find(poem => poem.id === id).translations[0];
+  assert.match(get(cases[0][0]).rights, /‘summer hills’.*‘南山’/);
+  assert.match(get(cases[1][0]).rights, /number \(2\), not a title/);
+  assert.match(get(cases[2][0]).rights, /‘shadow as slave’.*not explicit/);
+  assert.match(get(cases[2][0]).rights, /Milky Way/);
+});
+
 test('further Tao Yuanming poems retain Ming variants, complete boundaries and credits', () => {
   const cases = [
     ['04', 6, 60, '038b11564ec307accbcf341f62243da770812a8f7877419d22587dd97755521a'],

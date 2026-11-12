@@ -877,6 +877,74 @@ test('Blake copy Y poems support English search, saved data and JavaScript-free 
   await staticContext.close();
 });
 
+test('Waley translations support bilingual discovery, saved data and static reading', async () => {
+  const cases = [
+    ['tao-yuanming-drinking-ming-05', '採菊東籬下', 'I pluck chrysanthemums under the eastern hedge'],
+    ['tao-yuanming-drinking-ming-09', '清晨聞叩門', 'In the quiet of the morning I heard a knock at my door'],
+    ['tang-006', '花間一壺酒', 'A cup of wine, under the flowering trees'],
+  ];
+  const seed = { saved: ['li-he-horses-five', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const filters = { language: 'Chinese', readable: 'English' };
+  const filterUrl = `${base}?language=Chinese&readable=English#explore`;
+  await page.goto(filterUrl);
+  await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const [id, original, english] of cases) {
+    const poem = poems.find(item => item.id === id);
+    const translation = poem.translations[0];
+    for (const query of [original, english]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { ...filters, query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: 'Side by side' }).click();
+    assert.equal(await page.locator('#translation-panel .verse').textContent(), translation.text);
+    assert.equal(await page.locator('#translation-panel .verse').getAttribute('lang'), 'en');
+    assert.equal(await page.locator('#translation-panel .translation-credit').textContent(), translation.translator);
+    assert.ok((await page.locator('#translation-panel .translation-rights').textContent()).includes(translation.rights));
+    assert.equal(await page.locator('#translation-panel .translation-rights a').getAttribute('href'), translation.source);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), id);
+    await page.goto(filterUrl);
+    await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...cases.map(([id]) => id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('English');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.goto(`${base}poems/tao-yuanming-drinking-ming-05/`);
+  await page.locator('#translation-panel').getByText(/Arthur Waley/).waitFor();
+  assert.equal(await page.locator('#original-panel .verse').isVisible(), true);
+  await context.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const [id] of cases) {
+    const poem = poems.find(item => item.id === id);
+    const translation = poem.translations[0];
+    const response = await staticPage.goto(`${base}poems/${id}/`);
+    assert.equal(response.status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#translations .verse').textContent(), translation.text);
+    assert.equal(await staticPage.locator('#translations .verse').getAttribute('lang'), 'en');
+    assert.ok((await staticPage.locator('#translations').textContent()).includes(translation.translator));
+    assert.ok((await staticPage.locator('#translations').textContent()).includes(translation.rights));
+    assert.equal(await staticPage.locator('#translations a').getAttribute('href'), translation.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), id);
+  }
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await staticContext.close();
+});
+
 test('Tao Yuanming poems support Chinese search, saved data and JavaScript-free reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'tao-yuanming');
   assert.ok(selected.length >= 18);
