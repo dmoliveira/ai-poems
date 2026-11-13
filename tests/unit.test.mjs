@@ -18,6 +18,52 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Darío poems retain complete 1896 readings, Nicaragua identity and edition caveats', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('dario-1896-'));
+  const slugs = ['sonatina', 'blason', 'del-campo', 'ojos-negros-julia', 'para-una-cubana', 'para-la-misma', 'bouquet', 'margarita', 'mia', 'dice-mia', 'heraldos', 'ite-misa-est'];
+  const pages = [45, 49, 53, 57, 67, 69, 71, 85, 87, 89, 91, 93];
+  const lineCounts = [48, 36, 32, 24, 14, 14, 20, 14, 14, 11, 19, 14];
+  assert.equal(selected.length, 12);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '753ba6b336ed7d994bb4a65e9b9292ff52f716c3844250bf04285d8b56fd577c');
+  assert.equal(createHash('sha256').update(JSON.stringify(selected.map(({ id, title, source }) => ({ id, title, source })))).digest('hex'), '32659750f886e5f3af3dd5c53feaacfabf6804cd5681d4a0593d9016fe5ad38f');
+  assert.equal(groupPoets(poems).find(group => group.id === 'ruben-dario').poems.length, 12);
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.id, `dario-1896-${slugs[index]}`);
+    assert.equal(lineCount(poem), lineCounts[index]);
+    assert.equal(poem.author, 'Rubén Darío');
+    assert.equal(poem.country, 'Nicaragua');
+    assert.equal(poem.language, 'Spanish');
+    assert.equal(poem.lang, 'es');
+    assert.equal(poem.year, 1896);
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(poem.source.endsWith(`#page=${pages[index]}`));
+    assert.match(poem.context, /preserving historical spelling and punctuation/);
+    assert.match(poem.rights, /public domain in the United States.*image-reuse terms are not established/);
+    assert.ok(filterPoems([poem], { query: poem.text.split('\n')[1] }).some(item => item.id === poem.id));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(poem.text)));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+  }
+  const bySlug = slug => selected.find(poem => poem.id === `dario-1896-${slug}`);
+  assert.match(bySlug('sonatina').text, /pavos-reales/);
+  assert.match(bySlug('sonatina').context, /1917 edition.*comparison rather than the 1896 witness/);
+  assert.match(bySlug('del-campo').text, /espectral ginete/);
+  assert.match(bySlug('para-una-cubana').text, /púrpura finje/);
+  assert.match(bySlug('ite-misa-est').text, /como convalesciente/);
+  assert.match(bySlug('ite-misa-est').context, /‘Ite, missa est’.*‘convaleciente’/);
+  assert.equal(bySlug('ite-misa-est').title, 'Ite misa est');
+  assert.equal(bySlug('ite-misa-est').displayTitle, 'Ite, missa est');
+  assert.equal(bySlug('ite-misa-est').displayTitleLang, 'la');
+  for (const query of ['Ite misa est', 'Ite, missa est', 'missa est']) {
+    assert.ok(filterPoems(selected, { query }).includes(bySlug('ite-misa-est')), query);
+  }
+  const reader = renderPoem(bySlug('ite-misa-est'), poems, '/ai-poems/');
+  assert.match(reader, /<h1 lang="la" dir="auto">Ite, missa est<\/h1>/);
+  assert.ok(reader.includes('Ite misa est'));
+});
 test('Martí first-edition poems preserve complete works, sources and documented variants', () => {
   const selected = poems.filter(poem => poem.id.startsWith('marti-versos-sencillos-'));
   const numbers = Array.from({ length: 46 }, (_, index) => index + 1).filter(number => number !== 39);
