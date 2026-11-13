@@ -18,6 +18,46 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Martí first-edition poems preserve complete works, sources and documented variants', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('marti-versos-sencillos-'));
+  const numbers = Array.from({ length: 46 }, (_, index) => index + 1).filter(number => number !== 39);
+  const lineCounts = [72, 16, 48, 36, 16, 12, 32, 24, 36, 52, 20, 8, 16, 8, 16, 8, 28, 12, 12, 8, 20, 12, 8, 12, 8, 8, 24, 12, 8, 20, 16, 16, 20, 12, 8, 8, 8, 12, 8, 12, 16, 18, 16, 38, 44];
+  assert.equal(selected.length, 45);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), 'c54eb74b9b2fb4f6ae11164292820bd6bebf1877dc7f0ed87e4e007e671b663c');
+  assert.equal(createHash('sha256').update(JSON.stringify(selected.map(({ id, title, source, contextSource }) => ({ id, title, source, contextSource })))).digest('hex'), '1cdcaf719520c6b4403e0d94dbc6b82f55141ee621c381e4f8b4727f64c354c0');
+  assert.equal(groupPoets(poems).find(group => group.id === 'jose-marti').poems.length, 46);
+  assert.equal(poems.filter(poem => poem.id === 'rosa-blanca-marti').length, 1);
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.id, `marti-versos-sencillos-${String(numbers[index]).padStart(3, '0')}`);
+    assert.equal(lineCount(poem), lineCounts[index]);
+    assert.equal(poem.author, 'José Martí');
+    assert.equal(poem.authorId, 'jose-marti');
+    assert.equal(poem.country, 'Cuba');
+    assert.equal(poem.language, 'Spanish');
+    assert.equal(poem.lang, 'es');
+    assert.equal(poem.year, 1891);
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.source, /^https:\/\/www\.poesi\.as\/JoseMartiVersosSencillos-\d+foto\.htm$/);
+    assert.match(poem.contextSource, /es\.wikisource\.org\/w\/index\.php\?title=.*&oldid=\d+/);
+    assert.match(poem.context, /Accents and punctuation are modernized or normalized/);
+    assert.match(poem.rights, /Wikisource contributors, CC BY-SA 4\.0.*altered against the 1891 printing/);
+    assert.ok(filterPoems([poem], { query: poem.text.split('\n')[1] }).some(item => item.id === poem.id));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(poem.text)));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+  }
+  const byNumber = number => selected.find(poem => poem.id === `marti-versos-sencillos-${String(number).padStart(3, '0')}`);
+  for (const [number, reading] of [[1, 'Leyó el alcaide'], [5, 'carmín encendido'], [9, 'en mi vida'], [10, 'La boca abierta'], [27, 'La niña está sola'], [30, 'con su vida el crimen'], [35, 'Nace alado del dolor'], [44, 'De arce del Japón'], [45, 'del soclo'], [46, 'Donde no se llegue']]) {
+    assert.ok(byNumber(number).text.includes(reading), `${number}: ${reading}`);
+  }
+  assert.match(byNumber(1).context, /“alcaide”.*“alcalde”/);
+  assert.match(byNumber(5).context, /“carmín”.*“jazmín”/);
+  assert.match(byNumber(30).context, /“con su vida”.*“con su sangre”/);
+  assert.match(byNumber(46).context, /“charme” may be a printing error/);
+});
 test('final Ogura waka retain complete 1900 readings, poets and documented variants', () => {
   const selected = poems.filter(poem => poem.id.startsWith('ogura-1900-') && Number(poem.id.slice(-3)) >= 66 && Number(poem.id.slice(-3)) <= 100);
   const pages = [126, 127, 129, 131, 132, 133, 135, 136, 136, 138, 141, 142, 144, 145, 146, 147, 148, 149, 150, 151, 151, 152, 153, 154, 155, 156, 157, 159, 165, 166, 169, 170, 171, 173, 174];

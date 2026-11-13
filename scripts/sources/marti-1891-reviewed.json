@@ -1,0 +1,458 @@
+{
+  "comparisonSha256": "c43978d33cfc18c79c829dc767b3fe901d950f37496096289bc1ca82df961d10",
+  "imageSha256": {
+    "9": "e2c22a0d5144f7de3419b18f67316de5d4c6baa08e1be893db561263ee81844e",
+    "17": "a9703375fd3fa3e1d3044490b1c36180ea30eade684dedbc84d51592b57b5b7d",
+    "18": "10d99563c206537fbc8e12a9445d5af6796b1e2eec011b6158e108f9b1346bb4",
+    "19": "d0c0e27e7dde185ed04c284f364a8425f35bd26536c168b08c959e274209e4ab",
+    "20": "399b1cee2b6cb215508e13b962ec114a0c544228466fcc1fcd9db54eb35e3189",
+    "21": "367205b10acbc1b6652e8724e3696abae288c0a597710d10a68ca426c9beee52",
+    "22": "2ce770f18c01d0c42545cb206f08756541ccee5735246d9d2d62d0c3228ff5b5",
+    "23": "381795b2e8bfe2627957a2ca090432c5600ef7bd9e1851f5ff60f0d3e0bb821f",
+    "24": "9d4c34090e7e683b93f7010e9990d23781a0cab6ecfc478c5c521baeb03db2de",
+    "25": "fb06c937f864b972909ca6a4aff3a443fab4893b89fb2babcabd7ab5fe55893c",
+    "26": "04a1f4390da15601f4c72a8f8dbd5f70a26ad116275cab8d9ccd3175639cbda6",
+    "27": "b417b757a02fe29abcab2e481c18098157b7847f7aed82408652922d5c85c6ee",
+    "28": "396b0b97d4469390189b12fc756f8a97c435283664bd4e53f84095d48b0d15ed",
+    "29": "ce7c103794d2370f698c2eac1f2cf60879360b450420765ba9216eb66a9bcff9",
+    "30": "c9f0b2e24049f09b0a92803c51cb62f16cfca659f2d55d16f1564b1df6b2f37c",
+    "31": "a29311a5b843202877fd032e7f5f27ed6f3c4148b34c5200345b166bd2b58f36",
+    "32": "f4320df8f81937b87b24a4c1b48dcc9dc6858894943f5ee5e90ae8bcbb36f8c4",
+    "33": "009359d895eae49cf2a78bcdd3bd2a27da7ae10a8af57643735324b877188193",
+    "34": "be9dfb293cc5ec6a7d60b73f108102438d91b06ab11e99b8590d0bc1071763a2",
+    "35": "df7c02b9514a1c9bb23e0ecd29c5720d9b507caa89529787453a7c0c0fdd49c1",
+    "36": "d22363511b353e50293bc1b0789f911b9e795f66773a52e30355267585de4fad",
+    "37": "14b1a636c5407ee6526ef1bf19d77cdab3354cd4b8344f72cc4d72e9f58f2cae",
+    "38": "12d8156aefda040dff55dcb8fb7a5d912262458d125ff337917c669c278f91f1",
+    "39": "6f8883e551d24224b09d2df9278a2960f48c9f4b02db8bded66cd03e5d5e8b50",
+    "40": "107dde6ba291d75ea49e699404e2c86ee659ecbdd8e249b0763814ca9f872b36",
+    "41": "8f319ac84100d565c76f8a14c156a20ef50dd9017ec9e99208cf08d4bc2158dc",
+    "42": "b6aea81f8123760b92ad09f1d8fe0ad9c805125c623dd681b18da8d23de7c6f5",
+    "43": "17cf05720b12aa55ea603d808d89c9ee3eda791c1e6a8952b9203da1d4e760c1",
+    "44": "e0d5cc41ad1a332ec857beb0ce25cd4b7f5a869eca948434eb534d1e266551d3",
+    "45": "a8e9541c22cc926fd2b1160cccf9df7bf06694e4b75ca7bead3a2a5bd0be5560",
+    "46": "649da095e72ff24ff8f81276bd3817d5e92a40c7c291f6a0536bcd64aeb7228c",
+    "47": "db7f59d514439c8bc48637b957b03c7d941778a227a4568b2a416200bd98ee71",
+    "48": "9750d245f9bb15dbc34bcea5206df499329ffbe0dadc1053ed6baefa15ed8558",
+    "49": "4cbfc0ef711a6fc13caba91798b445f198d0e0b512e9238788d2e3c27e9ecb1d",
+    "50": "04f30d6c7ca368340efbd14f3155742d937a816d0529e452f7782297a37b3f7c",
+    "51": "8ef54f53a9136b8d8477fc7e7c15efc64c6ae8868cdda9e8f6f7261d3df61c86",
+    "52": "7a74fed65477325feb9a26947f5794f15543f3cc802c597f0492829b5ee478c3",
+    "53": "6006c3fba4068ceebad7989d1b6776d6aea4e772cc93813f608c2376c8700922",
+    "54": "3f29957a54e3ca0138325419b84bbf054abafe3b711e9ccb86a55206954f8835",
+    "55": "54c118aaa4727ce8df59f6e7d817c442e14bd40a6a857a2f020daca30dd4c0ac",
+    "56": "624712a9f5ffec84c107ccdfd3cae701cc93f156d210ac7f4669edf1dca93ade",
+    "57": "a5eb3690dd32c3ecf7dc1cb78000c705e46fa0a11da18c24a6f251fe48eadd51",
+    "58": "e1d238898deabfc680e028663705bb77f6ab4bbecc688f510a009318069e8acd",
+    "59": "d85f7920d9e39b5c60c3d4ec48a8b97a5019adcd2c84832ae780fb8c8263c5bb",
+    "60": "dff0f372581ab3f490284c4869687fadad469630f0faa0cd98a163e447192c9b",
+    "61": "3ac74d68677b3343d8e3b095a35f2f2e6232fdfe38cc6740348bb38367bcfe99",
+    "62": "fa57419272cae3f59a530a164aecadc749c8b2640a662d7cfa6939ac73991073",
+    "63": "65411c1dd82b99ec5271905816c3da6708486565bf255fd3d12e6c6d8275bf39",
+    "64": "aed2a58bc63a7119c712eb4b5d2a924808ad701a2b6e881af42d1a066ec99e03",
+    "65": "303c67f1deee82bd4e344a0cfa756531c4fd2cff25ed284b9b8cacb5ce97da1d",
+    "66": "a41d1e57d196b18581a2f72395aedc91c0e0169f206d16ff0d8555a6e4416a96",
+    "67": "fdab1049e6c949c6d9c56f459448b443628c27dbbd6d8af0daabf8933d9b8780",
+    "68": "b67b53d48c62d0624279237682d4f1a5e19709b5946af76743acb4404546ace0",
+    "69": "f3499737c3fc9ad4197cbea35f8a883ca4f80526bcdb82ef3a8531f6d023e847",
+    "70": "273ee18ded416ec014260f0119aa7123ec2bd834166979208ad4a9c1472de75e",
+    "71": "2a3bbdcfb92d850fbf6109f4ab6907ad5fad629da668a7a9c840381c39bba307",
+    "72": "81897f35f8db5e7b272658d6002117fd69373fb5aee819f414bd86980bbae18b",
+    "73": "1ab8baac9d5655e848e9ec6c48aa6bf6b56bc9a11509a15abd7880e3577d8e80",
+    "74": "3bc00d8925309c9b989114b43a2ea32e71e1588c2991d59a0840ec9dffe69cbb",
+    "75": "2f9ce921abcb1d3d0e93c82592598933d5115814575238cad1d2b54650908d93",
+    "76": "a9dfd5555edefc46c42b3528ae52cec19571014fe1ac0f977f5f0fec9be77a02",
+    "77": "38763f297626a032d00ef4bc462ce7c1aff378a2f5572b88516a4b30c0b6006d",
+    "78": "ec4d3d6875bd08fb36eca404d3bb6176227c3fd5f1147eeef81ef79d6a8db88c",
+    "79": "81b834d57ebd3c059ba5fb0d56c168808d8a18ce67154429af7cac03c6f33695",
+    "80": "50240c694b2584a7791fc427bc309f68da1cb502a3f203abfcf6780fdf1211ea",
+    "81": "a87ab3cdd3034bf2872d72181cea542d15664ad95260edc6ec25c8579c2ddb96",
+    "82": "3e5e15ce22b6727aedd45320d4b5802b780822feeccb8fa1b8791d41fb802875",
+    "83": "85b446aa7d0ffc7723c0ae4dafeceed4b03e062615c0263e3b7a6f0b5f9e0902",
+    "84": "4399a7ea214eecdd324d3e461ad49b65cef5336f18fd03895ed6a82228478050"
+  },
+  "poems": [
+    {
+      "number": 1,
+      "roman": "I",
+      "firstImage": 17,
+      "lastImage": 20,
+      "comparisonRevision": 1561345,
+      "text": "Yo soy un hombre sincero\nDe donde crece la palma,\nY antes de morirme quiero\nEchar mis versos del alma.\n\nYo vengo de todas partes,\nY hacia todas partes voy:\nArte soy entre las artes,\nEn los montes, monte soy.\n\nYo sé los nombres extraños\nDe las yerbas y las flores,\nY de mortales engaños,\nY de sublimes dolores.\n\nYo he visto en la noche oscura\nLlover sobre mi cabeza\nLos rayos de lumbre pura\nDe la divina belleza.\n\nAlas nacer vi en los hombros\nDe las mujeres hermosas:\nY salir de los escombros\nVolando las mariposas.\n\nHe visto vivir a un hombre\nCon el puñal al costado,\nSin decir jamás el nombre\nDe aquella que lo ha matado.\n\nRápida, como un reflejo,\nDos veces vi el alma, dos:\nCuando murió el pobre viejo,\nCuando ella me dijo adiós.\n\nTemblé una vez, —en la reja,\nA la entrada de la viña,—\nCuando la bárbara abeja\nPicó en la frente a mi niña.\n\nGocé una vez, de tal suerte\nQue gocé cual nunca: —cuando\nLa sentencia de mi muerte\nLeyó el alcaide llorando.\n\nOigo un suspiro, a través\nDe las tierras y la mar,\nY no es un suspiro, —es\nQue mi hijo va a despertar.\n\nSi dicen que del joyero\nTome la joya mejor,\nTomo a un amigo sincero\nY pongo a un lado el amor.\n\nYo he visto al águila herida\nVolar al azul sereno,\nY morir en su guarida\nLa víbora del veneno.\n\nYo sé bien que cuando el mundo\nCede, lívido, al descanso,\nSobre el silencio profundo\nMurmura el arroyo manso.\n\nYo he puesto la mano osada,\nDe horror y júbilo yerta,\nSobre la estrella apagada\nQue cayó frente a mi puerta.\n\nOculto en mi pecho bravo\nLa pena que me lo hiere:\nEl hijo de un pueblo esclavo\nVive por él, calla, y muere.\n\nTodo es hermoso y constante,\nTodo es música y razón,\nY todo, como el diamante,\nAntes que luz es carbón.\n\nYo sé que el necio se entierra\nCon gran lujo y con gran llanto, -\nY que no hay fruta en la tierra\nComo la del camposanto.\n\nCallo, y entiendo, y me quito\nLa pompa del rimador:\nCuelgo de un árbol marchito\nMi muceta de doctor.",
+      "note": "The 1891 printing reads “alcaide”; the Wikisource comparison reads “alcalde”."
+    },
+    {
+      "number": 2,
+      "roman": "II",
+      "firstImage": 21,
+      "lastImage": 21,
+      "comparisonRevision": 1506417,
+      "text": "Yo sé de Egipto y Nigricia,\nY de Persia y Xenophonte;\nY prefiero la caricia\nDel aire fresco del monte.\n\nYo sé las historias viejas\nDel hombre y de sus rencillas;\nY prefiero las abejas\nVolando en las campanillas.\n\nYo sé del canto del viento\nEn las ramas vocingleras:\nNadie me diga que miento,\nQue lo prefiero de veras.\n\nYo sé de un gamo aterrado\nQue vuelve al redil, y expira, -\nY de un corazón cansado\nQue muere oscuro y sin ira.",
+      "note": "The printing reads “Yo sé las historias viejas”; the comparison adds “de”."
+    },
+    {
+      "number": 3,
+      "roman": "III",
+      "firstImage": 22,
+      "lastImage": 24,
+      "comparisonRevision": 1506418,
+      "text": "Odio la máscara y vicio\nDel corredor de mi hotel:\nMe vuelvo al manso bullicio\nDe mi monte de laurel.\n\nCon los pobres de la tierra\nQuiero yo mi suerte echar:\nEl arroyo de la sierra\nMe complace más que el mar.\n\nDenle al vano el oro tierno\nQue arde y brilla en el crisol:\nA mí denme el bosque eterno\nCuando rompe en él el sol.\n\nYo he visto el oro hecho tierra\nBarbullendo en la redoma:\nPrefiero estar en la sierra\nCuando vuela una paloma.\n\nBusca el obispo de España\nPilares para su altar;\n¡En mi templo, en la montaña,\nEl álamo es el pilar!\n\nY la alfombra es puro helecho,\nY los muros abedul,\nY la luz viene del techo,\nDel techo de cielo azul.\n\nEl obispo, por la noche,\nSale, despacio, a cantar:\nMonta, callado, en su coche,\nQue es la piña de un pinar.\n\nLas jacas de su carroza\nSon dos pájaros azules:\nY canta el aire y retoza,\nY cantan los abedules.\n\nDuermo en mi cama de roca\nMi sueño dulce y profundo:\nRoza una abeja mi boca\nY crece en mi cuerpo el mundo.\n\nBrillan las grandes molduras\nAl fuego de la mañana,\nQue tiñe las colgaduras\nDe rosa, violeta y grana.\n\nEl clarín, solo en el monte,\nCanta al primer arrebol:\nLa gasa del horizonte\nPrende, de un aliento, el sol.\n\n¡Díganle al obispo ciego,\nAl viejo obispo de España\nQue venga, que venga luego,\nA mi templo, a la montaña!"
+    },
+    {
+      "number": 4,
+      "roman": "IV",
+      "firstImage": 25,
+      "lastImage": 26,
+      "comparisonRevision": 1506419,
+      "text": "Yo visitaré anhelante\nLos rincones donde a solas\nEstuvimos yo y mi amante\nRetozando con las olas.\n\nSolos los dos estuvimos,\nSolos, con la compañía\nDe dos pájaros que vimos\nMeterse en la gruta umbría.\n\nY ella, clavando los ojos,\nEn la pareja ligera,\nDeshizo los lirios rojos\nQue le dio la jardinera.\n\nLa madreselva olorosa\nCogió con sus manos ella,\nY una madama graciosa,\nY un jazmín como una estrella.\n\nYo quise, diestro y galán,\nAbrirle su quitasol;\nY ella me dijo: \"¡Qué afán!\n¡Si hoy me gusta ver el sol!\".\n\n\"Nunca más altos he visto\nEstos nobles robledales:\nAquí debe estar el Cristo,\nPorque están las catedrales.\"\n\n\"Ya sé dónde ha de venir\nMi niña a la comunión;\nDe blanco la he de vestir\nCon un gran sombrero alón.\"\n\nDespués, del calor al peso,\nEntramos por el camino,\nY nos dábamos un beso\nEn cuanto sonaba un trino.\n\n¡Volveré, cual quien no existe,\nAl lago mudo y helado:\nClavaré la quilla triste:\nPosaré el remo callado!",
+      "note": "The book’s index gives p. 18 for this poem, but the poem itself starts on p. 19 (image 25)."
+    },
+    {
+      "number": 5,
+      "roman": "V",
+      "firstImage": 27,
+      "lastImage": 27,
+      "comparisonRevision": 1506422,
+      "text": "Si ves un monte de espumas\nEs mi verso lo que ves:\nMi verso es un monte, y es\nUn abanico de plumas.\n\nMi verso es como un puñal\nQue por el puño echa flor:\nMi verso es un surtidor\nQue da un agua de coral.\n\nMi verso es de un verde claro\nY de un carmín encendido:\nMi verso es un ciervo herido\nQue busca en el monte amparo.\n\nMi verso al valiente agrada:\nMi verso, breve y sincero,\nEs del vigor del acero\nCon que se funde la espada.",
+      "note": "The 1891 printing reads “carmín”; some widely circulated versions have “jazmín”."
+    },
+    {
+      "number": 6,
+      "roman": "VI",
+      "firstImage": 28,
+      "lastImage": 28,
+      "comparisonRevision": 1506423,
+      "text": "Si quieren que de este mundo\nLleve una memoria grata,\nLlevaré, padre profundo,\nTu cabellera de plata.\n\nSi quieren, por gran favor,\nQue lleve más, llevaré\nLa copia que hizo el pintor\nDe la hermana que adoré.\n\nSi quieren que a la otra vida\nMe lleve todo un tesoro,\n¡Llevo la trenza escondida\nQue guardo en mi caja de oro!"
+    },
+    {
+      "number": 7,
+      "roman": "VII",
+      "firstImage": 29,
+      "lastImage": 30,
+      "comparisonRevision": 1506424,
+      "text": "Para Aragón, en España,\nTengo yo en mi corazón\nUn lugar todo Aragón,\nFranco, fiero, fiel, sin saña.\n\nSi quiere un tonto saber\nPor qué lo tengo, le digo\nQue allí tuve un buen amigo,\nQue allí quise a una mujer.\n\nAllá, en la vega florida,\nLa de la heroica defensa,\nPor mantener lo que piensa\nJuega la gente la vida.\n\nY si un alcalde lo aprieta\nO lo enoja un rey cazurro,\nCalza la manta el baturro\nY muere con su escopeta.\n\nQuiero a la tierra amarilla\nQue baña el Ebro lodoso:\nQuiero el Pilar azuloso\nDe Lanuza y de Padilla.\n\nEstimo a quien de un revés\nEcha por tierra a un tirano:\nLo estimo, si es un cubano;\nLo estimo, si aragonés.\n\nAmo los patios sombríos\nCon escaleras bordadas;\nAmo las naves calladas\nY los conventos vacíos.\n\nAmo la tierra florida,\nMusulmana o española,\nDonde rompió su corola\nLa poca flor de mi vida."
+    },
+    {
+      "number": 8,
+      "roman": "VIII",
+      "firstImage": 31,
+      "lastImage": 32,
+      "comparisonRevision": 1506425,
+      "text": "Yo tengo un amigo muerto\nQue suele venirme a ver:\nMi amigo se sienta, y canta;\nCanta en voz que ha de doler.\n\n\"En un ave de dos alas\n\"Bogo por el cielo azul:\n\"Un ala del ave es negra\n\"Otra de oro Caribú.\n\n\"El corazón es un loco\n\"Que no sabe de un color:\n\"O es su amor de dos colores,\n\"O dice que no es amor.\n\n\"Hay una loca más fiera\n\"Que el corazón infeliz:\n\"La que le chupó la sangre\n\"Y se echó luego a reír.\n\n\"Corazón que lleva rota\n\"El ancla fiel del hogar,\n\"Va como barca perdida,\n\"Que no sabe adonde va.\"\n\nEn cuanto llega a esta angustia\nRompe el muerto a maldecir:\nLe amanso el cráneo, lo acuesto;\nAcuesto el muerto a dormir.",
+      "note": "The printing ends “Acuesto el muerto a dormir”; the comparison has “al muerto”."
+    },
+    {
+      "number": 9,
+      "roman": "IX",
+      "firstImage": 33,
+      "lastImage": 34,
+      "comparisonRevision": 1506420,
+      "text": "Quiero, a la sombra de un ala,\nContar este cuento en flor:\nLa niña de Guatemala,\nLa que se murió de amor.\n\nEran de lirios los ramos,\nY las orlas de reseda\nY de jazmín: la enterramos\nEn una caja de seda.\n\n... Ella dio al desmemoriado\nUna almohadilla de olor:\nÉl volvió, volvió casado:\nElla se murió de amor.\n\nIban cargándola en andas\nObispos y embajadores:\nDetrás iba el pueblo en tandas,\nTodo cargado de flores.\n\n...Ella, por volverlo a ver,\nSalió a verlo al mirador:\nÉl volvió con su mujer:\nElla se murió de amor.\n\nComo de bronce candente\nAl beso de despedida\nEra su frente ¡la frente\nQue más he amado en mi vida!\n\n...Se entró de tarde en el río,\nLa sacó muerta el doctor:\nDicen que murió de frío:\nYo sé que murió de amor.\n\nAllí, en la bóveda helada,\nLa pusieron en dos bancos;\nBesé su mano afilada,\nBesé sus zapatos blancos.\n\nCallado, al oscurecer,\nMe llamó el enterrador:\n¡Nunca más he vuelto a ver\nA la que murió de amor!",
+      "note": "The printing reads “en mi vida”; the comparison has “en la vida”."
+    },
+    {
+      "number": 10,
+      "roman": "X",
+      "firstImage": 35,
+      "lastImage": 37,
+      "comparisonRevision": 1506426,
+      "text": "El alma trémula y sola\nPadece al anochecer:\nHay baile; vamos a ver\nLa bailarina española.\n\nHan hecho bien en quitar\nEl banderón de la acera;\nPorque si está la bandera,\nNo sé, yo no puedo entrar.\n\nYa llega la bailarina:\nSoberbia y pálida llega:\n¿Cómo dicen que es gallega?\nPues dicen mal: es divina.\n\nLleva un sombrero torero\nY una capa carmesí:\n¡Lo mismo que un alelí\nQue se pusiese un sombrero!\n\nSe ve, de paso, la ceja,\nCeja de mora traidora:\nY la mirada, de mora;\nY como nieve la oreja.\n\nPreludian, bajan la luz,\nY sale en bata y mantón,\nLa virgen de la Asunción\nBailando un baile andaluz.\n\nAlza, retando, la frente;\nCrúzase al hombro la manta:\nEn arco el brazo levanta;\nMueve despacio el pie ardiente.\n\nRepica con los tacones\nEl tablado zalamera,\nComo si la tabla fuera\nTablado de corazones.\n\nY va el convite creciendo\nEn las llamas de los ojos,\nY el manto de flecos rojos\nSe va en el aire meciendo.\n\nSúbito, de un salto arranca;\nHúrtase, se quiebra, gira;\nAbre en dos la cachemira,\nOfrece la bata blanca.\n\nEl cuerpo cede y ondea;\nLa boca abierta provoca;\nEs una rosa la boca;\nLentamente taconea.\n\nRecoge, de un débil giro,\nEl manto de flecos rojos:\nSe va, cerrando los ojos,\nSe va, como en un suspiro...\n\nBaila muy bien la española,\nEs blanco y rojo el mantón:\n¡Vuelve, fosca, a su rincón\nEl alma trémula y sola!",
+      "note": "The printing reads “La boca abierta provoca”; the comparison has “La bata”."
+    },
+    {
+      "number": 11,
+      "roman": "XI",
+      "firstImage": 38,
+      "lastImage": 39,
+      "comparisonRevision": 1506427,
+      "text": "Yo tengo un paje muy fiel\nQue me cuida y que me gruñe,\nY al salir, me limpia y bruñe\nMi corona de laurel.\n\nYo tengo un paje ejemplar\nQue no come, que no duerme,\nY que se acurruca a verme\nTrabajar, y sollozar.\n\nSalgo, y el vil se desliza\nY en mi bolsillo aparece,\nVuelvo, y el terco me ofrece\nUna taza de ceniza.\n\nSi duermo, al rayar el día\nSe sienta junto a mi cama;\nSi escribo, sangre derrama\nMi paje en la escribanía.\n\nMi paje, hombre de respeto,\nAl andar castañetea;\nHiela mi paje, y chispea;\nMi paje es un esqueleto."
+    },
+    {
+      "number": 12,
+      "roman": "XII",
+      "firstImage": 40,
+      "lastImage": 40,
+      "comparisonRevision": 1506428,
+      "text": "En el bote iba remando\nPor el lago seductor,\nCon el sol que era oro puro\nY en el alma más de un sol.\n\nY a mis pies vi de repente,\nOfendido del hedor,\nUn pez muerto, un pez hediondo\nEn el bote remador."
+    },
+    {
+      "number": 13,
+      "roman": "XIII",
+      "firstImage": 41,
+      "lastImage": 41,
+      "comparisonRevision": 1506429,
+      "text": "Por donde abunda la malva\nY da el camino un rodeo,\nIba un ángel de paseo\nCon una cabeza calva.\n\nDel castañar por la zona\nLa pareja se perdía;\nLa calva resplandecía\nLo mismo que una corona.\n\nSonaba el hacha en lo espeso\nY cruzó un ave volando;\nPero no se sabe cuándo\nSe dieron el primer beso.\n\nEra rubio el ángel; era\nEl de la calva radiosa,\nComo el tronco a que amorosa\nSe prende la enredadera."
+    },
+    {
+      "number": 14,
+      "roman": "XIV",
+      "firstImage": 42,
+      "lastImage": 42,
+      "comparisonRevision": 1506430,
+      "text": "Yo no puedo olvidar nunca\nLa mañanita de otoño\nEn que le salió un retoño\nA la pobre rama trunca.\n\nLa mañanita en que, en vano,\nJunto a la estufa apagada,\nUna niña enamorada\nLe tendió al viejo la mano."
+    },
+    {
+      "number": 15,
+      "roman": "XV",
+      "firstImage": 43,
+      "lastImage": 43,
+      "comparisonRevision": 1506440,
+      "text": "Vino el médico amarillo\nA darme su medicina,\nCon una mano cetrina\nY la otra mano al bolsillo:\n¡Yo tengo allá en un rincón\nUn médico que no manca\nCon una mano muy blanca\nY otra mano al corazón!\n\nViene, de blusa y casquete,\nEl grave del repostero,\nA preguntarme si quiero\nO Málaga o Pajarete:\n¡Díganle a la repostera\nQue ha tanto tiempo no he visto,\nQue me tenga un beso listo\nAl entrar la primavera!"
+    },
+    {
+      "number": 16,
+      "roman": "XVI",
+      "firstImage": 44,
+      "lastImage": 44,
+      "comparisonRevision": 1506441,
+      "text": "En el alféizar calado\nDe la ventana moruna,\nPálido como la luna,\nMedita un enamorado.\n\nPálida, en su canapé\nDe seda tórtola y roja,\nEva, callada, deshoja\nUna violeta en el té."
+    },
+    {
+      "number": 17,
+      "roman": "XVII",
+      "firstImage": 45,
+      "lastImage": 46,
+      "comparisonRevision": 1506442,
+      "text": "Es rubia: el cabello suelto\nDa más luz al ojo moro:\nVoy, desde entonces, envuelto\nEn un torbellino de oro.\n\nLa abeja estival que zumba\nMás ágil por la flor nueva,\nNo dice, como antes, \"tumba\";\n\"Eva\" dice: todo es \"Eva\".\n\nBajo, en lo oscuro, al temido\nRaudal de la catarata;\n¡Y brilla el iris, tendido\nSobre las hojas de plata!\n\nMiro, ceñudo, la agreste\nPompa del monte irritado:\n¡Y en el alma azul celeste\nBrota un jacinto rosado!\n\nVoy, por el bosque, a paseo\nA la laguna vecina;\nY entre las ramas la veo,\nY por el agua camina.\n\nLa serpiente del jardín\nSilba, escupe, y se resbala\nPor su agujero: el clarín\nMe tiende, trinando, el ala.\n\n¡Arpa soy, salterio soy\nDonde vibra el Universo;\nVengo del sol, y al sol voy;\nSoy el amor: soy el verso!"
+    },
+    {
+      "number": 18,
+      "roman": "XVIII",
+      "firstImage": 47,
+      "lastImage": 47,
+      "comparisonRevision": 1506443,
+      "text": "El alfiler de Eva loca\nEs hecho del oro oscuro\nQue le sacó un hombre puro\nDel corazón de una roca.\n\nUn pájaro tentador\nLe trajo en el pico ayer\nUn relumbrante alfiler\nDe pasta y de similor.\n\nEva se prendió al oscuro\nTalle el diamante embustero:\nY echó en el alfiletero\nEl alfiler de oro puro.",
+      "note": "The printing reads “Que le sacó”; the comparison has “Que lo sacó”."
+    },
+    {
+      "number": 19,
+      "roman": "XIX",
+      "firstImage": 48,
+      "lastImage": 48,
+      "comparisonRevision": 1506431,
+      "text": "Por tus ojos encendidos\nY lo mal puesto de un broche,\nPensé que estuviste anoche\nJugando a juegos prohibidos.\n\nTe odié por vil y alevosa;\nTe odié con odio de muerte;\nNáusea me daba de verte\nTan villana y tan hermosa.\n\nY por la esquela que vi\nSin saber cómo ni cuándo,\nSé que estuviste llorando\nToda la noche por mí."
+    },
+    {
+      "number": 20,
+      "roman": "XX",
+      "firstImage": 49,
+      "lastImage": 49,
+      "comparisonRevision": 1506444,
+      "text": "Mi amor del aire se azora;\nEva es rubia, falsa es Eva;\nViene una nube, y se lleva\nMi amor que gime y que llora.\n\nSe lleva mi amor que llora\nEsa nube que se va;\nEva me ha sido traidora;\n¡Eva me consolará!"
+    },
+    {
+      "number": 21,
+      "roman": "XXI",
+      "firstImage": 50,
+      "lastImage": 51,
+      "comparisonRevision": 1506445,
+      "text": "Ayer la vi en el salón\nDe los pintores, y ayer\nDetrás de aquella mujer\nSe me saltó el corazón.\n\nSentada en el suelo rudo\nEstá en el lienzo: dormido\nAl pie, el esposo rendido;\nAl seno el niño desnudo.\n\nSobre unas briznas de paja\nSe ven mendrugos mondados;\nLe cuelga el manto a los lados,\nLo mismo que una mortaja.\n\nNo nace en el torvo suelo\nNi una viola, ni una espiga:\nMuy lejos, la casa amiga,\nMuy triste y oscuro el cielo!...\n\n¡Esa es la hermosa mujer\nQue me robó el corazón\nEn el soberbio salón\nDe los pintores de ayer!",
+      "note": "The colon after “lienzo” follows the printing; the husband is described as sleeping at the woman’s feet."
+    },
+    {
+      "number": 22,
+      "roman": "XXII",
+      "firstImage": 52,
+      "lastImage": 52,
+      "comparisonRevision": 1506446,
+      "text": "Estoy en el baile extraño\nDe polaina y casaquín\nQue dan, del año hacia el fin,\nLos cazadores del año.\n\nUna duquesa violeta\nVa con un frac colorado;\nMarca un vizconde pintado\nEl tiempo en la pandereta.\n\nY pasan las chupas rojas,\nPasan los tules de fuego,\nComo delante de un ciego\nPasan volando las hojas."
+    },
+    {
+      "number": 23,
+      "roman": "XXIII",
+      "firstImage": 53,
+      "lastImage": 53,
+      "comparisonRevision": 1506447,
+      "text": "Yo quiero salir del mundo\nPor la puerta natural:\nEn un carro de hojas verdes\nA morir me han de llevar.\n\nNo me pongan en lo oscuro\nA morir como un traidor;\nYo soy bueno, y como bueno\nMoriré de cara al sol!"
+    },
+    {
+      "number": 24,
+      "roman": "XXIV",
+      "firstImage": 54,
+      "lastImage": 54,
+      "comparisonRevision": 1506448,
+      "text": "Sé de un pintor atrevido\nQue sale a pintar contento\nSobre la tela del viento\nY la espuma del olvido.\n\nYo sé de un pintor gigante,\nEl de divinos colores,\nPuesto a pintarle las flores\nA una corbeta mercante.\n\nYo sé de un pobre pintor\nQue mira el agua al pintar,—\nEl agua ronca del mar,—\nCon un entrañable amor."
+    },
+    {
+      "number": 25,
+      "roman": "XXV",
+      "firstImage": 55,
+      "lastImage": 55,
+      "comparisonRevision": 1506450,
+      "text": "¡Yo pienso cuando me alegro\nComo un escolar sencillo,\nEn el canario amarillo,\nQue tiene el ojo tan negro!\n\n¡Yo quiero, cuando me muera\nSin patria, pero sin amo,\nTener en mi losa un ramo\nDe flores, y una bandera!"
+    },
+    {
+      "number": 26,
+      "roman": "XXVI",
+      "firstImage": 56,
+      "lastImage": 56,
+      "comparisonRevision": 1506451,
+      "text": "Yo que vivo, aunque me he muerto,\nSoy un gran descubridor,\nPorque anoche he descubierto\nLa medicina de amor.\n\nCuando al peso de la cruz\nEl hombre morir resuelve,\nSale a hacer bien, lo hace, y vuelve\nComo de un baño de luz.",
+      "note": "The 1891 printing has eight verse lines; the comparison divides two of them."
+    },
+    {
+      "number": 27,
+      "roman": "XXVII",
+      "firstImage": 57,
+      "lastImage": 58,
+      "comparisonRevision": 1506452,
+      "text": "El enemigo brutal\nNos pone fuego a la casa;\nEl sable la calle arrasa,\nA la luna tropical.\n\nPocos salieron ilesos\nDel sable del español;\nLa calle, al salir el sol,\nEra un reguero de sesos.\n\nPasa, entre balas, un coche:\nEntran, llorando, a una muerta;\nLlama una mano a la puerta\nEn lo negro de la noche.\n\nNo hay bala que no taladre\nEl portón; y la mujer\nQue llama, me ha dado el ser;\nMe viene a buscar mi madre.\n\nA la boca de la muerte,\nLos valientes habaneros\nSe quitaron los sombreros\nAnte la matrona fuerte.\n\nY después que nos besamos\nComo dos locos, me dijo:\n\"Vamos pronto, vamos, hijo;\nLa niña está sola: vamos!\"",
+      "note": "The printing reads “La niña está sola”; the comparison has “La luna está sola”."
+    },
+    {
+      "number": 28,
+      "roman": "XXVIII",
+      "firstImage": 59,
+      "lastImage": 59,
+      "comparisonRevision": 1506453,
+      "text": "Por la tumba del cortijo\nDonde está el padre enterrado,\nPasa el hijo, de soldado\nDel invasor; pasa el hijo.\n\nEl padre, un bravo en la guerra,\nEnvuelto en su pabellón\nÁlzase: y de un bofetón\nLo tiende, muerto, por tierra.\n\nEl rayo reluce; zumba\nEl viento por el cortijo;\nEl padre recoge al hijo,\nY se lo lleva a la tumba."
+    },
+    {
+      "number": 29,
+      "roman": "XXIX",
+      "firstImage": 60,
+      "lastImage": 60,
+      "comparisonRevision": 1506449,
+      "text": "La imagen del rey, por ley\nLleva el papel del Estado;\nEl niño fue fusilado\nPor los fusiles del rey.\n\nFestejar el santo es ley\nDel rey: y en la fiesta santa\n¡La hermana del niño canta\nAnte la imagen del rey!",
+      "note": "The printing includes “y” in “Del rey: y en la fiesta santa”; the comparison omits it."
+    },
+    {
+      "number": 30,
+      "roman": "XXX",
+      "firstImage": 61,
+      "lastImage": 62,
+      "comparisonRevision": 1506454,
+      "text": "El rayo surca, sangriento,\nEl lóbrego nubarrón:\nEcha el barco, ciento a ciento,\nLos negros por el portón.\n\nEl viento, fiero, quebraba\nLos almácigos copudos;\nAndaba la hilera, andaba,\nDe los esclavos desnudos.\n\nEl temporal sacudía\nLos barracones henchidos;\nUna madre con su cría\nPasaba, dando alaridos.\n\nRojo, como en el desierto,\nSalió el sol al horizonte:\nY alumbró a un esclavo muerto,\nColgado a un seibo del monte.\n\nUn niño lo vio: tembló\nDe pasión por los que gimen;\nY, al pie del muerto, juró\nLavar con su vida el crimen!",
+      "note": "The printing reads “con su vida”; the comparison has “con su sangre”."
+    },
+    {
+      "number": 31,
+      "roman": "XXXI",
+      "firstImage": 63,
+      "lastImage": 63,
+      "comparisonRevision": 1506455,
+      "text": "Para modelo de un dios\nEl pintor lo envió a pedir:\n¡Para eso no! ¡para ir,\nPatria, a servirte los dos!\n\nBien estará en la pintura\nEl hijo que amo y bendigo:\n¡Mejor en la ceja oscura,\nCara a cara al enemigo!\n\nEs rubio, es fuerte, es garzón\nDe nobleza natural:\n¡Hijo, por la luz natal!\n¡Hijo, por el pabellón!\n\nVamos, pues, hijo viril;\nVamos los dos; si yo muero,\nMe besas: si tú... ¡prefiero\nVerte muerto a verte vil!",
+      "note": "The printing reads “servirte”; the comparison has “servirse”."
+    },
+    {
+      "number": 32,
+      "roman": "XXXII",
+      "firstImage": 64,
+      "lastImage": 64,
+      "comparisonRevision": 1506456,
+      "text": "En el negro callejón\nDonde en tinieblas paseo,\nAlzo los ojos, y veo\nLa iglesia, erguida, a un rincón.\n\n¿Será misterio? ¿será\nRevelación y poder?\n¿Será, rodilla, el deber\nDe postrarse? ¿Qué será?\n\nTiembla la noche: en la parra\nMuerde el gusano el retoño;\nGrazna, llamando al otoño\nLa hueca y hosca cigarra.\n\nGraznan dos: atento al dúo\nAlzo los ojos y veo\nQue la iglesia del paseo\nTiene la forma de un búho.",
+      "note": "The line break after “¿será” follows the 1891 printing rather than the comparison."
+    },
+    {
+      "number": 33,
+      "roman": "XXXIII",
+      "firstImage": 65,
+      "lastImage": 66,
+      "comparisonRevision": 1506457,
+      "text": "De mi desdicha espantosa\nSiento, ¡oh estrellas!, que muero;\nYo quiero vivir, yo quiero\nVer a una mujer hermosa.\n\nEl cabello, como un casco,\nLe corona el rostro bello:\nBrilla su negro cabello\nComo un sable de Damasco.\n\n¿Aquélla? ...Pues pon la hiel\nDel mundo entero en un haz,\nY tállala en cuerpo, y haz,\nUn alma entera de hiel!\n\n¿Esta?... Pues esta infeliz\nLleva escarpines rosados,\nY los labios colorados,\nY la cara de barniz.\n\nEl alma lúgubre grita:\n\"¡Mujer, maldita mujer!\"\n¡No sé yo quién pueda ser\nEntre las dos la maldita!"
+    },
+    {
+      "number": 34,
+      "roman": "XXXIV",
+      "firstImage": 67,
+      "lastImage": 67,
+      "comparisonRevision": 1506458,
+      "text": "¡Penas! ¿Quién osa decir\nQue tengo yo penas? Luego,\nDespués del rayo, y del fuego,\nTendré tiempo de sufrir.\n\nYo sé de un pesar profundo\nEntre las penas sin nombres:\n¡La esclavitud de los hombres\nEs la gran pena del mundo!\n\nHay montes, y hay que subir\nLos montes altos; ¡después\nVeremos, alma, quién es\nQuien te me ha puesto al morir!",
+      "note": "The line break after “Luego” follows the 1891 printing rather than the comparison."
+    },
+    {
+      "number": 35,
+      "roman": "XXXV",
+      "firstImage": 68,
+      "lastImage": 68,
+      "comparisonRevision": 1506460,
+      "text": "¿Qué importa que tu puñal\nSe me clave en el riñón?\n¡Tengo mis versos, que son\nMás fuertes que tu puñal!\n\n¿Qué importa que este dolor\nSeque el mar y nuble el cielo?\nEl verso, dulce consuelo,\nNace alado del dolor.",
+      "note": "The printing reads “alado”; the comparison has “al lado”."
+    },
+    {
+      "number": 36,
+      "roman": "XXXVI",
+      "firstImage": 69,
+      "lastImage": 69,
+      "comparisonRevision": 1506461,
+      "text": "Ya sé: de carne se puede\nHacer una flor; se puede,\nCon el poder del cariño,\nHacer un cielo, ¡y un niño!\n\nDe carne se hace también\nEl alacrán; y también\nEl gusano de la rosa,\nY la lechuza espantosa."
+    },
+    {
+      "number": 37,
+      "roman": "XXXVII",
+      "firstImage": 70,
+      "lastImage": 70,
+      "comparisonRevision": 1506462,
+      "text": "Aquí está el pecho, mujer,\nQue ya sé que lo herirás;\n¡Más grande debiera ser,\nPara que lo hirieses más!\n\nPorque noto, alma torcida,\nQue en mi pecho milagroso,\nMientras más honda la herida,\nEs mi canto más hermoso."
+    },
+    {
+      "number": 38,
+      "roman": "XXXVIII",
+      "firstImage": 71,
+      "lastImage": 71,
+      "comparisonRevision": 1506463,
+      "text": "¿Del tirano? Del tirano\nDi todo, ¡di más!; y clava\nCon furia de mano esclava\nSobre su oprobio al tirano.\n\n¿Del error? Pues del error\nDi el antro, di las veredas\nOscuras: di cuanto puedas\nDel tirano y del error.\n\n¿De mujer? Pues puede ser\nQue mueras de su mordida;\n¡Pero no empañes tu vida\nDiciendo mal de mujer!"
+    },
+    {
+      "number": 40,
+      "roman": "XL",
+      "firstImage": 73,
+      "lastImage": 73,
+      "comparisonRevision": 1506432,
+      "text": "Pinta mi amigo el pintor\nSus angelones dorados,\nEn nubes arrodillados,\nCon soles al rededor.\n\nPínteme con sus pinceles\nLos angelitos medrosos\nQue me trajeron, piadosos,\nSus dos ramos de claveles.",
+      "note": "The historical spelling “al rededor” is retained."
+    },
+    {
+      "number": 41,
+      "roman": "XLI",
+      "firstImage": 74,
+      "lastImage": 74,
+      "comparisonRevision": 1506434,
+      "text": "Cuando me vino el honor\nDe la tierra generosa,\nNo pensé en Blanca ni en Rosa\nNi en lo grande del favor.\n\nPensé en el pobre artillero\nQue está en la tumba, callado;\nPensé en mi padre, el soldado;\nPensé en mi padre, el obrero.\n\nCuando llegó la pomposa\nCarta, en su noble cubierta,\nPensé en la tumba desierta\nNo pensé en Blanca ni en Rosa."
+    },
+    {
+      "number": 42,
+      "roman": "XLII",
+      "firstImage": 75,
+      "lastImage": 75,
+      "comparisonRevision": 1506435,
+      "text": "En el extraño bazar\nDel amor, junto a la mar,\nLa perla triste y sin par\nLe tocó por suerte a Agar.\n\nAgar, de tanto tenerla\nAl pecho, de tanto verla\nAgar, llegó a aborrecerla;\nMajó, tiró al mar la perla.\n\nY cuando Agar, venenosa\nDe inútil furia, y llorosa,\nPidió al mar la perla hermosa,\nDijo la mar borrascosa:\n\n\"¿Qué hiciste, torpe, qué hiciste\nDe la perla que tuviste?\nLa majaste, me la diste;\nYo guardo la perla triste.\""
+    },
+    {
+      "number": 43,
+      "roman": "XLIII",
+      "firstImage": 76,
+      "lastImage": 76,
+      "comparisonRevision": 1506436,
+      "text": "Mucho, señora, daría\nPor tender sobre tu espalda\nTu cabellera bravía,\nTu cabellera de gualda:\nDespacio la tendería,\nCallado la besaría.\n\nPor sobre la oreja fina\nBaja lujoso el cabello,\nLo mismo que una cortina\nQue se levanta hacia el cuello.\nLa oreja es obra divina\nDe porcelana de China.\n\nMucho, señora, te diera\nPor desenredar el nudo\nDe tu roja cabellera\nSobre tu cuello desnudo:\nMuy despacio la esparciera,\nHilo por hilo la abriera.",
+      "note": "The 1891 printing reads “lujoso” and sets each six-line stanza together; the comparison has “lustroso” and divides them."
+    },
+    {
+      "number": 44,
+      "roman": "XLIV",
+      "firstImage": 77,
+      "lastImage": 77,
+      "comparisonRevision": 1506437,
+      "text": "Tiene el leopardo un abrigo\nEn su monte seco y pardo:\nYo tengo más que el leopardo\nPorque tengo un buen amigo.\n\nDuerme, como en un juguete,\nLa múshma en su cojinete\nDe arce del Japón: yo digo:\n\"No hay cojín como un amigo\".\n\nTiene el conde su abolengo;\nTiene la aurora el mendigo;\nTiene ala el ave: ¡yo tengo\nAllá en México un amigo!\n\nTiene el señor presidente\nUn jardín con una fuente,\nY un tesoro en oro y trigo:\nTengo más, tengo un amigo.",
+      "note": "The printing reads “De arce del Japón”; the comparison has “De arte”."
+    },
+    {
+      "number": 45,
+      "roman": "XLV",
+      "firstImage": 78,
+      "lastImage": 79,
+      "comparisonRevision": 1506438,
+      "text": "Sueño con claustros de mármol\nDonde en silencio divino\nLos héroes, de pie, reposan:\n¡De noche, a la luz del alma,\nHablo con ellos; de noche!\nEstán en fila: paseo\nEntre las filas: las manos\nDe piedra les beso: abren\nLos ojos de piedra: mueven\nLos labios de piedra: tiemblan\nLas barbas de piedra: empuñan\nLa espada de piedra: lloran\n¡Vibra la espada en la vaina!\nMudo, les beso la mano.\n\n¡Hablo con ellos, de noche!\nEstán en fila: paseo\nEntre las filas: lloroso\nMe abrazo a un mármol: \"Oh mármol\nDicen que beben tus hijos\nSu propia sangre en las copas\nVenenosas de sus dueños!\n¡Que hablan la lengua podrida\nDe sus rufianes! Que comen\nJuntos el pan del oprobio,\nEn la mesa ensangrentada!\nQue pierden en lengua inútil\nEl último fuego! ¡Dicen,\nOh mármol, mármol dormido,\nQue ya se ha muerto tu raza!\"\n\nÉchame en tierra de un bote\nEl héroe que abrazo: me ase\nDel cuello: barre la tierra\nCon mi cabeza: levanta\nEl brazo, ¡el brazo le luce\nLo mismo que un sol!: resuena\nLa piedra: buscan el cinto\nLas manos blancas: del soclo\nSaltan los hombres de mármol!",
+      "note": "The printing reads “del soclo”; the comparison has “del soplo”. The quotation and line break at “Oh mármol” follow the printing."
+    },
+    {
+      "number": 46,
+      "roman": "XLVI",
+      "firstImage": 80,
+      "lastImage": 82,
+      "comparisonRevision": 1506439,
+      "text": "Vierte, corazón, tu pena\nDonde no se llegue a ver,\nPor soberbia, y por no ser\nMotivo de pena agena.\n\nYo te quiero, verso amigo,\nPorque cuando siento el pecho\nYa muy cargado y deshecho,\nParto la carga contigo.\n\nTú me sufres, tú aposentas\nEn tu regazo amoroso,\nTodo mi amor doloroso,\nTodas mis ansias y afrentas.\n\nTú, porque yo pueda en calma\nAmar y hacer bien, consientes\nEn enturbiar tus corrientes\nCon cuanto me agovia el alma.\n\nTú, porque yo cruce fiero\nLa tierra, y sin odio, y puro,\nTe arrastras, pálido y duro,\nMi amoroso compañero.\n\nMi vida así se encamina\nAl cielo limpia y serena,\nY tú me cargas mi pena\nCon tu paciencia divina.\n\nY porque mi cruel costumbre\nDe charme en ti te desvía\nDe tu dichosa armonía\nY natural mansedumbre;\n\nPorque mis penas arrojo\nSobre tu seno, y lo azotan,\nY tu corriente alborotan,\nY acá, lívido, allá rojo,\n\nBlanco allá como la muerte,\nOra arremetes y rujes,\nOra con el peso crujes\nDe un dolor más que tú fuerte,\n\n¿Habré, como me aconseja\nUn corazón mal nacido,\nDe dejar en el olvido\nA aquel que nunca me deja?\n\n¡Verso, nos hablan de un Dios\nA donde van los difuntos:\nVerso, o nos condenan juntos,\nO nos salvamos los dos!",
+      "note": "The printing reads “no se llegue”, “agena”, “agovia”, “charme” and “rujes”; the comparison has “no te llegue”, “ajena”, “agobia”, “echarme” and “ruges”. “charme” may be a printing error; it is retained rather than silently corrected."
+    }
+  ]
+}

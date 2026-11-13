@@ -171,6 +171,56 @@ test('country flags and counts link to the matching country results', async () =
   await context.close();
 });
 
+test('Martí poems support search, preserved saves and JavaScript-free mobile reading', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('marti-versos-sencillos-'));
+  const samples = [1, 9, 30, 46].map(number => selected.find(poem => poem.id === `marti-versos-sencillos-${String(number).padStart(3, '0')}`));
+  const seed = { saved: ['rosa-blanca-marti', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const filters = { language: 'Spanish', country: 'Cuba' };
+  const filterUrl = `${base}?language=Spanish&country=Cuba#explore`;
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(filterUrl);
+  await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('José Martí');
+  await page.getByText('46 poems found', { exact: true }).waitFor();
+  for (const poem of samples) {
+    await page.getByLabel('Search the poetry library').fill(poem.title);
+    const count = filterPoems(poems, { ...filters, query: poem.title }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.goto(filterUrl);
+    await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...samples.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Spanish a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of samples) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), poem.text);
+    assert.equal(await verse.getAttribute('lang'), 'es');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: `${poem.contextSourceTitle} ↗` }).getAttribute('href'), poem.contextSource);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes('CC BY-SA 4.0'));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await fallback.close();
+});
+
 test('Yu Xuanji poems support Chinese search, preserved saves and JavaScript-free mobile reading', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('yu-xuanji-1899-'));
   assert.equal(selected.length, 2);
