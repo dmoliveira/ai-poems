@@ -2,6 +2,7 @@ import { before, after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
+import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
@@ -6979,6 +6980,38 @@ test('legacy saved state without newer fields remains usable and preserves unkno
   await context.close();
 });
 
+// waitForFunction treats a Promise as truthy before it resolves, so it cannot
+// poll an async predicate. Poll in Node, outside any frozen browser clock.
+async function waitForAsyncCondition(page, predicate, arg, { timeout = 30000 } = {}) {
+  let timer;
+  const deadline = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Timed out waiting for an asynchronous browser condition')), timeout);
+  });
+  try {
+    for (;;) {
+      const result = await Promise.race([page.evaluate(predicate, arg), deadline]);
+      if (result) return result;
+      await Promise.race([delay(25), deadline]);
+    }
+  } finally { clearTimeout(timer); }
+}
+
+test('asynchronous browser-condition waits retry false results and time out', async () => {
+  const context = await browser.newContext();
+  await context.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await context.clock.pauseAt(new Date('2026-01-01T00:00:00Z'));
+  const page = await context.newPage();
+  try {
+    await page.goto('about:blank');
+    await page.evaluate(() => { window.conditionAttempts = 0; });
+    const result = await waitForAsyncCondition(page, async () => ++window.conditionAttempts >= 3 && { ready: true });
+    assert.deepEqual(result, { ready: true });
+    assert.equal(await page.evaluate(() => window.conditionAttempts), 3);
+    await assert.rejects(waitForAsyncCondition(page, async () => false, undefined, { timeout: 150 }), /Timed out waiting for an asynchronous browser condition/);
+    await assert.rejects(waitForAsyncCondition(page, () => new Promise(() => {}), undefined, { timeout: 150 }), /Timed out waiting for an asynchronous browser condition/);
+  } finally { await context.close(); }
+});
+
 async function installReadingStateClock(context) {
   // Playwright's clock is shared by every page in a context. Install it once,
   // before application code creates any native timers.
@@ -6987,7 +7020,7 @@ async function installReadingStateClock(context) {
 
 async function pauseReadingStateClock(context) {
   const page = context.pages().find(item => item.url().startsWith(base));
-  await page.waitForFunction(async () => {
+  await waitForAsyncCondition(page, async () => {
     const locks = await navigator.locks.query();
     return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
   });
@@ -7010,15 +7043,14 @@ async function holdReadingStateLock(page) {
 async function pendingReadingStateLocks(page, count) {
   // A visible saving message precedes the asynchronous lock-manager enqueue.
   try {
-    await page.waitForFunction(async expected => {
+    return await waitForAsyncCondition(page, async expected => {
       const snapshot = await navigator.locks.query();
-      return snapshot.held.some(lock => lock.name === 'verso-library-v1')
-        && snapshot.pending.filter(lock => lock.name === 'verso-library-v1').length === expected;
+      const pending = snapshot.pending.filter(lock => lock.name === 'verso-library-v1');
+      return snapshot.held.some(lock => lock.name === 'verso-library-v1') && pending.length === expected && pending;
     }, count);
   } catch (error) {
     throw new Error(`Expected ${count} pending shelf locks: ${JSON.stringify(await readingStateDiagnostics(page))}`, { cause: error });
   }
-  return page.evaluate(async () => (await navigator.locks.query()).pending.filter(lock => lock.name === 'verso-library-v1'));
 }
 
 async function readingStateDiagnostics(holder) {
@@ -7654,7 +7686,7 @@ test('an external update during preparation preserves both the prior state and t
   await page.getByText(totalText).waitFor();
   await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
   await page.goto(`${base}poems/old-pond-basho/`);
-  await page.waitForFunction(async () => {
+  await waitForAsyncCondition(page, async () => {
     const locks = await navigator.locks.query();
     return JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')
       && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
@@ -7702,7 +7734,7 @@ async function readingStateRecord(page) {
 }
 
 async function waitForCommittedReadingState(page) {
-  await page.waitForFunction(() => new Promise(resolve => {
+  await waitForAsyncCondition(page, () => new Promise(resolve => {
     const open = indexedDB.open('verso-reading-state-v1', 1);
     open.onerror = () => resolve(false);
     open.onsuccess = () => {
@@ -7715,6 +7747,57 @@ async function waitForCommittedReadingState(page) {
     };
   }));
 }
+
+test('committed-state wait does not accept a still-pending first history write', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  try {
+    await page.addInitScript(() => {
+      const descriptor = Object.getOwnPropertyDescriptor(IDBTransaction.prototype, 'oncomplete');
+      Object.defineProperty(IDBTransaction.prototype, 'oncomplete', {
+        ...descriptor,
+        set(handler) {
+          descriptor.set.call(this, function (event) {
+            if (this.holdFirstHistoryWrite) {
+              window.firstHistoryPrepared = true;
+              window.releaseFirstHistory = () => handler.call(this, event);
+            } else handler.call(this, event);
+          });
+        },
+      });
+      const put = IDBObjectStore.prototype.put;
+      IDBObjectStore.prototype.put = function (record, ...args) {
+        if (this.name === 'reading-state' && record?.pendingKind === 'recent' && !window.heldFirstHistory) {
+          window.heldFirstHistory = true;
+          this.transaction.holdFirstHistoryWrite = true;
+        }
+        return put.call(this, record, ...args);
+      };
+      const get = IDBObjectStore.prototype.get;
+      IDBObjectStore.prototype.get = function (...args) {
+        const request = get.call(this, ...args);
+        if (this.name === 'reading-state' && this.transaction.mode === 'readonly') {
+          request.addEventListener('success', () => {
+            if (request.result?.pending) window.pendingHistoryReads = (window.pendingHistoryReads || 0) + 1;
+          });
+        }
+        return request;
+      };
+    });
+    await page.goto(`${base}poems/old-pond-basho/`);
+    await page.waitForFunction(() => window.firstHistoryPrepared);
+    let completed = false;
+    const waiting = waitForCommittedReadingState(page).then(() => { completed = true; });
+    await page.waitForFunction(() => window.pendingHistoryReads >= 2);
+    assert.equal(completed, false);
+    await page.evaluate(() => window.releaseFirstHistory());
+    await waiting;
+    const record = await readingStateRecord(page);
+    assert.equal(record.pending, undefined);
+    assert.deepEqual(JSON.parse(record.raw).saved, []);
+    assert.ok(JSON.parse(record.raw).recent.includes('old-pond-basho'));
+  } finally { await context.close(); }
+});
 
 async function stageInterruptedReadingState(page, publishCandidate, kind = '') {
   return page.evaluate(async ({ publish, kind }) => {
@@ -7757,7 +7840,7 @@ test('an interrupted shelf write preserves both versions instead of guessing', a
   await page.getByText(totalText).waitFor();
   await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
   await page.goto(`${base}poems/old-pond-basho/`);
-  await page.waitForFunction(async () => {
+  await waitForAsyncCondition(page, async () => {
     const locks = await navigator.locks.query();
     return JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')
       && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
@@ -7783,7 +7866,7 @@ test('a published interrupted shelf write is recovered on reload', async () => {
   await page.getByText(totalText).waitFor();
   await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
   await page.goto(`${base}poems/old-pond-basho/`);
-  await page.waitForFunction(async () => {
+  await waitForAsyncCondition(page, async () => {
     const locks = await navigator.locks.query();
     return JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')
       && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
@@ -7792,7 +7875,7 @@ test('a published interrupted shelf write is recovered on reload', async () => {
   await stageInterruptedReadingState(page, true);
   await page.reload();
   await page.getByRole('button', { name: /Saved to your shelf/ }).waitFor();
-  await page.waitForFunction(async () => {
+  await waitForAsyncCondition(page, async () => {
     const locks = await navigator.locks.query();
     return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
   });
@@ -7855,7 +7938,7 @@ test('an interrupted first history update recovers without resurrecting a later 
   assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), null);
   await page.goto(`${base}poems/old-pond-basho/`);
   await page.getByRole('button', { name: /Save poem/ }).waitFor();
-  await page.waitForFunction(async () => {
+  await waitForAsyncCondition(page, async () => {
     const locks = await navigator.locks.query();
     return localStorage.getItem('verso-library-v1') !== null
       && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
@@ -7909,7 +7992,7 @@ test('another tab can recover an in-flight first history update without strandin
   await home.locator('#recent-items').getByText('The Old Pond').waitFor();
   assert.equal(await home.locator('main > .storage-warning').isVisible(), false);
   await reader.evaluate(() => window.releaseHistoryWrite());
-  await reader.waitForFunction(async () => {
+  await waitForAsyncCondition(reader, async () => {
     const locks = await navigator.locks.query();
     return localStorage.getItem('verso-library-v1') !== null
       && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
@@ -8017,7 +8100,7 @@ async function exerciseConcurrentHistoryRecovery(mode) {
       await reader.locator('main > .storage-warning').getByText(/Saved data could not be read/).waitFor();
     }
     await reader.evaluate(() => window.releaseMarker());
-    await reader.waitForFunction(async () => {
+    await waitForAsyncCondition(reader, async () => {
       const locks = await navigator.locks.query();
       return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
     });
@@ -8147,7 +8230,7 @@ test('a failed finalization warns instead of claiming success and recovers its p
   const context = await browser.newContext();
   const page = await context.newPage();
   await page.goto(`${base}poems/old-pond-basho/`);
-  await page.waitForFunction(async () => {
+  await waitForAsyncCondition(page, async () => {
     const locks = await navigator.locks.query();
     return JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('old-pond-basho')
       && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
@@ -8173,7 +8256,7 @@ test('a failed finalization warns instead of claiming success and recovers its p
   assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), ['old-pond-basho']);
   await page.reload();
   await page.getByRole('button', { name: /Saved to your shelf/ }).waitFor();
-  await page.waitForFunction(async () => {
+  await waitForAsyncCondition(page, async () => {
     const locks = await navigator.locks.query();
     return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
   });
