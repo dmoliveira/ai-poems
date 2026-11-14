@@ -7097,6 +7097,52 @@ test('queued writes cancel a stale shelf clear rather than discard a concurrent 
   }
 });
 
+test('a stale localStorage cache cannot make a queued shelf clear erase a newer save', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  await installReadingStateClock(context);
+  const home = await context.newPage();
+  await home.goto(base);
+  await home.getByText(totalText).waitFor();
+  await home.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
+  await home.reload();
+  await home.locator('#shelf-items').getByText('Sonnet 18').waitFor();
+  const reader = await context.newPage();
+  await reader.goto(`${base}poems/old-pond-basho/`);
+  await home.locator('#recent-items').getByText('The Old Pond').waitFor();
+  const holder = await context.newPage();
+  await holder.goto(base);
+  await pauseReadingStateClock(context);
+  await holdReadingStateLock(holder);
+  try {
+    await home.evaluate(() => {
+      const get = Storage.prototype.getItem;
+      window.staleShelfRaw = get.call(localStorage, 'verso-library-v1');
+      window.staleShelfReads = 0;
+      Storage.prototype.getItem = function (name) {
+        if (this === localStorage && name === 'verso-library-v1' && window.returnStaleShelf) { window.staleShelfReads++; return window.staleShelfRaw; }
+        return get.call(this, name);
+      };
+    });
+    await reader.getByRole('button', { name: /Save poem/ }).click();
+    const [saveRequest] = await pendingReadingStateLocks(holder, 1);
+    await home.getByText('Clear saved poems', { exact: true }).click();
+    await home.getByRole('button', { name: 'Yes, clear saved poems' }).click();
+    assert.equal((await pendingReadingStateLocks(holder, 2))[0].clientId, saveRequest.clientId);
+    await home.evaluate(() => { window.returnStaleShelf = true; });
+    await holder.evaluate(() => window.releaseTestLock());
+    await reader.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    await home.locator('.clear-conflict').getByText(/Review your shelf and confirm again/).waitFor();
+    assert.ok(await home.evaluate(() => window.staleShelfReads > 0));
+    await home.evaluate(() => { window.returnStaleShelf = false; });
+    const stored = await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')));
+    assert.deepEqual(stored.saved, ['shakespeare-sonnet-18', 'old-pond-basho']);
+    assert.deepEqual(stored.extra, { keep: true });
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
+});
+
 test('a clear queued before a new save removes only the confirmed poems', async () => {
   const context = await browser.newContext({ reducedMotion: 'reduce' });
   await installReadingStateClock(context);
@@ -7129,6 +7175,56 @@ test('a clear queued before a new save removes only the confirmed poems', async 
     assert.deepEqual(stored.saved, ['old-pond-basho']);
     assert.deepEqual(stored.extra, { keep: true });
     assert.equal(await home.locator('.clear-conflict').count(), 0);
+  } finally {
+    await holder.evaluate(() => window.releaseTestLock?.());
+    await context.close();
+  }
+});
+
+test('a stale localStorage cache cannot resurrect poems when a save follows a clear', async () => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  await installReadingStateClock(context);
+  const home = await context.newPage();
+  await home.goto(base);
+  await home.getByText(totalText).waitFor();
+  await home.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
+  await home.reload();
+  await home.locator('#shelf-items').getByText('Sonnet 18').waitFor();
+  const reader = await context.newPage();
+  await reader.goto(`${base}poems/old-pond-basho/`);
+  await home.locator('#recent-items').getByText('The Old Pond').waitFor();
+  const holder = await context.newPage();
+  await holder.goto(base);
+  await pauseReadingStateClock(context);
+  await holdReadingStateLock(holder);
+  try {
+    await reader.evaluate(() => {
+      const get = Storage.prototype.getItem;
+      const set = Storage.prototype.setItem;
+      window.staleShelfRaw = get.call(localStorage, 'verso-library-v1');
+      window.staleShelfReads = 0;
+      Storage.prototype.getItem = function (name) {
+        if (this === localStorage && name === 'verso-library-v1' && window.returnStaleShelf) { window.staleShelfReads++; return window.staleShelfRaw; }
+        return get.call(this, name);
+      };
+      Storage.prototype.setItem = function (name, value) {
+        if (this === localStorage && name === 'verso-library-v1') window.returnStaleShelf = false;
+        return set.call(this, name, value);
+      };
+    });
+    await home.getByText('Clear saved poems', { exact: true }).click();
+    await home.getByRole('button', { name: 'Yes, clear saved poems' }).click();
+    const [clearRequest] = await pendingReadingStateLocks(holder, 1);
+    await reader.getByRole('button', { name: /Save poem/ }).click();
+    assert.equal((await pendingReadingStateLocks(holder, 2))[0].clientId, clearRequest.clientId);
+    await reader.evaluate(() => { window.returnStaleShelf = true; });
+    await holder.evaluate(() => window.releaseTestLock());
+    await reader.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await reader.evaluate(() => window.staleShelfReads > 0));
+    await reader.evaluate(() => { window.returnStaleShelf = false; });
+    const stored = await home.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')));
+    assert.deepEqual(stored.saved, ['old-pond-basho']);
+    assert.deepEqual(stored.extra, { keep: true });
   } finally {
     await holder.evaluate(() => window.releaseTestLock?.());
     await context.close();
@@ -7433,6 +7529,624 @@ test('external corruption while a write is queued cancels the pending durable up
     await holder.evaluate(() => window.releaseTestLock?.());
     await context.close();
   }
+});
+
+test('unavailable transactional storage preserves legacy saved data without claiming a save', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  const legacy = JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } });
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', value), legacy);
+  await context.addInitScript(() => Object.defineProperty(window, 'indexedDB', { configurable: true, get() { throw new Error('IndexedDB blocked'); } }));
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.locator('main > .storage-warning').getByText(/cannot safely coordinate/).waitFor();
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText(/on this page only/).waitFor();
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), legacy);
+  await context.close();
+});
+
+test('an unrecognized valid external update is not overwritten', async () => {
+  const context = await browser.newContext();
+  const reader = await context.newPage();
+  await reader.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await reader.getByRole('button', { name: /Save poem/ }).click();
+  await reader.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const other = await context.newPage();
+  await other.goto(base);
+  await other.getByText(totalText).waitFor();
+  const external = JSON.stringify({ saved: ['unknown-external-poem'], recent: [], extra: { external: true } });
+  await other.evaluate(value => localStorage.setItem('verso-library-v1', value), external);
+  await reader.locator('main > .storage-warning').getByText(/cannot safely coordinate/).waitFor();
+  await reader.getByRole('button', { name: /Saved to your shelf/ }).click();
+  assert.equal(await other.evaluate(() => localStorage.getItem('verso-library-v1')), external);
+  const record = await readingStateRecord(reader);
+  assert.ok(JSON.parse(record.raw).saved.includes('shakespeare-sonnet-18'));
+  await context.close();
+});
+
+test('a corrupt transactional record cannot overwrite a valid legacy mirror', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`${base}poems/shakespeare-sonnet-18/`);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const mirror = await page.evaluate(() => localStorage.getItem('verso-library-v1'));
+  await page.evaluate(() => new Promise((resolve, reject) => {
+    const open = indexedDB.open('verso-reading-state-v1', 1);
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const database = open.result;
+      const transaction = database.transaction('reading-state', 'readwrite');
+      const store = transaction.objectStore('reading-state');
+      const request = store.get('library');
+      request.onsuccess = () => store.put({ ...request.result, digest: '0'.repeat(64) }, 'library');
+      transaction.oncomplete = () => { database.close(); resolve(); };
+      transaction.onabort = () => reject(transaction.error);
+    };
+  }));
+  await page.reload();
+  await page.locator('main > .storage-warning').getByText(/This page will not overwrite it/).waitFor();
+  await page.getByRole('button', { name: /Saved to your shelf/ }).click();
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), mirror);
+  const record = await readingStateRecord(page);
+  assert.equal(record.digest, '0'.repeat(64));
+  await context.close();
+});
+
+test('an external update during preparation preserves both the prior state and the external bytes', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.waitForFunction(async () => {
+    const locks = await navigator.locks.query();
+    return JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')
+      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+  });
+  await page.goto(`${base}#shelf`);
+  await page.locator('#shelf-items').getByText('Sonnet 18').waitFor();
+  const before = await readingStateRecord(page);
+  const external = JSON.stringify({ saved: ['external-sentinel'], recent: [], extra: { external: true } });
+  await page.evaluate(value => {
+    const put = IDBObjectStore.prototype.put;
+    let injected = false;
+    IDBObjectStore.prototype.put = function (record, ...args) {
+      const request = put.call(this, record, ...args);
+      if (this.name === 'reading-state' && record?.pending && !injected) {
+        injected = true;
+        request.addEventListener('success', () => localStorage.setItem('verso-library-v1', value));
+      }
+      return request;
+    };
+  }, external);
+  await page.getByText('Clear saved poems', { exact: true }).click();
+  await page.getByRole('button', { name: 'Yes, clear saved poems' }).click();
+  await page.locator('main > .storage-warning').getByText(/cannot safely coordinate/).waitFor();
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), external);
+  const after = await readingStateRecord(page);
+  assert.equal(after.raw, before.raw);
+  assert.equal(after.pending, undefined);
+  assert.deepEqual(JSON.parse(after.raw).saved, ['shakespeare-sonnet-18']);
+  await context.close();
+});
+
+async function readingStateRecord(page) {
+  return page.evaluate(() => new Promise((resolve, reject) => {
+    const open = indexedDB.open('verso-reading-state-v1', 1);
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const database = open.result;
+      const transaction = database.transaction('reading-state', 'readonly');
+      const request = transaction.objectStore('reading-state').get('library');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+      transaction.oncomplete = () => database.close();
+    };
+  }));
+}
+
+async function waitForCommittedReadingState(page) {
+  await page.waitForFunction(() => new Promise(resolve => {
+    const open = indexedDB.open('verso-reading-state-v1', 1);
+    open.onerror = () => resolve(false);
+    open.onsuccess = () => {
+      const database = open.result;
+      const transaction = database.transaction('reading-state', 'readonly');
+      const request = transaction.objectStore('reading-state').get('library');
+      request.onsuccess = () => resolve(Boolean(request.result && !request.result.pending && typeof request.result.raw === 'string'));
+      request.onerror = () => resolve(false);
+      transaction.oncomplete = () => database.close();
+    };
+  }));
+}
+
+async function stageInterruptedReadingState(page, publishCandidate, kind = '') {
+  return page.evaluate(async ({ publish, kind }) => {
+    const database = await new Promise((resolve, reject) => {
+      const request = indexedDB.open('verso-reading-state-v1', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const record = await new Promise((resolve, reject) => {
+      const request = database.transaction('reading-state', 'readonly').objectStore('reading-state').get('library');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const next = JSON.parse(record.raw);
+    if (kind === 'forged-recent-delete') next.recent = [];
+    else if (kind === 'recent') next.recent = ['quiet-night-thought-li-bai', ...next.recent.filter(id => id !== 'quiet-night-thought-li-bai')].slice(0, 20);
+    else next.saved = [...new Set([...next.saved, 'old-pond-basho'])];
+    next._versoRevision++;
+    const raw = JSON.stringify(next);
+    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`string:${raw}`));
+    const digest = [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    const pending = { raw, digest, ancestors: [...new Set([record.digest, ...record.ancestors])].slice(0, 16) };
+    await new Promise((resolve, reject) => {
+      const transaction = database.transaction('reading-state', 'readwrite');
+      const pendingKind = ['recent', 'forged-recent', 'forged-recent-delete'].includes(kind) ? 'recent' : undefined;
+      transaction.objectStore('reading-state').put({ ...record, pending, ...(pendingKind ? { pendingKind } : {}) }, 'library');
+      transaction.oncomplete = resolve;
+      transaction.onabort = () => reject(transaction.error);
+    });
+    database.close();
+    if (publish) localStorage.setItem('verso-library-v1', raw);
+    return { previous: record.raw, candidate: raw };
+  }, { publish: publishCandidate, kind });
+}
+
+test('an interrupted shelf write preserves both versions instead of guessing', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.waitForFunction(async () => {
+    const locks = await navigator.locks.query();
+    return JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')
+      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+  });
+  await waitForCommittedReadingState(page);
+  const staged = await stageInterruptedReadingState(page, false);
+  await page.reload();
+  await page.locator('main > .storage-warning').getByText(/Both versions are preserved/).waitFor();
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), staged.previous);
+  const record = await readingStateRecord(page);
+  assert.equal(record.raw, staged.previous);
+  assert.equal(record.pending.raw, staged.candidate);
+  assert.deepEqual(JSON.parse(record.raw).saved, ['shakespeare-sonnet-18']);
+  assert.deepEqual(JSON.parse(record.pending.raw).saved, ['shakespeare-sonnet-18', 'old-pond-basho']);
+  await context.close();
+});
+
+test('a published interrupted shelf write is recovered on reload', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.waitForFunction(async () => {
+    const locks = await navigator.locks.query();
+    return JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')
+      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+  });
+  await waitForCommittedReadingState(page);
+  await stageInterruptedReadingState(page, true);
+  await page.reload();
+  await page.getByRole('button', { name: /Saved to your shelf/ }).waitFor();
+  await page.waitForFunction(async () => {
+    const locks = await navigator.locks.query();
+    return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+  });
+  const record = await readingStateRecord(page);
+  assert.equal(record.pending, undefined);
+  assert.deepEqual(JSON.parse(record.raw).saved, ['shakespeare-sonnet-18', 'old-pond-basho']);
+  assert.equal(await page.locator('main > .storage-warning').isVisible(), false);
+  await context.close();
+});
+
+test('an interrupted automatic history update recovers without blocking the shelf', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.getByRole('button', { name: /Save poem/ }).waitFor();
+  await waitForCommittedReadingState(page);
+  const staged = await stageInterruptedReadingState(page, false, 'recent');
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), staged.previous);
+  await page.reload();
+  await page.getByRole('button', { name: /Save poem/ }).waitFor();
+  await waitForCommittedReadingState(page);
+  const record = await readingStateRecord(page);
+  assert.equal(record.pending, undefined);
+  assert.deepEqual(JSON.parse(record.raw).saved, ['shakespeare-sonnet-18']);
+  assert.ok(JSON.parse(record.raw).recent.includes('quiet-night-thought-li-bai'));
+  assert.deepEqual(JSON.parse(record.raw).extra, { keep: true });
+  assert.equal(await page.locator('main > .storage-warning').isVisible(), false);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), ['shakespeare-sonnet-18', 'old-pond-basho']);
+  await context.close();
+});
+
+test('an interrupted first history update recovers without resurrecting a later deleted mirror', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(async () => {
+    const hash = async text => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    const initial = await hash('null');
+    const raw = JSON.stringify({ saved: [], recent: ['old-pond-basho'], _versoRevision: 1 });
+    const pending = { raw, digest: await hash(`string:${raw}`), ancestors: [initial] };
+    const database = await new Promise((resolve, reject) => {
+      const request = indexedDB.open('verso-reading-state-v1', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    await new Promise((resolve, reject) => {
+      const transaction = database.transaction('reading-state', 'readwrite');
+      transaction.objectStore('reading-state').put({ raw: null, digest: initial, ancestors: [], pending, pendingKind: 'recent' }, 'library');
+      transaction.oncomplete = resolve;
+      transaction.onabort = () => reject(transaction.error);
+    });
+    database.close();
+  });
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), null);
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.getByRole('button', { name: /Save poem/ }).waitFor();
+  await page.waitForFunction(async () => {
+    const locks = await navigator.locks.query();
+    return localStorage.getItem('verso-library-v1') !== null
+      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+  });
+  await waitForCommittedReadingState(page);
+  const record = await readingStateRecord(page);
+  assert.equal(record.initialMirrorMissing, undefined);
+  assert.deepEqual(JSON.parse(record.raw).saved, []);
+  assert.ok(JSON.parse(record.raw).recent.includes('old-pond-basho'));
+  assert.equal(await page.locator('main > .storage-warning').isVisible(), false);
+  await page.evaluate(() => localStorage.removeItem('verso-library-v1'));
+  await page.goto(base);
+  await page.locator('main > .storage-warning').getByText(/cannot safely coordinate/).waitFor();
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), null);
+  assert.deepEqual(JSON.parse((await readingStateRecord(page)).raw).saved, []);
+  await context.close();
+});
+
+test('another tab can recover an in-flight first history update without stranding its writer', async () => {
+  const context = await browser.newContext();
+  const home = await context.newPage();
+  await home.goto(base);
+  await home.getByText(totalText).waitFor();
+  const reader = await context.newPage();
+  await reader.addInitScript(() => {
+    const descriptor = Object.getOwnPropertyDescriptor(IDBTransaction.prototype, 'oncomplete');
+    Object.defineProperty(IDBTransaction.prototype, 'oncomplete', {
+      ...descriptor,
+      set(handler) {
+        descriptor.set.call(this, function (event) {
+          if (this.holdSyntheticCompletion) {
+            window.historyWritePrepared = true;
+            window.releaseHistoryWrite = () => handler.call(this, event);
+          } else handler.call(this, event);
+        });
+      },
+    });
+    const put = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (record, ...args) {
+      if (this.name === 'reading-state' && record?.pendingKind === 'recent' && !window.historyWriteHeldOnce) {
+        window.historyWriteHeldOnce = true;
+        this.transaction.holdSyntheticCompletion = true;
+      }
+      return put.call(this, record, ...args);
+    };
+  });
+  await reader.goto(`${base}poems/old-pond-basho/`);
+  await reader.waitForFunction(() => window.historyWritePrepared);
+  assert.equal(await reader.evaluate(() => localStorage.getItem('verso-library-v1')), null);
+  await home.reload();
+  await home.locator('#recent-items').getByText('The Old Pond').waitFor();
+  assert.equal(await home.locator('main > .storage-warning').isVisible(), false);
+  await reader.evaluate(() => window.releaseHistoryWrite());
+  await reader.waitForFunction(async () => {
+    const locks = await navigator.locks.query();
+    return localStorage.getItem('verso-library-v1') !== null
+      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+  });
+  const record = await readingStateRecord(reader);
+  assert.equal(record.pending, undefined);
+  assert.equal(record.initialMirrorMissing, undefined);
+  const warning = reader.locator('main > .storage-warning');
+  assert.equal(await warning.isVisible(), false, JSON.stringify({ warning: await warning.textContent(), notice: await reader.getByRole('status').textContent(), stored: await reader.evaluate(() => localStorage.getItem('verso-library-v1')), record }));
+  await reader.getByRole('button', { name: /Save poem/ }).click();
+  await reader.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  assert.deepEqual(await reader.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), ['old-pond-basho']);
+  await context.close();
+});
+
+async function exerciseConcurrentHistoryRecovery(mode) {
+  const context = await browser.newContext();
+  const home = await context.newPage();
+  const reader = await context.newPage();
+  const cleaner = await context.newPage();
+  try {
+    await home.goto(base);
+    await home.getByText(totalText).waitFor();
+    await reader.addInitScript(() => {
+      const descriptor = Object.getOwnPropertyDescriptor(IDBTransaction.prototype, 'oncomplete');
+      Object.defineProperty(IDBTransaction.prototype, 'oncomplete', {
+        ...descriptor,
+        set(handler) {
+          descriptor.set.call(this, function (event) {
+            if (this.holdPreparedCompletion) {
+              window.historyPrepared = true;
+              window.releasePrepared = () => handler.call(this, event);
+            } else if (this.holdMarkerCompletion) {
+              window.markerRead = true;
+              window.releaseMarker = () => handler.call(this, event);
+            } else handler.call(this, event);
+          });
+        },
+      });
+      const put = IDBObjectStore.prototype.put;
+      IDBObjectStore.prototype.put = function (record, ...args) {
+        if (this.name === 'reading-state' && record?.pendingKind === 'recent' && !window.heldPreparedOnce) {
+          window.heldPreparedOnce = true;
+          this.transaction.holdPreparedCompletion = true;
+        }
+        return put.call(this, record, ...args);
+      };
+      const get = IDBObjectStore.prototype.get;
+      IDBObjectStore.prototype.get = function (...args) {
+        const request = get.call(this, ...args);
+        if (this.name === 'reading-state' && this.transaction.mode === 'readonly') {
+          request.addEventListener('success', () => {
+            if (window.holdMarkerRead && request.result?.initialMirrorMissing && !request.result.pending) this.transaction.holdMarkerCompletion = true;
+          });
+        }
+        return request;
+      };
+    });
+    await reader.goto(`${base}poems/old-pond-basho/`);
+    await reader.waitForFunction(() => window.historyPrepared);
+    await home.reload();
+    await home.locator('#recent-items').getByText('The Old Pond').waitFor();
+    assert.equal((await readingStateRecord(home)).initialMirrorMissing, true);
+    await cleaner.route('**/app.mjs', route => route.abort());
+    await cleaner.goto(base);
+    await home.close();
+    await reader.evaluate(() => { window.holdMarkerRead = true; window.releasePrepared(); });
+    await reader.waitForFunction(() => window.markerRead);
+    await cleaner.waitForFunction(() => localStorage.getItem('verso-library-v1') !== null);
+    const cleaned = await cleaner.evaluate(async mode => {
+      const database = await new Promise((resolve, reject) => {
+        const request = indexedDB.open('verso-reading-state-v1', 1);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const before = await new Promise((resolve, reject) => {
+        const request = database.transaction('reading-state', 'readonly').objectStore('reading-state').get('library');
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const { initialMirrorMissing, ...published } = before;
+      let next = published;
+      if (mode === 'different') {
+        const state = JSON.parse(published.raw);
+        state.saved = ['concurrent-user-poem'];
+        state._versoRevision++;
+        const raw = JSON.stringify(state);
+        const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`string:${raw}`));
+        const digest = [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+        next = { raw, digest, ancestors: [published.digest, ...published.ancestors].slice(0, 16) };
+      }
+      await new Promise((resolve, reject) => {
+        const transaction = database.transaction('reading-state', 'readwrite');
+        transaction.objectStore('reading-state').put(next, 'library');
+        transaction.oncomplete = resolve;
+        transaction.onabort = () => reject(transaction.error);
+      });
+      database.close();
+      return before;
+    }, mode);
+    assert.equal(cleaned.initialMirrorMissing, true);
+    assert.equal(cleaned.pending, undefined);
+    if (mode === 'corrupt') {
+      await cleaner.evaluate(() => localStorage.setItem('verso-library-v1', '{bad'));
+      await reader.locator('main > .storage-warning').getByText(/Saved data could not be read/).waitFor();
+    }
+    await reader.evaluate(() => window.releaseMarker());
+    await reader.waitForFunction(async () => {
+      const locks = await navigator.locks.query();
+      return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+    });
+    const record = await readingStateRecord(reader);
+    const warning = reader.locator('main > .storage-warning');
+    if (mode === 'different') {
+      await warning.getByText(/could not be updated or confirmed/).waitFor();
+      const mirror = await reader.evaluate(() => localStorage.getItem('verso-library-v1'));
+      assert.deepEqual(JSON.parse(record.raw).saved, ['concurrent-user-poem']);
+      assert.deepEqual(JSON.parse(mirror).saved, []);
+      await reader.getByRole('button', { name: /Save poem/ }).click();
+      assert.equal(await reader.evaluate(() => localStorage.getItem('verso-library-v1')), mirror);
+      assert.deepEqual(await readingStateRecord(reader), record);
+      return;
+    }
+    if (mode === 'corrupt') {
+      await warning.getByText(/could not be updated or confirmed/).waitFor();
+      assert.deepEqual(JSON.parse(record.raw).saved, []);
+      assert.equal(await reader.evaluate(() => localStorage.getItem('verso-library-v1')), '{bad');
+      await reader.getByRole('button', { name: /Save poem/ }).click();
+      assert.equal(await reader.evaluate(() => localStorage.getItem('verso-library-v1')), '{bad');
+      assert.deepEqual(await readingStateRecord(reader), record);
+      return;
+    }
+    assert.equal(await warning.isVisible(), false, JSON.stringify({ warning: await warning.textContent(), record, mirror: await reader.evaluate(() => localStorage.getItem('verso-library-v1')) }));
+    await reader.getByRole('button', { name: /Save poem/ }).click();
+    await reader.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.deepEqual(await reader.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), ['old-pond-basho']);
+  } finally {
+    await context.close();
+  }
+}
+
+test('a concurrently completed history recovery does not strand its original writer', async () => {
+  await exerciseConcurrentHistoryRecovery('same');
+});
+
+test('a different concurrent state is never accepted as a completed recovery', async () => {
+  await exerciseConcurrentHistoryRecovery('different');
+});
+
+test('a corrupt external update cannot become a successful history recovery', async () => {
+  await exerciseConcurrentHistoryRecovery('corrupt');
+});
+
+test('history recovery does not overwrite an unrecognized external update', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.getByRole('button', { name: /Save poem/ }).waitFor();
+  await waitForCommittedReadingState(page);
+  const staged = await stageInterruptedReadingState(page, false, 'recent');
+  const external = JSON.stringify({ saved: ['external-sentinel'], recent: [], extra: { external: true } });
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', value), external);
+  await page.reload();
+  await page.locator('main > .storage-warning').getByText(/cannot safely coordinate/).waitFor();
+  const record = await readingStateRecord(page);
+  assert.equal(record.raw, staged.previous);
+  assert.equal(record.pending.raw, staged.candidate);
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), external);
+  await context.close();
+});
+
+test('a forged history-only intent cannot discard or change saved poems', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.getByRole('button', { name: /Save poem/ }).waitFor();
+  await waitForCommittedReadingState(page);
+  const staged = await stageInterruptedReadingState(page, false, 'forged-recent');
+  await page.reload();
+  await page.locator('main > .storage-warning').getByText(/This page will not overwrite it/).waitFor();
+  const record = await readingStateRecord(page);
+  assert.equal(record.raw, staged.previous);
+  assert.equal(record.pending.raw, staged.candidate);
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), staged.previous);
+  await context.close();
+});
+
+test('a forged history-only intent cannot erase prior reading history', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.getByRole('button', { name: /Save poem/ }).waitFor();
+  await waitForCommittedReadingState(page);
+  const staged = await stageInterruptedReadingState(page, false, 'forged-recent-delete');
+  await page.reload();
+  await page.locator('main > .storage-warning').getByText(/This page will not overwrite it/).waitFor();
+  const record = await readingStateRecord(page);
+  assert.equal(record.raw, staged.previous);
+  assert.equal(record.pending.raw, staged.candidate);
+  assert.ok(JSON.parse(record.raw).recent.includes('old-pond-basho'));
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), staged.previous);
+  await context.close();
+});
+
+test('a corrupt prepared transition is preserved instead of being finalized', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.getByRole('button', { name: /Save poem/ }).waitFor();
+  await waitForCommittedReadingState(page);
+  const staged = await stageInterruptedReadingState(page, true);
+  await page.evaluate(() => new Promise((resolve, reject) => {
+    const open = indexedDB.open('verso-reading-state-v1', 1);
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const database = open.result;
+      const transaction = database.transaction('reading-state', 'readwrite');
+      const store = transaction.objectStore('reading-state');
+      const request = store.get('library');
+      request.onsuccess = () => store.put({ ...request.result, pending: { ...request.result.pending, ancestors: [] } }, 'library');
+      transaction.oncomplete = () => { database.close(); resolve(); };
+      transaction.onabort = () => reject(transaction.error);
+    };
+  }));
+  await page.reload();
+  await page.locator('main > .storage-warning').getByText(/This page will not overwrite it/).waitFor();
+  const record = await readingStateRecord(page);
+  assert.equal(record.raw, staged.previous);
+  assert.equal(record.pending.raw, staged.candidate);
+  assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), staged.candidate);
+  await context.close();
+});
+
+test('a failed finalization warns instead of claiming success and recovers its published write', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`${base}poems/old-pond-basho/`);
+  await page.waitForFunction(async () => {
+    const locks = await navigator.locks.query();
+    return JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('old-pond-basho')
+      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+  });
+  await waitForCommittedReadingState(page);
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put;
+    let fail = true;
+    IDBObjectStore.prototype.put = function (record, ...args) {
+      if (this.name === 'reading-state' && record?.raw && !record.pending && fail) {
+        fail = false;
+        throw new Error('Synthetic finalization failure');
+      }
+      return put.call(this, record, ...args);
+    };
+  });
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText(/could not be updated or confirmed/).waitFor();
+  const pending = await readingStateRecord(page);
+  assert.ok(pending.pending);
+  assert.deepEqual(JSON.parse(pending.raw).saved, []);
+  assert.deepEqual(JSON.parse(pending.pending.raw).saved, ['old-pond-basho']);
+  assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), ['old-pond-basho']);
+  await page.reload();
+  await page.getByRole('button', { name: /Saved to your shelf/ }).waitFor();
+  await page.waitForFunction(async () => {
+    const locks = await navigator.locks.query();
+    return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+  });
+  const recovered = await readingStateRecord(page);
+  assert.equal(recovered.pending, undefined);
+  assert.deepEqual(JSON.parse(recovered.raw).saved, ['old-pond-basho']);
+  await context.close();
+});
+
+test('a completed shelf clear does not retain deleted shelf contents in transactional history', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['known-deleted-sentinel'], recent: [] })));
+  await page.reload();
+  await page.getByText(totalText).waitFor();
+  await page.getByText('Clear saved poems', { exact: true }).click();
+  await page.getByRole('button', { name: 'Yes, clear saved poems' }).click();
+  await page.getByRole('status').getByText('Saved poems present at confirmation were cleared.').waitFor();
+  const record = await readingStateRecord(page);
+  assert.deepEqual(JSON.parse(record.raw).saved, []);
+  assert.equal(JSON.stringify(record).includes('known-deleted-sentinel'), false);
+  assert.equal(record.pending, undefined);
+  await context.close();
 });
 
 test('blocked session storage keeps the reader and filtered return link usable', async () => {
