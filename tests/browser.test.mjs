@@ -7687,10 +7687,11 @@ test('an external update during preparation preserves both the prior state and t
   await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
   await page.goto(`${base}poems/old-pond-basho/`);
   await waitForAsyncCondition(page, async () => {
+    if (!JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')) return false;
     const locks = await navigator.locks.query();
-    return JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')
-      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+    return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
   });
+  await waitForCommittedReadingState(page);
   await page.goto(`${base}#shelf`);
   await page.locator('#shelf-items').getByText('Sonnet 18').waitFor();
   const before = await readingStateRecord(page);
@@ -7841,9 +7842,9 @@ test('an interrupted shelf write preserves both versions instead of guessing', a
   await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
   await page.goto(`${base}poems/old-pond-basho/`);
   await waitForAsyncCondition(page, async () => {
+    if (!JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')) return false;
     const locks = await navigator.locks.query();
-    return JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')
-      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+    return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
   });
   await waitForCommittedReadingState(page);
   const staged = await stageInterruptedReadingState(page, false);
@@ -7867,9 +7868,9 @@ test('a published interrupted shelf write is recovered on reload', async () => {
   await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
   await page.goto(`${base}poems/old-pond-basho/`);
   await waitForAsyncCondition(page, async () => {
+    if (!JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')) return false;
     const locks = await navigator.locks.query();
-    return JSON.parse(localStorage.getItem('verso-library-v1')).recent.includes('old-pond-basho')
-      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+    return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
   });
   await waitForCommittedReadingState(page);
   await stageInterruptedReadingState(page, true);
@@ -7939,9 +7940,9 @@ test('an interrupted first history update recovers without resurrecting a later 
   await page.goto(`${base}poems/old-pond-basho/`);
   await page.getByRole('button', { name: /Save poem/ }).waitFor();
   await waitForAsyncCondition(page, async () => {
+    if (localStorage.getItem('verso-library-v1') === null) return false;
     const locks = await navigator.locks.query();
-    return localStorage.getItem('verso-library-v1') !== null
-      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+    return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
   });
   await waitForCommittedReadingState(page);
   const record = await readingStateRecord(page);
@@ -7993,9 +7994,9 @@ test('another tab can recover an in-flight first history update without strandin
   assert.equal(await home.locator('main > .storage-warning').isVisible(), false);
   await reader.evaluate(() => window.releaseHistoryWrite());
   await waitForAsyncCondition(reader, async () => {
+    if (localStorage.getItem('verso-library-v1') === null) return false;
     const locks = await navigator.locks.query();
-    return localStorage.getItem('verso-library-v1') !== null
-      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+    return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
   });
   const record = await readingStateRecord(reader);
   assert.equal(record.pending, undefined);
@@ -8231,9 +8232,9 @@ test('a failed finalization warns instead of claiming success and recovers its p
   const page = await context.newPage();
   await page.goto(`${base}poems/old-pond-basho/`);
   await waitForAsyncCondition(page, async () => {
+    if (!JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('old-pond-basho')) return false;
     const locks = await navigator.locks.query();
-    return JSON.parse(localStorage.getItem('verso-library-v1') || '{}').recent?.includes('old-pond-basho')
-      && ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+    return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
   });
   await waitForCommittedReadingState(page);
   await page.evaluate(() => {
