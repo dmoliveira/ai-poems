@@ -18,6 +18,47 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Storni poems retain complete 1918 readings, Argentine identity and edition caveats', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('storni-1918-'));
+  const slugs = ['asi', 'este-grave-dano', 'sabado', 'dime', 'capricho', 'dulce-tortura', 'el-dulce-dano', 'dos-palabras', 'tu-dulzura', 'el-llamado', 'bajo-tus-miradas', 'queja', 'ladrona', 'transfusion', 'siete-vidas', 'tu-me-quieres-blanca', 'el-oro-de-la-vida', 'tentacion', 'que-diria', 'sentirse', 'cuadrados-y-angulos', 'aspecto', 'bah', 'una-pared', 'parasitos', 'verdad', 'sabeis-algo', 'el-extrano-deseo'];
+  const pages = [5, 7, 9, 14, 16, 26, 27, 36, 38, 45, 56, 65, 71, 78, 83, 98, 113, 114, 115, 117, 137, 138, 139, 140, 141, 142, 143, 144];
+  const lineCounts = [18, 8, 25, 24, 28, 8, 14, 18, 14, 19, 14, 16, 12, 14, 16, 59, 10, 12, 12, 8, 9, 8, 8, 6, 7, 8, 6, 14];
+  assert.equal(selected.length, 28);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '4ad45110030d7940f8c6d96882b8165b1f059662dad32470f3f5d507a416d296');
+  assert.equal(createHash('sha256').update(JSON.stringify(selected.map(({ id, title, source }) => ({ id, title, source })))).digest('hex'), '5947d6904144d5dcc89e9e494491c5750f3adfafb355ef1c9603c792fa2ce9b0');
+  assert.equal(groupPoets(poems).find(group => group.id === 'alfonsina-storni').poems.length, 28);
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.id, `storni-1918-${slugs[index]}`);
+    assert.equal(lineCount(poem), lineCounts[index]);
+    assert.equal(poem.author, 'Alfonsina Storni');
+    assert.equal(poem.country, 'Argentina');
+    assert.equal(poem.language, 'Spanish');
+    assert.equal(poem.lang, 'es');
+    assert.equal(poem.year, 1918);
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(poem.source.endsWith(`#page=${pages[index]}`));
+    assert.match(poem.context, /Swiss-born Argentine poet.*stanza joins at page breaks may be editorial/);
+    assert.match(poem.rights, /public domain in the United States.*Commons marks the linked scan public domain/);
+    assert.ok(filterPoems([poem], { query: poem.text.split('\n')[1] }).some(item => item.id === poem.id));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(poem.text)));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+  }
+  const bySlug = slug => selected.find(poem => poem.id === `storni-1918-${slug}`);
+  assert.match(bySlug('asi').text, /Dí luces.*\nCuando fuí/);
+  assert.match(bySlug('sabado').text, /^Levanté temprano[\s\S]*Comedor en sombras/);
+  assert.match(bySlug('sabado').context, /‘Me levanté temprano’.*‘Comedor en sombra’/);
+  assert.match(bySlug('tu-me-quieres-blanca').text, /^Tu me quieres alba,[\s\S]*y lévate al alba\.[\s\S]*Preténdeme casta\.$/);
+  assert.match(bySlug('tu-me-quieres-blanca').context, /‘y lévate al alba’.*‘y límpiate al alba’/);
+  assert.match(bySlug('que-diria').text, /por extra fantasía,[\s\S]*cubriendo las aceras/);
+  assert.match(bySlug('que-diria').context, /‘ultra fantasía’.*‘cubriendo en las aceras’/);
+  assert.ok(filterPoems(selected, { query: 'extra fantasía' }).includes(bySlug('que-diria')));
+  assert.ok(filterPoems(selected, { query: 'Tú me quieres blanca', country: 'Argentina' }).includes(bySlug('tu-me-quieres-blanca')));
+  assert.ok(filterPoems(selected, { query: 'Dos palabras', country: 'Argentina' }).includes(bySlug('dos-palabras')));
+});
 test('Darío poems retain complete 1896 readings, Nicaragua identity and edition caveats', () => {
   const selected = poems.filter(poem => poem.id.startsWith('dario-1896-'));
   const slugs = ['sonatina', 'blason', 'del-campo', 'ojos-negros-julia', 'para-una-cubana', 'para-la-misma', 'bouquet', 'margarita', 'mia', 'dice-mia', 'heraldos', 'ite-misa-est'];
@@ -4566,9 +4607,12 @@ test('recorded-year ranges are inclusive, disjoint and respect other filters', (
   assert.match(home, /Bounds are inclusive; counts reflect your other filters/);
   for (let index = 0; index < recordedYearRanges.length; index++) assert.match(home, new RegExp(`data-year-range="${index}"`));
   const current = renderHome(poems, '/ai-poems/');
-  assert.match(current, /data-year-range="0"/);
-  assert.match(current, /data-year-range="2"/);
-  assert.doesNotMatch(current, /data-year-range="[134]"/);
+  for (const [index, range] of yearRangeCounts(poems).entries()) {
+    const button = new RegExp(`data-year-range="${index}"`);
+    if (range.count) assert.match(current, button);
+    else assert.doesNotMatch(current, button);
+  }
+  assert.match(current, /data-year-range="3"/); // The 1918 Storni works are discoverable by year.
   assert.match(renderHome([{ ...poems[0], year: 1609 }], '/ai-poems/'), /1 poem has a recorded year; 0 without one are excluded from year filters/);
   const noYears = renderHome([{ ...poems[0], year: null }], '/ai-poems/');
   assert.doesNotMatch(noYears, /year-range-entry|id="year-ranges"/);

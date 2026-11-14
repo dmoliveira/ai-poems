@@ -171,6 +171,55 @@ test('country flags and counts link to the matching country results', async () =
   await context.close();
 });
 
+test('Storni poems support Argentine search, preserved saves and JavaScript-free mobile reading', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('storni-1918-'));
+  const samples = ['tu-me-quieres-blanca', 'sabado', 'dos-palabras', 'que-diria', 'el-extrano-deseo'].map(slug => selected.find(poem => poem.id === `storni-1918-${slug}`));
+  const seed = { saved: ['dario-1896-sonatina', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const filterUrl = `${base}?language=Spanish&country=Argentina#explore`;
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(filterUrl);
+  await page.getByText('28 poems found', { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('Alfonsina Storni');
+  await page.getByText('28 poems found', { exact: true }).waitFor();
+  await page.getByLabel('Search the poetry library').fill('extra fantasía');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  assert.equal(await page.locator('#results a[href$="/poems/storni-1918-que-diria/"]').count(), 1);
+  for (const poem of samples) {
+    await page.getByLabel('Search the poetry library').fill(poem.title);
+    const count = filterPoems(poems, { language: 'Spanish', country: 'Argentina', query: poem.title }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.goto(filterUrl);
+    await page.getByText('28 poems found', { exact: true }).waitFor();
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...samples.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Spanish a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of samples) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), poem.text);
+    assert.equal(await verse.getAttribute('lang'), 'es');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes('public domain in the United States'));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('Darío poems support Nicaragua search, preserved saves and JavaScript-free mobile reading', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('dario-1896-'));
   const samples = ['sonatina', 'del-campo', 'margarita', 'ite-misa-est'].map(slug => selected.find(poem => poem.id === `dario-1896-${slug}`));
@@ -6254,9 +6303,12 @@ test('recorded-year shortcuts preserve other filters and report contextual count
   assert.match(await ranges.textContent(), /Bounds are inclusive; counts reflect your other filters/);
   const before = ranges.locator('[data-year-range="0"]');
   const nineteenth = ranges.locator('[data-year-range="2"]');
-  assert.equal(await ranges.locator('[data-year-range]').count(), 2);
-  assert.equal(await before.locator('small').textContent(), countLabel(yearRangeCounts(poems)[0].count));
-  assert.equal(await nineteenth.locator('small').textContent(), countLabel(yearRangeCounts(poems)[2].count));
+  const globalRanges = yearRangeCounts(poems);
+  assert.equal(await ranges.locator('[data-year-range]').count(), globalRanges.filter(range => range.count).length);
+  for (const [index, range] of globalRanges.entries()) {
+    if (range.count) assert.equal(await ranges.locator(`[data-year-range="${index}"] small`).textContent(), countLabel(range.count));
+    else assert.equal(await ranges.locator(`[data-year-range="${index}"]`).count(), 0);
+  }
   for (const width of [320, 390, 700, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px`);
