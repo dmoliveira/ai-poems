@@ -18,6 +18,46 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Haitian anthology poems retain complete readings, attribution and edition caveats', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('haiti-morpeau-1925-'));
+  const slugs = ['puisque-le-ciel-tenvoie', 'labandonnee', 'au-temps', 'le-fils-du-noir', 'orfevrerie', 'absinthe', 'les-papillons'];
+  const pages = [109, 109, 111, 122, 123, 124, 125];
+  const lineCounts = [12, 30, 12, 30, 16, 14, 15];
+  assert.equal(selected.length, 7);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '21c92be6ea56d94ab57ac0df1222430f626aca4654078fb1ac885e370adead25');
+  assert.equal(createHash('sha256').update(JSON.stringify(selected.map(({ id, title, source }) => ({ id, title, source })))).digest('hex'), '61c0c5e4275704ff13de8eff29a639a23a77572ea34cbecaefd8b343c312413f');
+  assert.equal(groupPoets(poems).find(group => group.id === 'virginie-sampeur').poems.length, 3);
+  assert.equal(groupPoets(poems).find(group => group.id === 'oswald-durand').poems.length, 4);
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.id, `haiti-morpeau-1925-${slugs[index]}`);
+    assert.equal(lineCount(poem), lineCounts[index]);
+    assert.equal(poem.author, index < 3 ? 'Virginie Sampeur' : 'Oswald Durand');
+    assert.equal(poem.country, 'Haiti');
+    assert.equal(poem.language, 'French');
+    assert.equal(poem.lang, 'fr');
+    assert.equal(poem.year, 1925);
+    assert.equal(poem.yearLabel, 'Anthologized 1925');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(poem.source.endsWith(`#page=${pages[index]}`));
+    assert.match(poem.context, /does not establish when or where the poem was composed/);
+    assert.match(poem.rights, /public domain in the United States.*image-reuse terms are not established/);
+    assert.ok(filterPoems([poem], { query: poem.text.split('\n').find(line => line.length > 15) }).includes(poem));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(poem.text)));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+  }
+  const bySlug = slug => selected.find(poem => poem.id === `haiti-morpeau-1925-${slug}`);
+  assert.match(bySlug('labandonnee').text, /n’a-t-il pu se défendre/);
+  assert.match(bySlug('labandonnee').context, /n’a-t-il su se défendre/);
+  assert.match(bySlug('le-fils-du-noir').text, /^I\n[\s\S]*\nII\n[\s\S]*nos bruns maïs/);
+  assert.match(bySlug('le-fils-du-noir').context, /two numbered sonnets form one work.*nos blonds maïs/);
+  assert.match(bySlug('les-papillons').context, /1896 poem with the same title begins ‘Te souvient-il’/);
+  assert.ok(filterPoems(selected, { query: 'Virginie Sampeur', country: 'Haiti' }).length === 3);
+  assert.ok(filterPoems(selected, { query: 'Oswald Durand', country: 'Haiti' }).length === 4);
+});
 test('Storni poems retain complete 1918 readings, Argentine identity and edition caveats', () => {
   const selected = poems.filter(poem => poem.id.startsWith('storni-1918-'));
   const slugs = ['asi', 'este-grave-dano', 'sabado', 'dime', 'capricho', 'dulce-tortura', 'el-dulce-dano', 'dos-palabras', 'tu-dulzura', 'el-llamado', 'bajo-tus-miradas', 'queja', 'ladrona', 'transfusion', 'siete-vidas', 'tu-me-quieres-blanca', 'el-oro-de-la-vida', 'tentacion', 'que-diria', 'sentirse', 'cuadrados-y-angulos', 'aspecto', 'bah', 'una-pared', 'parasitos', 'verdad', 'sabeis-algo', 'el-extrano-deseo'];
