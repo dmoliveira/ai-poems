@@ -172,6 +172,59 @@ test('country flags and counts link to the matching country results', async () =
   await context.close();
 });
 
+test('Agustini poems support Uruguayan search, distinct Nocturnos and static mobile reading', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('agustini-1913-'));
+  const nocturnos = ['nocturno-invierno', 'nocturno-lago'].map(slug => selected.find(poem => poem.id === `agustini-1913-${slug}`));
+  const seed = { saved: ['haiti-morpeau-1925-labandonnee', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const filterUrl = `${base}?language=Spanish&country=Uruguay#explore`;
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(filterUrl);
+  await page.getByText('13 poems found', { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.getByLabel('Search the poetry library').fill('Delmira Agustini');
+  await page.getByText('13 poems found', { exact: true }).waitFor();
+  for (const poem of nocturnos) {
+    await page.getByLabel('Search the poetry library').fill('Nocturno');
+    await page.getByText('2 poems found', { exact: true }).waitFor();
+    assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1);
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.ok((await page.locator('.reader-disambiguation').textContent()).includes(poem.disambiguation));
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.goto(filterUrl);
+    await page.getByText('13 poems found', { exact: true }).waitFor();
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...nocturnos.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) {
+    const link = staticPage.locator(`#index-original-Spanish a[href$="/poems/${poem.id}/"]`);
+    assert.equal(await link.count(), 1);
+    if (poem.disambiguation) assert.ok((await link.textContent()).includes(poem.disambiguation));
+  }
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), poem.text);
+    assert.equal(await verse.getAttribute('lang'), 'es');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes('public domain in the United States'));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await fallback.close();
+});
+
 test('Haitian poems support search, preserved saves and JavaScript-free mobile reading', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('haiti-morpeau-1925-'));
   const samples = ['labandonnee', 'le-fils-du-noir'].map(slug => selected.find(poem => poem.id === `haiti-morpeau-1925-${slug}`));
