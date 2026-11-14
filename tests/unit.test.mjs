@@ -18,6 +18,53 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Agustini poems retain complete 1913 readings, distinct Nocturnos and source caveats', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('agustini-1913-'));
+  const slugs = ['ofrendando-el-libro', 'nocturno-invierno', 'tu-boca', 'dia-nuestro', 'tres-petalos-a-tu-perfil', 'la-ruptura', 'con-tu-retrato', 'en-silencio', 'otra-estirpe', 'fiera-de-amor', 'ceguera', 'inextinguibles', 'nocturno-lago'];
+  const pages = [21, 22, 24, 29, 30, 31, 37, 38, 39, 45, 46, 47, 52];
+  const lineCounts = [13, 30, 14, 12, 18, 8, 14, 14, 14, 19, 8, 8, 8];
+  assert.equal(selected.length, 13);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '7327e45a6becf43043697a4a9f796d068455c64cfe4eb6c40be2d73c62a02a53');
+  assert.equal(createHash('sha256').update(JSON.stringify(selected.map(({ id, title, source }) => ({ id, title, source })))).digest('hex'), '2f68d093201bb1b2d47c22f0db7cab926502e1e21c31dbb54aa588ac15b481bd');
+  assert.equal(groupPoets(poems).find(group => group.id === 'delmira-agustini').poems.length, 13);
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.id, `agustini-1913-${slugs[index]}`);
+    assert.equal(lineCount(poem), lineCounts[index]);
+    assert.equal(poem.author, 'Delmira Agustini');
+    assert.equal(poem.authorYears, '1886–1914');
+    assert.equal(poem.country, 'Uruguay');
+    assert.equal(poem.language, 'Spanish');
+    assert.equal(poem.lang, 'es');
+    assert.equal(poem.year, 1913);
+    assert.equal(poem.yearLabel, 'Printed in 1913');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(poem.source.endsWith(`#page=${pages[index]}`));
+    assert.match(poem.context, /birth year as 1886; some sources give 1887/);
+    assert.match(poem.context, /does not establish when or where the poem was composed/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { query: poem.text.split('\n').find(line => line.length > 15) }).includes(poem));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(poem.text)));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+  }
+  const bySlug = slug => selected.find(poem => poem.id === `agustini-1913-${slug}`);
+  const nocturnos = filterPoems(selected, { query: 'Nocturno', country: 'Uruguay' }).filter(poem => poem.title === 'Nocturno');
+  assert.equal(nocturnos.length, 2);
+  assert.deepEqual(nocturnos.map(poem => poem.disambiguation), ['Fuera, la noche en veste de tragedia solloza', 'Engarzado en la noche el lago de tu alma,']);
+  assert.match(bySlug('nocturno-lago').text, /la sima de la Vida/);
+  assert.match(bySlug('nocturno-lago').context, /Ciudad Seva comparison reads ‘la cima de la Vida’/);
+  assert.match(bySlug('tu-boca').text, /Seguía mi divina labor sobre la roca/);
+  assert.match(bySlug('tu-boca').context, /Seguía mi divina labor de roca/);
+  assert.match(bySlug('en-silencio').text, /Mi cabello se desfloca/);
+  assert.match(bySlug('en-silencio').context, /mi cabello se desfleca/);
+  assert.match(bySlug('la-ruptura').text, /Esfinje tenebrosa suspensa de otras vidas,$/);
+  assert.match(bySlug('inextinguibles').context, /index gives the singular ‘Inextinguible’/);
+  assert.equal(filterPoems(selected, { query: 'Delmira Agustini', country: 'Uruguay' }).length, 13);
+});
+
 test('Haitian anthology poems retain complete readings, attribution and edition caveats', () => {
   const selected = poems.filter(poem => poem.id.startsWith('haiti-morpeau-1925-'));
   const slugs = ['puisque-le-ciel-tenvoie', 'labandonnee', 'au-temps', 'le-fils-du-noir', 'orfevrerie', 'absinthe', 'les-papillons'];
