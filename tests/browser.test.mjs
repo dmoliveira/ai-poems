@@ -7865,11 +7865,150 @@ test('another tab can recover an in-flight first history update without strandin
   const record = await readingStateRecord(reader);
   assert.equal(record.pending, undefined);
   assert.equal(record.initialMirrorMissing, undefined);
-  assert.equal(await reader.locator('main > .storage-warning').isVisible(), false);
+  const warning = reader.locator('main > .storage-warning');
+  assert.equal(await warning.isVisible(), false, JSON.stringify({ warning: await warning.textContent(), notice: await reader.getByRole('status').textContent(), stored: await reader.evaluate(() => localStorage.getItem('verso-library-v1')), record }));
   await reader.getByRole('button', { name: /Save poem/ }).click();
   await reader.getByRole('status').getByText('Saved to your shelf.').waitFor();
   assert.deepEqual(await reader.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), ['old-pond-basho']);
   await context.close();
+});
+
+async function exerciseConcurrentHistoryRecovery(mode) {
+  const context = await browser.newContext();
+  const home = await context.newPage();
+  const reader = await context.newPage();
+  const cleaner = await context.newPage();
+  try {
+    await home.goto(base);
+    await home.getByText(totalText).waitFor();
+    await reader.addInitScript(() => {
+      const descriptor = Object.getOwnPropertyDescriptor(IDBTransaction.prototype, 'oncomplete');
+      Object.defineProperty(IDBTransaction.prototype, 'oncomplete', {
+        ...descriptor,
+        set(handler) {
+          descriptor.set.call(this, function (event) {
+            if (this.holdPreparedCompletion) {
+              window.historyPrepared = true;
+              window.releasePrepared = () => handler.call(this, event);
+            } else if (this.holdMarkerCompletion) {
+              window.markerRead = true;
+              window.releaseMarker = () => handler.call(this, event);
+            } else handler.call(this, event);
+          });
+        },
+      });
+      const put = IDBObjectStore.prototype.put;
+      IDBObjectStore.prototype.put = function (record, ...args) {
+        if (this.name === 'reading-state' && record?.pendingKind === 'recent' && !window.heldPreparedOnce) {
+          window.heldPreparedOnce = true;
+          this.transaction.holdPreparedCompletion = true;
+        }
+        return put.call(this, record, ...args);
+      };
+      const get = IDBObjectStore.prototype.get;
+      IDBObjectStore.prototype.get = function (...args) {
+        const request = get.call(this, ...args);
+        if (this.name === 'reading-state' && this.transaction.mode === 'readonly') {
+          request.addEventListener('success', () => {
+            if (window.holdMarkerRead && request.result?.initialMirrorMissing && !request.result.pending) this.transaction.holdMarkerCompletion = true;
+          });
+        }
+        return request;
+      };
+    });
+    await reader.goto(`${base}poems/old-pond-basho/`);
+    await reader.waitForFunction(() => window.historyPrepared);
+    await home.reload();
+    await home.locator('#recent-items').getByText('The Old Pond').waitFor();
+    assert.equal((await readingStateRecord(home)).initialMirrorMissing, true);
+    await cleaner.route('**/app.mjs', route => route.abort());
+    await cleaner.goto(base);
+    await home.close();
+    await reader.evaluate(() => { window.holdMarkerRead = true; window.releasePrepared(); });
+    await reader.waitForFunction(() => window.markerRead);
+    await cleaner.waitForFunction(() => localStorage.getItem('verso-library-v1') !== null);
+    const cleaned = await cleaner.evaluate(async mode => {
+      const database = await new Promise((resolve, reject) => {
+        const request = indexedDB.open('verso-reading-state-v1', 1);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const before = await new Promise((resolve, reject) => {
+        const request = database.transaction('reading-state', 'readonly').objectStore('reading-state').get('library');
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const { initialMirrorMissing, ...published } = before;
+      let next = published;
+      if (mode === 'different') {
+        const state = JSON.parse(published.raw);
+        state.saved = ['concurrent-user-poem'];
+        state._versoRevision++;
+        const raw = JSON.stringify(state);
+        const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`string:${raw}`));
+        const digest = [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+        next = { raw, digest, ancestors: [published.digest, ...published.ancestors].slice(0, 16) };
+      }
+      await new Promise((resolve, reject) => {
+        const transaction = database.transaction('reading-state', 'readwrite');
+        transaction.objectStore('reading-state').put(next, 'library');
+        transaction.oncomplete = resolve;
+        transaction.onabort = () => reject(transaction.error);
+      });
+      database.close();
+      return before;
+    }, mode);
+    assert.equal(cleaned.initialMirrorMissing, true);
+    assert.equal(cleaned.pending, undefined);
+    if (mode === 'corrupt') {
+      await cleaner.evaluate(() => localStorage.setItem('verso-library-v1', '{bad'));
+      await reader.locator('main > .storage-warning').getByText(/Saved data could not be read/).waitFor();
+    }
+    await reader.evaluate(() => window.releaseMarker());
+    await reader.waitForFunction(async () => {
+      const locks = await navigator.locks.query();
+      return ![...locks.held, ...locks.pending].some(lock => lock.name === 'verso-library-v1');
+    });
+    const record = await readingStateRecord(reader);
+    const warning = reader.locator('main > .storage-warning');
+    if (mode === 'different') {
+      await warning.getByText(/could not be updated or confirmed/).waitFor();
+      const mirror = await reader.evaluate(() => localStorage.getItem('verso-library-v1'));
+      assert.deepEqual(JSON.parse(record.raw).saved, ['concurrent-user-poem']);
+      assert.deepEqual(JSON.parse(mirror).saved, []);
+      await reader.getByRole('button', { name: /Save poem/ }).click();
+      assert.equal(await reader.evaluate(() => localStorage.getItem('verso-library-v1')), mirror);
+      assert.deepEqual(await readingStateRecord(reader), record);
+      return;
+    }
+    if (mode === 'corrupt') {
+      await warning.getByText(/could not be updated or confirmed/).waitFor();
+      assert.deepEqual(JSON.parse(record.raw).saved, []);
+      assert.equal(await reader.evaluate(() => localStorage.getItem('verso-library-v1')), '{bad');
+      await reader.getByRole('button', { name: /Save poem/ }).click();
+      assert.equal(await reader.evaluate(() => localStorage.getItem('verso-library-v1')), '{bad');
+      assert.deepEqual(await readingStateRecord(reader), record);
+      return;
+    }
+    assert.equal(await warning.isVisible(), false, JSON.stringify({ warning: await warning.textContent(), record, mirror: await reader.evaluate(() => localStorage.getItem('verso-library-v1')) }));
+    await reader.getByRole('button', { name: /Save poem/ }).click();
+    await reader.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.deepEqual(await reader.evaluate(() => JSON.parse(localStorage.getItem('verso-library-v1')).saved), ['old-pond-basho']);
+  } finally {
+    await context.close();
+  }
+}
+
+test('a concurrently completed history recovery does not strand its original writer', async () => {
+  await exerciseConcurrentHistoryRecovery('same');
+});
+
+test('a different concurrent state is never accepted as a completed recovery', async () => {
+  await exerciseConcurrentHistoryRecovery('different');
+});
+
+test('a corrupt external update cannot become a successful history recovery', async () => {
+  await exerciseConcurrentHistoryRecovery('corrupt');
 });
 
 test('history recovery does not overwrite an unrecognized external update', async () => {

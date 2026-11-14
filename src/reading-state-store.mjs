@@ -234,13 +234,18 @@ export async function writeCommittedState(key, parse, change, expectedRevision, 
         if (!canWrite() || readMirror(key) !== raw) return { result: false, state: current.state, uncertain: true };
         if (!await compareAndPut(database, prepared, candidate, canWrite)) {
           const latest = await readRecord(database);
+          if (!canWrite()) return { result: false, state: current.state, uncertain: true };
           if (JSON.stringify(latest) !== JSON.stringify(candidate)) {
             const { initialMirrorMissing, ...published } = latest || {};
-            if (!initialMirrorMissing || JSON.stringify(published) !== JSON.stringify(candidate)
-              || !await compareAndPut(database, latest, candidate, canWrite)) return { result: false, state: current.state, uncertain: true };
+            if (!initialMirrorMissing || JSON.stringify(published) !== JSON.stringify(candidate)) return { result: false, state: current.state, uncertain: true };
+            if (!await compareAndPut(database, latest, candidate, canWrite)) {
+              const completed = await readRecord(database);
+              if (!canWrite() || JSON.stringify(completed) !== JSON.stringify(candidate)) return { result: false, state: current.state, uncertain: true };
+            }
           }
         }
       } catch { return { result: false, state: current.state, uncertain: true }; }
+      if (!canWrite()) return { result: false, state: current.state, uncertain: true };
       return { result: true, state: current.state };
     }
     throw unavailable('Reading state changed too often to update safely');
