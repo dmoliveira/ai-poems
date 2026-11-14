@@ -1,4 +1,5 @@
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml as e, filterPoems, normalize, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from './catalog.mjs';
+import { readCommittedState, writeCommittedState } from './reading-state-store.mjs';
 
 const base = document.documentElement.dataset.base;
 const key = 'verso-library-v1';
@@ -9,8 +10,7 @@ function validJourney(journey) {
 }
 let state;
 let storageFailure = '';
-function readState() {
-  const raw = localStorage.getItem(key);
+function parseState(raw) {
   const stored = raw === null ? {} : JSON.parse(raw);
   if (!stored || typeof stored !== 'object' || Array.isArray(stored)) throw new Error('Invalid saved state');
   const valid = (name, check) => !Object.hasOwn(stored, name) || check(stored[name]);
@@ -25,6 +25,7 @@ function readState() {
     || !valid('_versoRevision', value => Number.isSafeInteger(value) && value >= 0)) throw new Error('Invalid saved state');
   return { ...defaults, ...stored, saved: stored.saved ? [...stored.saved] : [], recent: stored.recent ? [...stored.recent] : [] };
 }
+function readState() { return parseState(localStorage.getItem(key)); }
 try { state = readState(); }
 catch { storageFailure = 'read'; state = { ...defaults }; }
 const notice = document.createElement('div');
@@ -39,7 +40,9 @@ function announce(message) {
   noticeTimer = setTimeout(() => notice.classList.remove('visible'), 4000);
 }
 function temporaryNotice() {
-  if (storageFailure === 'lock') return 'This browser cannot safely coordinate saved data across tabs. Unsaved changes on this page are temporary and are lost when you leave or reload.';
+  if (storageFailure === 'lock') return 'This browser cannot safely coordinate saved data across tabs. Try refreshing other Verso tabs and reloading this page. Unsaved changes on this page are temporary and are lost when you leave or reload.';
+  if (storageFailure === 'interrupted') return 'An earlier save could not be confirmed. Both versions are preserved and this page will not overwrite them. Close other Verso tabs and reload; if this warning remains, do not clear browser data.';
+  if (storageFailure === 'uncertain') return 'Browser storage could not be updated or confirmed. Your changes may have been saved; review your shelf after reloading. This page will not overwrite saved data.';
   return storageFailure === 'read'
     ? 'Saved data could not be read. This page will not overwrite it. The shelf shown here is temporary; changes are lost when you leave or reload.'
     : 'Browser storage could not be updated. The shelf shown here may differ from stored data; unsaved changes are lost when you leave or reload.';
@@ -59,6 +62,7 @@ function showStorageWarning() {
   }
 }
 let pendingChanges = [];
+let storageReady = Promise.resolve();
 // Replay local intents over the newest committed state until each write finishes.
 function replayChanges(current) {
   for (const entry of pendingChanges) entry.change(current);
@@ -73,7 +77,7 @@ function adoptState(current) {
 }
 function announceResult(result, message) {
   if (result === true && pendingChanges.some(entry => !entry.silent)) return;
-  announce(message);
+  announce(result === 'uncertain' ? temporaryNotice() : message);
 }
 async function persist(change, { silent = false, expectedRevision } = {}) {
   change(state);
@@ -81,42 +85,35 @@ async function persist(change, { silent = false, expectedRevision } = {}) {
   const entry = { change, silent };
   pendingChanges.push(entry);
   if (!silent) announce('Saving changes…');
-  let working;
   let timeout;
   try {
+    await storageReady;
+    if (storageFailure) return false;
     if (!navigator.locks?.request) throw new Error('Browser locks unavailable');
     const controller = new AbortController();
     timeout = setTimeout(() => controller.abort(), 4000);
-    return await navigator.locks.request(key, { signal: controller.signal }, () => {
+    return await navigator.locks.request(key, { signal: controller.signal }, async () => {
       if (storageFailure) return false;
-      try { working = readState(); }
-      catch { storageFailure = 'read'; pendingChanges = []; showStorageWarning(); return false; }
-      // A clear must be reconfirmed if anything changed after the reader saw it.
-      if (expectedRevision !== undefined && (working._versoRevision ?? 0) !== expectedRevision) {
-        pendingChanges = pendingChanges.filter(item => item !== entry);
-        adoptState(replayChanges(working));
-        return 'conflict';
+      const outcome = await writeCommittedState(key, parseState, change, expectedRevision, () => !storageFailure, silent);
+      pendingChanges = pendingChanges.filter(item => item !== entry);
+      if (outcome.uncertain) {
+        storageFailure = 'uncertain';
+        pendingChanges = [];
+        showStorageWarning();
+        return 'uncertain';
       }
-      change(working);
-      if ((working._versoRevision ?? 0) === Number.MAX_SAFE_INTEGER) {
-        storageFailure = 'lock'; pendingChanges = []; showStorageWarning(); return false;
-      }
-      working._versoRevision = (working._versoRevision ?? 0) + 1;
-      try { localStorage.setItem(key, JSON.stringify(working)); }
-      catch {
-        storageFailure = 'write';
-        pendingChanges = pendingChanges.filter(item => item !== entry);
-        adoptState(replayChanges(working));
+      if (outcome.failure) {
+        if (!storageFailure) storageFailure = outcome.failure;
         pendingChanges = [];
         showStorageWarning();
         return false;
       }
-      pendingChanges = pendingChanges.filter(item => item !== entry);
-      adoptState(replayChanges(working));
-      return true;
+      if (outcome.state && (outcome.state._versoRevision ?? 0) >= (state._versoRevision ?? 0)) adoptState(replayChanges(outcome.state));
+      return outcome.result;
     });
-  } catch {
-    storageFailure = 'lock'; showStorageWarning();
+  } catch (error) {
+    if (!storageFailure) storageFailure = error.kind === 'read' ? 'read' : error.kind === 'pending' ? 'interrupted' : 'lock';
+    showStorageWarning();
     pendingChanges = [];
     return false;
   } finally {
@@ -148,21 +145,21 @@ document.querySelector('#focus-toggle')?.addEventListener('click', async () => {
   applyPreferences();
   const durable = await result;
   const message = state.focus ? 'Focus mode on.' : 'Focus mode off.';
-  announceResult(durable, durable ? message : `${message} ${temporaryNotice()}`);
+  announceResult(durable, durable === true ? message : `${message} ${temporaryNotice()}`);
 });
 document.querySelectorAll('[data-theme-select]').forEach(select => select.addEventListener('change', async () => {
   const theme = select.value;
   const result = persist(current => { current.theme = theme; });
   applyPreferences();
   const durable = await result;
-  announceResult(durable, durable ? 'Theme saved.' : `Theme changed on this page. ${temporaryNotice()}`);
+  announceResult(durable, durable === true ? 'Theme saved.' : `Theme changed on this page. ${temporaryNotice()}`);
 }));
 document.querySelectorAll('[data-typeface-select]').forEach(select => select.addEventListener('change', async () => {
   const typeface = ['literary', 'clear'].includes(select.value) ? select.value : 'literary';
   const result = persist(current => { current.typeface = typeface; });
   applyPreferences();
   const durable = await result;
-  announceResult(durable, durable ? 'Typeface saved.' : `Typeface changed on this page. ${temporaryNotice()}`);
+  announceResult(durable, durable === true ? 'Typeface saved.' : `Typeface changed on this page. ${temporaryNotice()}`);
 }));
 document.querySelectorAll('[data-preferred-language]').forEach(select => select.addEventListener('change', async () => {
   const previousLanguage = state.preferredLanguage;
@@ -171,14 +168,14 @@ document.querySelectorAll('[data-preferred-language]').forEach(select => select.
   applyPreferences();
   document.dispatchEvent(new CustomEvent('verso:preferred-language', { detail: { previousLanguage } }));
   const durable = await result;
-  announceResult(durable, durable ? 'Language preference saved.' : `Language preference changed on this page. ${temporaryNotice()}`);
+  announceResult(durable, durable === true ? 'Language preference saved.' : `Language preference changed on this page. ${temporaryNotice()}`);
 }));
 document.querySelectorAll('[data-font]').forEach(button => button.addEventListener('click', async () => {
   const amount = button.dataset.font === 'up' ? 1 : -1;
   const result = persist(current => { current.font = Math.max(-2, Math.min(4, current.font + amount)); });
   applyPreferences();
   const durable = await result;
-  announceResult(durable, durable ? 'Text size saved.' : `Text size changed on this page. ${temporaryNotice()}`);
+  announceResult(durable, durable === true ? 'Text size saved.' : `Text size changed on this page. ${temporaryNotice()}`);
 }));
 document.querySelectorAll('[data-font]').forEach(button => { button.disabled = false; });
 
@@ -244,7 +241,7 @@ document.addEventListener('click', async event => {
   const result = persist(current => { current.saved = saved ? current.saved.filter(item => item !== id) : current.saved.includes(id) ? current.saved : [...current.saved, id]; });
   updateSaveButtons();
   const durable = await result;
-  announceResult(durable, durable ? (saved ? 'Removed from your shelf.' : 'Saved to your shelf.') : `${saved ? 'Removed from' : 'Added to'} the shelf on this page only. ${temporaryNotice()}`);
+  announceResult(durable, durable === true ? (saved ? 'Removed from your shelf.' : 'Saved to your shelf.') : `${saved ? 'Removed from' : 'Added to'} the shelf on this page only. ${temporaryNotice()}`);
 });
 document.querySelector('#clear-shelf')?.addEventListener('click', async () => {
   const control = document.querySelector('#clear-shelf').closest('details');
@@ -255,7 +252,7 @@ document.querySelector('#clear-shelf')?.addEventListener('click', async () => {
   updateSaveButtons();
   control.open = false; control.querySelector('summary').focus();
   const durable = await result;
-  const message = durable === 'conflict' ? 'Saved data changed while you were confirming. Review your shelf and confirm again.' : durable ? 'Saved poems present at confirmation were cleared.' : `Shelf cleared on this page only. ${temporaryNotice()}`;
+  const message = durable === 'conflict' ? 'Saved data changed while you were confirming. Review your shelf and confirm again.' : durable === true ? 'Saved poems present at confirmation were cleared.' : `Shelf cleared on this page only. ${temporaryNotice()}`;
   if (durable === 'conflict') clearConflict(control, message);
   announceResult(durable, message);
 });
@@ -268,23 +265,42 @@ document.querySelector('#clear-history')?.addEventListener('click', async () => 
   updateSaveButtons();
   control.open = false; control.querySelector('summary').focus();
   const durable = await result;
-  const message = durable === 'conflict' ? 'Saved data changed while you were confirming. Review your history and confirm again.' : durable ? 'Reading history present at confirmation was cleared.' : `Reading history cleared on this page only. ${temporaryNotice()}`;
+  const message = durable === 'conflict' ? 'Saved data changed while you were confirming. Review your history and confirm again.' : durable === true ? 'Reading history present at confirmation was cleared.' : `Reading history cleared on this page only. ${temporaryNotice()}`;
   if (durable === 'conflict') clearConflict(control, message);
   announceResult(durable, message);
 });
 document.querySelectorAll('#clear-shelf, #clear-history').forEach(button => { button.disabled = false; });
 
+async function synchronizeStoredState(announceUpdate = false) {
+  try {
+    let current;
+    try { current = await readCommittedState(key, parseState, () => !storageFailure); }
+    catch (error) {
+      if (error.kind !== 'pending' || !navigator.locks?.request) throw error;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+      try { current = await navigator.locks.request(key, { signal: controller.signal }, () => readCommittedState(key, parseState, () => !storageFailure)); }
+      finally { clearTimeout(timeout); }
+    }
+    if (storageFailure || (current._versoRevision ?? 0) < (state._versoRevision ?? 0)) return;
+    const previous = state;
+    adoptState(replayChanges(current));
+    if (announceUpdate && JSON.stringify(previous.saved) !== JSON.stringify(state.saved) && !pendingChanges.some(entry => !entry.silent)) announce('Your shelf was updated in another tab.');
+  } catch (error) {
+    if (storageFailure) return;
+    storageFailure = error.kind === 'read' ? 'read' : error.kind === 'pending' ? 'interrupted' : 'lock'; pendingChanges = []; showStorageWarning(); announce(temporaryNotice());
+  }
+}
 window.addEventListener('storage', event => {
   if (storageFailure || (event.key !== key && event.key !== null)) return;
   try {
     if (event.storageArea !== localStorage) return;
-    const previous = state;
-    adoptState(replayChanges(readState()));
-    if (JSON.stringify(previous.saved) !== JSON.stringify(state.saved) && !pendingChanges.some(entry => !entry.silent)) announce('Your shelf was updated in another tab.');
-  } catch {
-    storageFailure = 'read'; pendingChanges = []; showStorageWarning(); announce(temporaryNotice());
+    readState();
+    void synchronizeStoredState(true);
   }
+  catch { storageFailure = 'read'; pendingChanges = []; showStorageWarning(); announce(temporaryNotice()); }
 });
+if (!storageFailure) storageReady = synchronizeStoredState();
 
 // The pre-rendered directory remains usable even if the catalogue cannot load.
 function setupPoetDirectory() {
@@ -326,6 +342,7 @@ try {
     if (!response.ok) throw new Error(`Catalogue request returned ${response.status}`);
     poems = await response.json();
   }
+  await storageReady;
   updateSaveButtons();
   if (document.querySelector('#results')) setupExplore();
   if (document.body.dataset.poemId) setupReader();
@@ -608,7 +625,7 @@ function setupReader() {
       });
     }
   } catch { /* Direct visits fall back to the unfiltered library. */ }
-  persist(current => { current.recent = [poem.id, ...current.recent.filter(id => id !== poem.id)].slice(0, 20); }, { silent: true }).then(durable => { if (!durable) announce(temporaryNotice()); });
+  persist(current => { current.recent = [poem.id, ...current.recent.filter(id => id !== poem.id)].slice(0, 20); }, { silent: true }).then(durable => { if (durable !== true) announce(temporaryNotice()); });
   const selector = document.querySelector('#translation-select');
   const original = document.querySelector('#original-panel');
   const translation = document.querySelector('#translation-panel');
@@ -656,7 +673,7 @@ function setupReader() {
     renderView();
     const durable = await result;
     const multiple = poem.translations.filter(item => item.language === language).length > 1;
-    announceResult(durable, durable ? (multiple ? 'Language saved. This version is selected for this visit.' : 'Translation choice saved.') : `Translation choice changed on this page. ${temporaryNotice()}`);
+    announceResult(durable, durable === true ? (multiple ? 'Language saved. This version is selected for this visit.' : 'Translation choice saved.') : `Translation choice changed on this page. ${temporaryNotice()}`);
   });
   buttons.forEach(button => button.addEventListener('click', () => { view = button.dataset.view; renderView(); }));
   document.addEventListener('verso:preferred-language', applyPreferredLanguage);
