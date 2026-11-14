@@ -26,7 +26,7 @@ const poets = groupPoets(poems);
 await mkdir(out, { recursive: true });
 await mkdir(new URL('data/', out), { recursive: true });
 await cp(new URL('../assets/', import.meta.url), new URL('assets/', out), { recursive: true });
-for (const name of ['app.mjs', 'catalog.mjs', 'style.css']) await cp(new URL(`../src/${name}`, import.meta.url), new URL(name, out));
+for (const name of ['app.mjs', 'catalog.mjs', 'reading-state-store.mjs', 'style.css']) await cp(new URL(`../src/${name}`, import.meta.url), new URL(name, out));
 await writeFile(new URL('index.html', out), renderHome(poems, base));
 await writeFile(new URL('feed.xml', out), feed);
 await writeFile(new URL('data/catalog.json', out), JSON.stringify(poems));
