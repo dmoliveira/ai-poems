@@ -18,6 +18,84 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('anthology classics preserve complete historical readings and distinct work boundaries', () => {
+  const ids = [
+    'browning-my-last-duchess', 'herbert-love', 'hardy-darkling-thrush',
+    'marvell-coy-mistress', 'tennyson-ulysses', 'waller-lovely-rose',
+  ].map(id => `recognized-anthology-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-anthology-classics-')).length, 6);
+  assert.deepEqual(selected.map(lineCount), [56, 18, 32, 46, 70, 20]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(part => part.split('\n').length)), [
+    [56], [6, 6, 6], [8, 8, 8, 8], [20, 12, 14], [32, 11, 27], [5, 5, 5, 5],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '35c38f14d4e66e96a4ffec749738dad1096d0af463a34181fe70e095ed926ea4',
+    '319e94ac1684869840f128f9d8680ce89ba473e070d31f97533f6382d195279a',
+    'a61119e515f50973b5779c87612d0e67e0a6efc69067035730662936c8d250ad',
+    'aff1365aa29a9b06ceb8b38ae29ee35eeac77cc2ead2abf98174d2249a4709ac',
+    '7cd9df11a26ba60091928e6936e97ef63ed99f70d1f6d34e18be86229582b627',
+    'b279e337ca82123f4871cb3550a01891320ead9412db9bda903453be1230a3f4',
+  ]);
+  const [duchess, love, thrush, mistress, ulysses, rose] = selected;
+  assert.match(duchess.text, /^That's my last Duchess painted on the wall,[\s\S]*She thanked men,—good! but thanked\nSomehow[\s\S]*Which Claus of Innsbruck cast in bronze for me!$/);
+  assert.match(duchess.context, /earlier title 'Italy'.*same work.*Count Gismond/);
+  assert.match(duchess.context, /copyright page is dated 1898.*impression itself is undated/);
+  assert.equal(duchess.yearLabel, '1898 edition · scanned impression undated');
+  assert.ok(filterPoems([duchess], { query: 'Italy' }).includes(duchess));
+  assert.equal(love.title, 'Love');
+  assert.equal(love.displayTitle, 'Love (III)');
+  assert.deepEqual(associatedPlaces(love), ['Wales', 'England']);
+  assert.match(love.text, /Love bade me welcome;[\s\S]*So I did sit and eat\.$/);
+  assert.doesNotMatch(love.text, /FINIS|Glorie be to God/);
+  assert.ok(filterPoems([love], { query: 'Love (III)' }).includes(love));
+  assert.match(thrush.text, /^I leant upon a coppice gate[\s\S]*And I was unaware\.$/);
+  assert.doesNotMatch(thrush.text, /December 1900/);
+  assert.match(thrush.context, /December 1900.*not another verse line/);
+  assert.match(mistress.text, /This coyness, Lady, were no crime\nWe would sit down[\s\S]*Time's wingèd chariot[\s\S]*Thorough the iron gates of life:/);
+  assert.match(mistress.context, /second copy.*gloss is not part of the poem/);
+  assert.match(ulysses.text, /Vext the dim sea:[\s\S]*arch wherethro'[\s\S]*To strive, to seek, to find, and not to yield\.$/);
+  assert.match(rose.text, /^Go, lovely Rose—[\s\S]*That are so wondrous sweet and fair!$/);
+  assert.match(rose.context, /four-stanza reading.*Henry Kirke White/);
+  for (const poem of selected) {
+    assert.equal(poem.language, 'English');
+    assert.equal(poem.lang, 'en');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    if (poem !== duchess) assert.match(poem.yearLabel, /printing · not necessarily composition date/);
+    for (const query of [poem.title, poem.displayTitle, poem.author].filter(Boolean)) {
+      assert.ok(filterPoems([poem], { language: 'English', query }).includes(poem), `${poem.id}: ${query}`);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="en" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Full readings and distinctive openings screen originals and translations;
+  // paraphrases and unlisted translated incipits can still evade this check.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) {
+        for (const title of [added.title, added.displayTitle, ...(added.searchAliases || [])].filter(Boolean)) {
+          assert.ok(![other.title, other.displayTitle, ...(other.searchAliases || [])].filter(Boolean).some(candidate => fold(candidate) === fold(title)), other.id);
+        }
+      }
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-anthology-classics.py', '--check'], { encoding: 'utf8' }), /Verified 6 historical readings/);
+});
+
 test('Chinese classics preserve complete historical readings and opt-in discovery aliases', () => {
   const ids = ['jiangnan', 'chang-ge-xing', 'yong-e', 'feng', 'yong-liu'].map(id => `recognized-chinese-classics-${id}`);
   const selected = ids.map(id => poems.find(poem => poem.id === id));
