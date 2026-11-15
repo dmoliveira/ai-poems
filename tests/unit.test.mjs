@@ -18,6 +18,56 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Atlantic readings preserve both complete works and their edition boundaries', () => {
+  const ids = ['recognized-atlantic-rimbaud-bateau-ivre', 'recognized-atlantic-mistral-sonetos'];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.deepEqual(selected.map(lineCount), [100, 45]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '423aab21d124237826f80c1a087f8200baaaa40b85f4086a1b3fb28ea7bf5b19',
+    '191c1dcdd03fc1b944c10510989f2f233d5b97aa59d4ab0a8d1c25c816c91e56',
+  ]);
+  const [rimbaud, mistral] = selected;
+  assert.deepEqual(rimbaud.text.split('\n\n').map(stanza => stanza.split('\n').length), Array(25).fill(4));
+  assert.match(rimbaud.text, /vos lyres[\s\S]*Sons songer[\s\S]*Planche folle/);
+  assert.ok(rimbaud.text.endsWith('Ni nager sous les yeux horribles des pontons !'));
+  assert.match(rimbaud.context, /potentially erroneous readings are retained/);
+  assert.ok(filterPoems([rimbaud], { query: 'Le Bateau ivre' }).includes(rimbaud));
+  assert.deepEqual(mistral.text.split('\n\n').map(stanza => stanza.split('\n').length),
+    [1, 4, 4, 3, 3, 1, 4, 4, 3, 3, 1, 4, 4, 3, 3]);
+  assert.ok(mistral.text.endsWith('¡Tú, que vas a juzgarme, lo comprendes, Señor!'));
+  assert.match(mistral.context, /counted together, not as three additional works/);
+  assert.match(mistral.rights, /Wikisource contributors under CC BY-SA 4\.0.*oldid=1604047.*oldid=1604046.*oldid=1604045/);
+  for (const poem of selected) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { language: poem.language, query: poem.title }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // A normalized containment and opening screen cannot exclude every translation or variant.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const openings = added === rimbaud ? [added.text.split('\n')[0]] : [
+      'Del nicho helado en que los hombres te pusieron', 'Este largo cansancio se hará mayor un día',
+      'Malas manos tomaron tu vida, desde el día',
+    ];
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (candidate.length > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        for (const opening of openings) assert.ok(!candidate.includes(fold(opening)), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-atlantic.py', '--check'], { encoding: 'utf8' }), /Verified 2 historical readings/);
+});
+
 test('next recognized readings preserve complete texts, witnesses and work boundaries', () => {
   const ids = [
     'recognized-next-yosano-kimi-shinitamau', 'recognized-next-keats-belle-dame',
