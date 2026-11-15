@@ -18,6 +18,57 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Baul songs retain complete early readings, individual identities and source caveats', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('tagore-baul-'));
+  assert.deepEqual(selected.map(poem => poem.id), [
+    'tagore-baul-sonar-bangla', 'tagore-baul-desher-mati', 'tagore-baul-eka',
+  ]);
+  assert.deepEqual(selected.map(lineCount), [39, 24, 29]);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), 'c87686c00a75b14f3e8f6c7b388898cd7432d73ebd7986a808927a482a37150f');
+  for (const poem of selected) {
+    assert.equal(poem.authorId, 'rabindranath-tagore');
+    assert.equal(poem.language, 'Bengali');
+    assert.equal(poem.lang, 'bn');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.displayTitleLang, 'bn-Latn');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.yearLabel, /catalogued 1905/);
+    assert.match(poem.context, /title page has no printed year.*stamp is dated 1907/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { language: 'Bengali', query: poem.displayTitle }).includes(poem));
+    assert.ok(filterPoems([poem], { query: poem.text.split('\n')[0] }).includes(poem));
+    const reader = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(reader.includes(`class="verse" lang="bn" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(reader.includes(escapeHtml(poem.source)));
+    assert.ok(reader.includes(escapeHtml(poem.contextSource)));
+    assert.equal(titleAttributes(poem), ' lang="bn-Latn" dir="auto"');
+  }
+  assert.match(selected[0].text, /আমি পরের ঘরে কিনব না তোর\nভূষণ বলে' গলার ফাঁসি॥$/);
+  assert.match(selected[0].context, /anthem, not a separate poem/);
+  assert.match(selected[1].text, /তোমাতে বিশ্বময়ীর\n\(তোমাতে বিশ্বমায়ের\)/);
+  assert.match(selected[1].text, /আমার জনম গেল মিছে কাজে/);
+  assert.match(selected[1].context, /মিছে কাজে.*বৃথা কাজে/);
+  assert.equal(selected[2].text.match(/যদি তোর ডাক শুনে কেউ না আসে/g)?.length, 2);
+  assert.match(selected[2].text, /একলা চল, একলা চল\nএকলা চলরে!$/);
+  assert.match(selected[2].context, /explicitly repeats the opening refrain/);
+
+  // Check opening lines against all other originals and translations. This
+  // does not rule out different spellings or independently translated texts.
+  const fold = text => text.normalize('NFC').toLowerCase().replace(/[\u200c\u200d]/gu, '').replace(/[^\p{L}\p{M}\p{N}]/gu, '');
+  for (const added of selected) {
+    const openings = added.text.split('\n').filter(Boolean).slice(0, 2).map(fold);
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        for (const opening of openings) assert.ok(!candidate.includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-tagore-baul.py', '--check'], { encoding: 'utf8' }), /Verified 3 readings/);
+});
+
 test('Hafez ghazals preserve distinct historical readings, Arabic lines and paraphrase provenance', () => {
   const selected = poems.filter(poem => poem.authorId === 'hafez-shirazi');
   assert.deepEqual(selected.map(poem => poem.id), ['hafez-1802-ala-ya-ayyoha-saqi', 'hafez-1902-shirazi-turk']);
@@ -353,7 +404,7 @@ test('international classics retain complete scan readings, variants and separat
 });
 
 test('Bengali Gitanjali songs retain complete readings, page credits and the self-reworking', () => {
-  const selected = poems.filter(poem => poem.language === 'Bengali' && poem.id !== 'tagore-gitanjali-bengali-021');
+  const selected = poems.filter(poem => poem.id.startsWith('tagore-gitanjali-bengali-') && poem.id !== 'tagore-gitanjali-bengali-021');
   assert.equal(selected.length, 21);
   assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), 'ce9ced7686c9b17e3423a11e6bdcc610a43e8bf34349017702f33df5d0f0d468');
   assert.deepEqual(selected.map(lineCount), [20, 20, 20, 22, 18, 12, 13, 16, 20, 16, 28, 18, 25, 10, 22, 16, 20, 30, 16, 20, 24]);
