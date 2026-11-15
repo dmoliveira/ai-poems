@@ -18,6 +18,61 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Coșbuc classics preserve complete, distinct 1897 readings', () => {
+  const ids = ['nunta-zamfirei', 'rea-de-plata'].map(id => `recognized-cosbuc-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-cosbuc-classics-')).length, 2);
+  assert.deepEqual(selected.map(lineCount), [168, 24]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    Array(28).fill(6), Array(3).fill(8),
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '953b3027534d7a02d95d667f6a6c83dd6234da33ed5fc85e0b74895ef5150ac8',
+    '529a13d6dd6db2f3ce0f053448d0b19bc9452c6660f2cfb48f13342e714e0f60',
+  ]);
+  const [wedding, payment] = selected;
+  assert.match(wedding.text, /^E lung pământul, ba e lat,[\s\S]*să-și dee zor[\s\S]*Și Tinteș, cel cu trainic rost,[\s\S]*Pe-un grad de-alături privitor,[\s\S]*Și la botez!»$/);
+  assert.match(wedding.context, /twenty-eight six-line stanzas.*Pe-un grad.*Pe-un gard/);
+  assert.match(payment.text, /^Ea vine de la moară;\nȘi jos în ulicioară\nPunând un sac, în urmă[\s\S]*Dar uite, felul ei:\nStă ’n drum și să socoate,[\s\S]*P’un singur sărutat!$/);
+  assert.match(payment.context, /three eight-line stanzas.*crosses a page break/);
+  const queries = [
+    ['Nunta Zamfirei', 'Nunta Zamfirii', 's-alerge-n zbor', 'Pe-un gard de-alături'],
+    ['Rea de plata', 'Punându-și sacul, iacă'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.lang, 'ro');
+    assert.equal(poem.authorId, 'george-cosbuc');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.yearLabel, /1897 second edition · not necessarily composition date/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of [...queries[index], 'Gheorghe Cosbuc']) {
+      assert.ok(filterPoems([poem], { language: 'Romanian', query }).includes(poem), query);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="ro" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Exact text and openings do not exhaust every translated or variant duplicate.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-cosbuc-classics.py', '--check'], { encoding: 'utf8' }), /Verified 2 historical readings/);
+});
+
 test('Romanian classics preserve complete, distinct historical readings', () => {
   const ids = ['lacul', 'dorinta', 'floare-albastra', 'somnoroase-pasarele', 'si-daca', 'pe-langa-plopii']
     .map(id => `recognized-romanian-classics-${id}`);
