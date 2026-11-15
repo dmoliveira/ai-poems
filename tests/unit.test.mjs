@@ -207,7 +207,7 @@ test('international classics retain complete scan readings, variants and separat
 });
 
 test('Bengali Gitanjali songs retain complete readings, page credits and the self-reworking', () => {
-  const selected = poems.filter(poem => poem.language === 'Bengali');
+  const selected = poems.filter(poem => poem.language === 'Bengali' && poem.id !== 'tagore-gitanjali-bengali-021');
   assert.equal(selected.length, 21);
   assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), 'ce9ced7686c9b17e3423a11e6bdcc610a43e8bf34349017702f33df5d0f0d468');
   assert.deepEqual(selected.map(lineCount), [20, 20, 20, 22, 18, 12, 13, 16, 20, 16, 28, 18, 25, 10, 22, 16, 20, 30, 16, 20, 24]);
@@ -253,7 +253,7 @@ test('Bengali Gitanjali songs retain complete readings, page credits and the sel
 });
 
 test('German classics retain distinct complete readings, attribution and edition boundaries', () => {
-  const selected = poems.filter(poem => poem.language === 'German' && poem.id !== 'goethe-1900-erlkoenig');
+  const selected = poems.filter(poem => poem.language === 'German' && poem.id !== 'goethe-1900-erlkoenig' && !poem.id.startsWith('recognized-'));
   assert.equal(selected.length, 25);
   assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '07fed8a2e994629e691bd29522568c3e34914d3c460307310709e52a220cc221');
   assert.deepEqual(selected.map(lineCount), [21, 32, 98, 32, 8, 8, 12, 24, 20, 104, 40, 8, 8, 8, 20, 12, 12, 8, 8, 12, 12, 12, 24, 24, 8]);
@@ -285,6 +285,65 @@ test('German classics retain distinct complete readings, attribution and edition
   assert.ok(filterPoems(selected, { query: 'Über allen Gipfeln' }).includes(byId('goethe-ein-gleiches')));
   const synthetic = { ...selected[0], translations: [{ language: 'German', title: 'Beispiel', text: 'Beispieltext', translator: 'Example', rights: 'Example', source: 'https://example.org/' }] };
   assert.match(renderPoem(synthetic, poems, '/ai-poems/'), /class="verse" lang="de" dir="ltr">Beispieltext/);
+});
+
+test('recognized international works retain complete readings, credits and distinct boundaries', () => {
+  const ids = [
+    'recognized-verlaine-mon-reve-familier', 'recognized-verlaine-chanson-dautomne',
+    'recognized-rilke-der-panther', 'recognized-rilke-torso-apollos',
+    'recognized-yeats-second-coming', 'recognized-yeats-easter-1916',
+    'recognized-naidu-palanquin-bearers', 'recognized-naidu-indian-weavers',
+    'recognized-naidu-coromandel-fishers', 'recognized-naidu-bangle-sellers',
+    'tagore-gitanjali-bengali-021',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.deepEqual(selected.map(lineCount), [14, 18, 12, 14, 22, 80, 12, 12, 12, 24, 14]);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '58f54ac24df3728d8b5bc2a8b4e1a4d45c2ea361f7c4a91cfbc8f146d02370e9');
+  assert.deepEqual(selected.map(poem => poem.lang), ['fr', 'fr', 'de', 'de', 'en', 'en', 'en', 'en', 'en', 'en', 'bn']);
+  for (const poem of selected) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*Wikisource contributors under CC BY-SA 4\.0.*check local law/);
+    assert.match(poem.source, /wikisource\.org\/w\/index\.php\?title=.*&oldid=\d+$/);
+    assert.match(poem.contextSource, /commons\.wikimedia\.org\/wiki\/File:/);
+    assert.ok(filterPoems([poem], { language: poem.language, query: poem.title }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  assert.match(selected[0].yearLabel, /1866.*1867/);
+  assert.match(selected[4].context, /1920 imprint.*1921/);
+  assert.match(selected[4].context, /a waste of desert sand.*Wind shadows.*somewhere in sands of the desert.*Reel shadows/);
+  assert.ok(selected[4].text.startsWith('Turning and turning'));
+  assert.ok(selected[4].text.endsWith('Slouches towards Bethlehem to be born?'));
+  assert.ok(!selected[4].text.includes('Once more the storm'));
+  assert.ok(!selected[5].text.includes('September 25th'));
+  assert.match(selected[7].context, /comma.*period/);
+  assert.match(selected[7].text, /solemn and still,/);
+  assert.match(selected[8].context, /morning light.*morning lights/);
+  assert.match(selected[8].text, /morning light,/);
+  assert.match(selected[10].context, /English Gitanjali no\. 23.*not a separate work/);
+  assert.ok(!selected[10].text.includes('আষাঢ় ১৩১৬'));
+
+  // Screen exact and contained readings in both originals and translations;
+  // this cannot identify every cross-language reworking or textual variant.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const reading = fold(added.text);
+    for (const other of poems) {
+      const texts = [...(other.id === added.id ? [] : [other.text]), ...other.translations.map(item => item.text)];
+      for (const text of texts) {
+        const candidate = fold(text);
+        if (candidate.length >= 35 && reading.length >= 35) {
+          assert.ok(!reading.includes(candidate) && !candidate.includes(reading), `${added.id} overlaps ${other.id}`);
+        }
+      }
+    }
+  }
+  assert.ok(!poems.some(poem => [poem.text, ...poem.translations.map(item => item.text)].some(text => /art thou abroad on this stormy night/i.test(text))));
 });
 
 test('popular multilingual poems retain complete historical readings and disclosed variants', () => {

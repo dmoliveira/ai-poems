@@ -308,6 +308,57 @@ test('German discovery, saved preference and static readers work on mobile', asy
   await fallback.close();
 });
 
+test('recognized international works support mobile search, saved state and static readers', async () => {
+  const ids = [
+    'recognized-verlaine-mon-reve-familier', 'recognized-verlaine-chanson-dautomne',
+    'recognized-rilke-der-panther', 'recognized-rilke-torso-apollos',
+    'recognized-yeats-second-coming', 'recognized-yeats-easter-1916',
+    'recognized-naidu-palanquin-bearers', 'recognized-naidu-indian-weavers',
+    'recognized-naidu-coromandel-fishers', 'recognized-naidu-bangle-sellers',
+    'tagore-gitanjali-bengali-021',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  const samples = [selected[1], selected[2], selected[8], selected[10]];
+  const seed = { saved: ['tagore-gitanjali-bengali-120', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const poem of samples) {
+    await page.getByLabel('Search the poetry library').fill(poem.title);
+    const count = filterPoems(poems, { query: poem.title }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+    await page.goto(base);
+    await page.getByText(totalText).waitFor();
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...samples.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1, poem.id);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200, poem.id);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes('CC BY-SA 4.0'));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('popular multilingual works support search, saved state and static mobile reading', async () => {
   const ids = ['frost-1916-the-road-not-taken', 'rimbaud-1895-le-dormeur-du-val', 'rimbaud-1895-voyelles', 'machado-1917-a-un-olmo-seco', 'pessoa-1926-o-menino-da-sua-mae', 'shiki-1902-kaki-kueba'];
   const selected = ids.map(id => poems.find(poem => poem.id === id));
