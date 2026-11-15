@@ -18,6 +18,78 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Chinese classics preserve complete historical readings and opt-in discovery aliases', () => {
+  const ids = ['jiangnan', 'chang-ge-xing', 'yong-e', 'feng', 'yong-liu'].map(id => `recognized-chinese-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-chinese-classics-')).length, 5);
+  assert.deepEqual(selected.map(lineCount), [7, 10, 4, 4, 4]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'eb0bb9fc8a249354d8a3fc3a817a4673bd62bf6a6acce98933edbf430a7c730a',
+    '277cfe16fdd70bc15053dce30b07bff28c331c514abdcb7c73ea2a0d4af07ccc',
+    'b6f3948e8417b6248a4e9e85f25f20665f027e1e6fdee681f9eebd9304e352ac',
+    '231e0dbd29a87ecac60e9c9ee16ed1eb720f30a5973de7d21cfab17a21d8b6ce',
+    'b57c742bd452a0753b42a7ab55100bffd99043b0920d7565ef645a32ae60fef8',
+  ]);
+  const [jiangnan, changge, goose, wind, willow] = selected;
+  assert.ok(jiangnan.anonymous && changge.anonymous);
+  assert.equal(jiangnan.authorId, changge.authorId); // A browsing group, not a claim of common authorship.
+  assert.match(changge.context, /next ancient song.*separate text/);
+  assert.match(goose.context, /written at seven.*tradition.*not independently established/);
+  assert.match(wind.context, /another, eight-line poem.*same title/);
+  assert.match(willow.text, /綠絲縧/);
+  const queries = [
+    ['江南可採蓮', '江南可采莲', '鱼戏莲叶东', '江南可采莲莲叶何田田'],
+    ['長歌行', '长歌行', '青青园中葵', '少壮不努力'],
+    ['詠鵝', '咏鹅', '骆宾王', '曲项向天歌', '詠鵞'],
+    ['風', '风', '李峤', 'Li Jiao', '解落三秋叶'],
+    ['詠柳', '咏柳', '贺知章', '绿丝绦', '綠絲絛', '柳枝词', '詠栁'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.year, null);
+    assert.equal(poem.lang, 'zh-Hant');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.match(poem.context, /Line breaks and punctuation are supplied/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Chinese', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="zh-Hant" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Screen historical and simplified openings against originals and translations;
+  // a paraphrased translation or an unlisted variant can still escape this check.
+  const fold = text => text.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const simplified = added.searchAliases.find(alias => alias.includes('\n'));
+    for (const reading of [added.text, simplified]) {
+      const full = fold(reading);
+      const opening = fold(reading.split('\n').slice(0, 2).join(''));
+      for (const other of poems.filter(poem => poem.id !== added.id)) {
+        for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+          const candidate = fold(text);
+          assert.ok(!candidate.includes(full) && !candidate.includes(opening), `${added.id} overlaps ${other.id}`);
+        }
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-chinese-classics.py', '--check'], { encoding: 'utf8' }), /Verified 5 historical readings/);
+});
+
+test('author aliases are opt-in, escaped and aggregated by poet', () => {
+  const legacy = poems.find(poem => poem.id === 'tang-093');
+  const added = poems.find(poem => poem.id === 'recognized-chinese-classics-yong-e');
+  assert.ok(legacy && added);
+  assert.deepEqual(filterPoems([legacy, added], { query: '骆宾王' }).map(poem => poem.id), [added.id]);
+  assert.deepEqual(filterPoems([legacy, added], { query: '駱賓王' }).map(poem => poem.id), [legacy.id, added.id]);
+  const markup = renderHome([legacy, added], '/ai-poems/');
+  assert.match(markup, /data-author="Luo Binwang" data-author-aliases="骆宾王"/);
+  const escaped = renderHome([{ ...added, authorAliases: ['alias"<test>'] }], '/ai-poems/');
+  assert.ok(escaped.includes('data-author-aliases="alias&quot;&lt;test&gt;"'));
+});
+
 test('lyric classics preserve complete witnesses, epigraph attribution and distinct works', () => {
   const ids = [
     'recognized-lyric-classics-machado-retrato', 'recognized-lyric-classics-machado-anoche-cuando-dormia',
@@ -240,7 +312,7 @@ test('Finnish search preserves distinct letters and canonical equivalence withou
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => poem.language !== 'Finnish');
+  const previous = poems.filter(poem => poem.language !== 'Finnish' && !poem.id.startsWith('recognized-chinese-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,

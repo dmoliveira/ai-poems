@@ -315,7 +315,7 @@ function setupPoetDirectory() {
   const list = document.querySelector('#poet-list');
   const entries = [...list.querySelectorAll('[data-author]')].map(link => {
     const finnish = link.dataset.searchLanguage === 'fi';
-    const names = [link.dataset.author, ...[...link.querySelectorAll('[data-poet-original]')].map(name => name.textContent)].join(' ');
+    const names = [link.dataset.author, ...[...link.querySelectorAll('[data-poet-original]')].map(name => name.textContent), ...(link.dataset.authorAliases ? [link.dataset.authorAliases] : [])].join(' ');
     return { link, finnish, names: (finnish ? normalizeFinnish : normalize)(names) };
   });
   function render(resetScroll = false) {

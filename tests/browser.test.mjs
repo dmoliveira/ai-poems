@@ -27,6 +27,64 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Chinese classics support simplified search, poet names, saves and static readers', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('recognized-chinese-classics-'));
+  assert.equal(selected.length, 5);
+  const queries = [
+    ['江南可采莲', '鱼戏莲叶东'], ['长歌行', '青青园中葵'], ['咏鹅', '曲项向天歌'],
+    ['解落三秋叶', '李峤'], ['咏柳', '绿丝绦'],
+  ];
+  const seed = { saved: ['world-rizal-farewell', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const [index, poem] of selected.entries()) {
+    await page.goto(base);
+    await page.getByText(totalText, { exact: true }).waitFor();
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Chinese');
+    for (const query of queries[index]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { language: 'Chinese', query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.locator('.poet-directory summary').click();
+  const finder = page.getByRole('searchbox', { name: 'Find a poet or voice' });
+  for (const [query, id] of [['骆宾王', 'luo-binwang'], ['駱賓王', 'luo-binwang'], ['贺知章', 'he-zhizhang'], ['李峤', 'li-qiao'], ['Li Jiao', 'li-qiao']]) {
+    await finder.fill(query);
+    assert.equal(await page.locator(`#poet-list a[href$="/poets/${id}/"]`).isVisible(), true, query);
+  }
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Chinese a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'zh-Hant');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('lyric classics support mobile discovery, saved state and static readers', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('recognized-lyric-classics-'));
   assert.equal(selected.length, 7);

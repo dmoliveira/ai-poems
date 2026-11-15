@@ -93,7 +93,8 @@ function poetDirectoryCard(poet, base) {
     if (name && normalizeName(name) !== normalizeName(poet.name) && !originals.has(name)) originals.set(name, poem);
   }
   const originalNames = [...originals].map(([name, poem]) => ` <span class="poet-original" data-poet-original lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(name)}</span>`).join('');
-  return `<a href="${e(base)}poets/${e(poet.id)}/" data-author="${e(poet.name)}"${finnish ? ' data-search-language="fi"' : ''}><span class="poet-avatar" aria-hidden="true">${e(poet.name.slice(0, 1))}</span><span><strong>${e(poet.name)}${originalNames}</strong><small>${poet.poems.length} ${poet.poems.length === 1 ? 'poem' : 'poems'}${poet.anonymous ? ' · anonymous group' : ''}${poet.uniqueName ? '' : ` · catalogue ID: ${e(poet.id)}`}</small></span><span aria-hidden="true">↗</span></a>`;
+  const aliases = [...new Set(poet.poems.flatMap(poem => poem.authorAliases || []))];
+  return `<a href="${e(base)}poets/${e(poet.id)}/" data-author="${e(poet.name)}"${aliases.length ? ` data-author-aliases="${e(aliases.join(' '))}"` : ''}${finnish ? ' data-search-language="fi"' : ''}><span class="poet-avatar" aria-hidden="true">${e(poet.name.slice(0, 1))}</span><span><strong>${e(poet.name)}${originalNames}</strong><small>${poet.poems.length} ${poet.poems.length === 1 ? 'poem' : 'poems'}${poet.anonymous ? ' · anonymous group' : ''}${poet.uniqueName ? '' : ` · catalogue ID: ${e(poet.id)}`}</small></span><span aria-hidden="true">↗</span></a>`;
 }
 
 function featuredReading(poems, base) {
