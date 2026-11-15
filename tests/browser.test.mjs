@@ -27,6 +27,49 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('early classics support mobile discovery, saved state and static readers', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('recognized-early-classics-'));
+  assert.equal(selected.length, 5);
+  const seed = { saved: ['world-rizal-farewell', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const poem of selected) {
+    await page.goto(base);
+    await page.getByText(totalText, { exact: true }).waitFor();
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption(poem.language);
+    await page.getByLabel('Search the poetry library').fill(poem.title);
+    const count = filterPoems(poems, { language: poem.language, query: poem.title }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('Finnish originals support mobile spelling-sensitive search, saved state and static readers', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('recognized-finnish-'));
   assert.equal(selected.length, 4);
@@ -44,7 +87,10 @@ test('Finnish originals support mobile spelling-sensitive search, saved state an
   const search = page.getByLabel('Search the poetry library');
   assert.match(await page.locator('#search-spelling-note').textContent(), /distinguish ä and ö/);
   await search.fill('pa\u0308iva\u0308');
-  await page.getByText('4 poems found', { exact: true }).waitFor();
+  const matchingDay = filterPoems(poems, { language: 'Finnish', query: 'päivä' });
+  assert.ok(matchingDay.some(poem => poem.id === 'recognized-early-classics-leino-hautalaulu'));
+  assert.ok(matchingDay.some(poem => poem.id === 'recognized-early-classics-leino-mirjamin-laulu'));
+  await page.getByText(`${matchingDay.length} poems found`, { exact: true }).waitFor();
   await search.fill('paiva');
   await page.getByText('0 poems found', { exact: true }).waitFor();
   for (const poem of selected) {

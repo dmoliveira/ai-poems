@@ -18,6 +18,62 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('early classics preserve complete scan-backed readings and distinct work boundaries', () => {
+  const ids = [
+    'recognized-early-classics-leino-hyva-on-hiihtajan-hiihdella',
+    'recognized-early-classics-leino-laulu-onnesta', 'recognized-early-classics-leino-hautalaulu',
+    'recognized-early-classics-leino-mirjamin-laulu', 'recognized-early-classics-marlowe-passionate-shepherd',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.deepEqual(selected.map(lineCount), [24, 8, 9, 12, 24]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [6, 6, 6, 6], [4, 4], [3, 3, 3], [4, 4, 4], [4, 4, 4, 4, 4, 4],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'fe830ce2b9f45c49ea8391e2699e3250fe58f628a14a83318bc15a36e574e5d0',
+    '41d1eaf366ca3e72a731e1fcbc58d585b9b507dd4abb2dbb8c2c9497cf5f8699',
+    '9d22550aae8952d17c4452742d56edc1cba148836183812765c4bd491554c033',
+    '8e4be5d37413f3a55caa5ea093cb5f24f0e52ac288d7338b4c2312ac043df104',
+    '149ad2e4ef307a5296fbedf675872528eda3c098d77ef8657f3b8e16d5e0199e',
+  ]);
+  const [skier, happiness, grave, mirjam, shepherd] = selected;
+  assert.match(skier.context, /not the separately printed Yksin hiihtäjä section/);
+  assert.match(skier.text, /ja yksin uhmata yötä\.[\s\S]*ja kuolema kupeellansa\.$/);
+  assert.match(happiness.context, /page 84.*contents page gives 83/);
+  assert.match(grave.text, /Ei se ijäks sammu/);
+  assert.match(mirjam.text, /missä on Mirjamin soljet\?[\s\S]*vaiko jo löysit toisen\?$/);
+  assert.match(shepherd.text, /That hills and valleys, dales and fields,[\s\S]*And see the shepherds feed their flocks/);
+  assert.match(shepherd.context, /modernizes spelling and sometimes omits material.*six-stanza boundary/);
+  for (const poem of selected) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.yearLabel, /printing · not necessarily composition date/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { language: poem.language, query: poem.title }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // This screens exact or embedded text and openings, not all translations or variants.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-early-classics.py', '--check'], { encoding: 'utf8' }), /Verified 5 historical readings/);
+});
+
 test('Finnish readings preserve complete historical witnesses and individual work boundaries', () => {
   const ids = [
     'recognized-finnish-leino-nocturne', 'recognized-finnish-kivi-kaukametsa',
