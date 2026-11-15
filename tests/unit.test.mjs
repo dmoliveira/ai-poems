@@ -18,6 +18,73 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Romanian classics preserve complete, distinct historical readings', () => {
+  const ids = ['lacul', 'dorinta', 'floare-albastra', 'somnoroase-pasarele', 'si-daca', 'pe-langa-plopii']
+    .map(id => `recognized-romanian-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-romanian-classics-')).length, 6);
+  assert.deepEqual(selected.map(lineCount), [20, 24, 57, 16, 12, 44]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    Array(5).fill(4), Array(6).fill(4), [...Array(13).fill(4), 1, 4],
+    Array(4).fill(4), Array(3).fill(4), Array(11).fill(4),
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '3234d151b4cae2af69ac73cd0534cc9e715df41a564f93a5b4a7de2e9065ea93',
+    'fe0e2bae8d535d8af68b3d35822545f0e4922da3e3ec9d49af06c567095ebe27',
+    'ec45100615762221edc75085a8ef1c5e0414f246dcd11960eb6f36370d9abc79',
+    '3e19c1e8c5af2f78a1fc699debb930647c36cc2f5ddfb090d8ab0d3abc2c34f0',
+    '0bb75babe0c4ecb10457c7687c876821843622e914beedd2f504f5201b9494ba',
+    'd5fa601ff67fca48ccb6b58ac14a9da16f06b6a8aea747bff1d2c7cabb7de0d8',
+  ]);
+  const [lake, wish, flower, birds, ifPoem, poplars] = selected;
+  assert.match(lake.text, /^Lacul codrilor albastru[\s\S]*Ea din trestii să resară[\s\S]*Incărcat cu flori de nufĕr\.$/);
+  assert.match(wish.text, /^Vino ’n codru la isvorul[\s\S]*O să-ți cază flori de tei\.[\s\S]*Ori să cadă rĕnduri-rĕnduri\.$/);
+  assert.match(flower.text, /^Iar te-ai cufundat in stele[\s\S]*riuri in soare[\s\S]*bolta cea senină[\s\S]*· · · · · · · · · · ·\n\nȘi te-ai dus[\s\S]*Totuși este trist in lume\.$/);
+  assert.match(flower.context, /fourteen quatrains.*dotted divider.*not a fifteenth stanza/);
+  assert.match(birds.text, /^Somnoroase păsĕrele[\s\S]*Trece lebeda pe apă[\s\S]*Noapte bună!$/);
+  assert.match(ifPoem.text, /^Și dacă ramuri bat in geam[\s\S]*De tine ’n tot deauna\.$/);
+  assert.match(poplars.text, /^Pe lăngă plopii fără soț[\s\S]*O oară să fi fost amici[\s\S]*Iubirii pe pămĕnt\.$/);
+  assert.ok(readingLanguages.includes('Romanian'));
+  const queries = [
+    ['Lacul', 'Nuferi galbeni îl încarcă'],
+    ['Dorinta', 'Vino-n codru la izvorul'],
+    ['Floare albastra', 'râuri de soare', 'balta cea senină'],
+    ['Somnoroase păsărele', 'Trece lebăda pe ape'],
+    ['Și dacă', 'si daca ramuri bat in geam'],
+    ['Pe lângă plopii fără soț', 'Pe langa plopii fara sot'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.lang, 'ro');
+    assert.equal(poem.authorId, 'mihai-eminescu');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.match(poem.yearLabel, /1884 title-page printing · not necessarily composition date/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Romanian', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="ro" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Exact readings and openings do not exhaust translated or variant duplicates.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-romanian-classics.py', '--check'], { encoding: 'utf8' }), /Verified 6 historical readings/);
+});
+
 test('Slovenian and Dutch classics preserve complete, distinct historical readings', () => {
   const ids = ['preseren-zdravljica', 'preseren-povodnji-moz', 'anonymous-wilhelmus']
     .map(id => `recognized-european-classics-${id}`);
@@ -1893,13 +1960,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all twenty original languages', () => {
+test('catalogue has distinct, sourced records in all twenty-one original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Dutch', 'Finnish', 'Swedish', 'Slovenian', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'Romanian', 'German', 'Dutch', 'Finnish', 'Swedish', 'Slovenian', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');

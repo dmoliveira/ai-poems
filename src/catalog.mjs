@@ -3,7 +3,7 @@ export const normalize = value => String(value ?? '').normalize('NFKD').replace(
 // Finnish and Swedish distinguish letters that accent folding would conflate.
 export const normalizeNordic = value => String(value ?? '').normalize('NFKC').toLocaleLowerCase();
 export const normalizeFinnish = normalizeNordic;
-export const readingLanguages = ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Dutch', 'Finnish', 'Swedish', 'Slovenian', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic'];
+export const readingLanguages = ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'Romanian', 'German', 'Dutch', 'Finnish', 'Swedish', 'Slovenian', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic'];
 // Discovery labels can be welcoming without rewriting historical source titles.
 export const collectionLabel = value => value === 'The Book of American Negro Poetry' ? 'American poetry · 1922 anthology' : value;
 
