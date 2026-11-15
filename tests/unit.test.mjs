@@ -18,6 +18,56 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Ukrainian classics retain complete scan readings, page credits and edition differences', () => {
+  const selected = poems.filter(poem => poem.language === 'Ukrainian');
+  assert.deepEqual(selected.map(poem => poem.id), [
+    'shevchenko-1908-zapovit', 'shevchenko-1908-vechir',
+    'ukrainka-1892-contra-spem-spero', 'ukrainka-1892-nadiya',
+    'petrenko-1908-nedolia', 'hlibov-1908-zhurba', 'starytskyi-1908-vyklyk',
+  ]);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '3bb6cdb9e6474ca3a737e319ed82d9e21bd4c105d9d11c465c5eb1e450f880d9');
+  assert.deepEqual(selected.map(lineCount), [24, 15, 36, 10, 24, 40, 32]);
+  assert.equal(new Set(selected.map(poem => poem.authorId)).size, 5);
+  for (const poem of selected) {
+    assert.equal(poem.lang, 'uk');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.country, 'Ukraine');
+    assert.equal(poem.era, '19th century');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*Ukrainian Wikisource contributors.*CC BY-SA 4\.0.*check local law/);
+    assert.match(poem.contextSource, /uk\.wikisource\.org\/w\/index\.php\?title=.*&oldid=\d+$/);
+    assert.ok(filterPoems([poem], { language: 'Ukrainian', readable: 'Ukrainian', query: poem.title }).includes(poem));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="uk" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const byId = id => selected.find(poem => poem.id === id);
+  const testament = byId('shevchenko-1908-zapovit');
+  assert.match(testament.text, /Як понесе з Украіни[\s\S]*Я не знаю Бога!/);
+  assert.match(testament.context, /Було видно, було чути.*Були видні, було чути/);
+  const contra = byId('ukrainka-1892-contra-spem-spero');
+  assert.equal(contra.year, null);
+  assert.match(contra.yearLabel, /1892.*1893/);
+  assert.match(contra.text, /Я не дам сьому серденьку спати[\s\S]*Смерть наляже на груди важенько/);
+  assert.match(contra.rights, /oldid=560107.*oldid=560111/);
+  assert.match(contra.context, /36-line.*28-line/);
+  const nedolia = byId('petrenko-1908-nedolia');
+  assert.match(nedolia.text, /У в світі іх яснім/);
+  assert.match(nedolia.rights, /oldid=1128366.*oldid=1128367/);
+  assert.match(nedolia.context, /1841.*Небо triptych/);
+  assert.ok(filterPoems(selected, { query: 'Недоля' }).includes(nedolia));
+  assert.match(byId('hlibov-1908-zhurba').context, /любе літечко.*тепле літечко/);
+  assert.match(byId('starytskyi-1908-vyklyk').text, /^Ніч яка, Господи, місяшна/);
+  assert.ok(filterPoems(selected, { query: 'ніч яка місячна' }).some(poem => poem.id === 'starytskyi-1908-vyklyk'));
+  assert.ok(filterPoems(selected, { query: 'Леся Українка' }).length === 2);
+  const synthetic = { ...selected[0], translations: [{ language: 'Ukrainian', title: 'Приклад', text: 'Приклад тексту', translator: 'Example', rights: 'Example', source: 'https://example.org/' }] };
+  assert.match(renderPoem(synthetic, poems, '/ai-poems/'), /class="verse" lang="uk" dir="ltr">Приклад тексту/);
+});
+
 test('Greek and Russian historical-print readings preserve work boundaries, sources and variants', () => {
   const ids = [
     'cavafy-1926-candles', 'cavafy-1926-supplication', 'cavafy-1926-walls', 'cavafy-1926-windows',
@@ -642,13 +692,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all twelve original languages', () => {
+test('catalogue has distinct, sourced records in all thirteen original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Bengali', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Ukrainian', 'Bengali', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');
