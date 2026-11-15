@@ -18,6 +18,66 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Slovenian and Dutch classics preserve complete, distinct historical readings', () => {
+  const ids = ['preseren-zdravljica', 'preseren-povodnji-moz', 'anonymous-wilhelmus']
+    .map(id => `recognized-european-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-european-classics-')).length, 3);
+  assert.deepEqual(selected.map(lineCount), [56, 84, 120]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    Array(8).fill(7), Array(14).fill(6), Array(15).fill(8),
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'adac40b3aff67648cb63d2f9e28ce3b0a104d93eff48fdfcbc45a1fc28f550c1',
+    'cf624fd34126c4437c6d4d4d22dc41aa67ce6d104cfa948ef540f95495b9fe00',
+    'e8a0f7597367450d995232c809f327e7619874517a11ba6ada92277f4ec8d604',
+  ]);
+  const [toast, water, anthem] = selected;
+  assert.match(toast.text, /^Spet trte so rodile,[\s\S]*Ki dôbro v srcu mislimo\.[\s\S]*Bog, kar nas dobrih je ljudi! —$/);
+  assert.match(toast.context, /1914 reading.*not the 1848 newspaper text.*seventh stanza/);
+  assert.match(water.text, /^Od nekdaj lepé so Ljubljanke slovele,[\s\S]*Zagleda pri mizi rumêni junaka;[\s\S]*Al Uršike videl nobêden ni vèč\. —$/);
+  assert.match(water.context, /Povodni mož.*same work.*Zalika.*Urška.*mark after 'mizi'.*unclear/);
+  assert.equal(anthem.text.split('\n\n').map(stanza => stanza[0]).join(''), 'WILLEMVANNASSOV');
+  assert.match(anthem.text, /^Wilhelmus van Nassouwe[\s\S]*Voor Godt wil ick belijden[\s\S]*inder gherechticheyt\.$/);
+  assert.ok(anthem.anonymous);
+  assert.match(anthem.context, /fifteen eight-line stanzas.*two columns.*German text B.*not included.*Authorship is disputed/);
+  assert.deepEqual(selected.map(poem => poem.lang), ['sl', 'sl', 'nl']);
+  for (const language of ['Slovenian', 'Dutch']) assert.ok(readingLanguages.includes(language));
+  const queries = [
+    ['Zdravljica', 'Zdravica', 'France Preseren', 'A Toast'],
+    ['Povodnji mož', 'Povodni moz', 'France Preserin', 'The Water Man'],
+    ['Wilhelmus', 'Willem van Nassov', 'van Nassouwe'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.match(poem.yearLabel, /printing · not necessarily composition date/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: poem.language, query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // This screens the full readings and openings, not every translation or textual variant.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-european-classics.py', '--check'], { encoding: 'utf8' }), /Verified 3 historical readings/);
+});
+
 test('anthology classics preserve complete historical readings and distinct work boundaries', () => {
   const ids = [
     'browning-my-last-duchess', 'herbert-love', 'hardy-darkling-thrush',
@@ -482,7 +542,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
@@ -1833,13 +1893,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all eighteen original languages', () => {
+test('catalogue has distinct, sourced records in all twenty original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Finnish', 'Swedish', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Dutch', 'Finnish', 'Swedish', 'Slovenian', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');
