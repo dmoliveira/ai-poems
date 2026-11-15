@@ -8280,19 +8280,27 @@ async function readingStateRecord(page) {
   }));
 }
 
-async function waitForCommittedReadingState(page) {
-  await waitForAsyncCondition(page, () => new Promise(resolve => {
+async function waitForCommittedReadingState(page, { recent, mirror = false } = {}) {
+  return waitForAsyncCondition(page, expected => new Promise(resolve => {
     const open = indexedDB.open('verso-reading-state-v1', 1);
     open.onerror = () => resolve(false);
     open.onsuccess = () => {
       const database = open.result;
       const transaction = database.transaction('reading-state', 'readonly');
       const request = transaction.objectStore('reading-state').get('library');
-      request.onsuccess = () => resolve(Boolean(request.result && !request.result.pending && typeof request.result.raw === 'string'));
+      request.onsuccess = () => {
+        const record = request.result;
+        if (!record || record.pending || typeof record.raw !== 'string') return resolve(false);
+        try {
+          if (expected.recent && JSON.stringify(JSON.parse(record.raw).recent) !== JSON.stringify(expected.recent)) return resolve(false);
+          if (expected.mirror && localStorage.getItem('verso-library-v1') !== record.raw) return resolve(false);
+          resolve(record);
+        } catch { resolve(false); }
+      };
       request.onerror = () => resolve(false);
       transaction.oncomplete = () => database.close();
     };
-  }));
+  }), { recent, mirror });
 }
 
 test('committed-state wait does not accept a still-pending first history write', async () => {
@@ -8343,6 +8351,37 @@ test('committed-state wait does not accept a still-pending first history write',
     assert.equal(record.pending, undefined);
     assert.deepEqual(JSON.parse(record.raw).saved, []);
     assert.ok(JSON.parse(record.raw).recent.includes('old-pond-basho'));
+  } finally { await context.close(); }
+});
+
+test('committed-state wait requires the expected history, not an earlier commit', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  try {
+    await page.goto(`${base}poems/old-pond-basho/`);
+    await waitForCommittedReadingState(page, { recent: ['old-pond-basho'], mirror: true });
+    await page.evaluate(() => {
+      const get = IDBObjectStore.prototype.get;
+      IDBObjectStore.prototype.get = function (...args) {
+        const request = get.call(this, ...args);
+        if (this.name === 'reading-state' && this.transaction.mode === 'readonly') {
+          request.addEventListener('success', () => {
+            if (request.result && !request.result.pending) window.earlierCommittedReads = (window.earlierCommittedReads || 0) + 1;
+          });
+        }
+        return request;
+      };
+    });
+    let completed = false;
+    const waiting = waitForCommittedReadingState(page, { recent: ['quiet-night-thought-li-bai', 'old-pond-basho'], mirror: true })
+      .then(record => { completed = true; return record; });
+    await page.waitForFunction(() => window.earlierCommittedReads >= 2);
+    assert.equal(completed, false);
+    const other = await context.newPage();
+    await other.goto(`${base}poems/quiet-night-thought-li-bai/`);
+    const record = await waiting;
+    assert.equal(record.pending, undefined);
+    assert.deepEqual(JSON.parse(record.raw).recent, ['quiet-night-thought-li-bai', 'old-pond-basho']);
   } finally { await context.close(); }
 });
 
@@ -8441,13 +8480,12 @@ test('an interrupted automatic history update recovers without blocking the shel
   await page.evaluate(() => localStorage.setItem('verso-library-v1', JSON.stringify({ saved: ['shakespeare-sonnet-18'], recent: [], extra: { keep: true } })));
   await page.goto(`${base}poems/old-pond-basho/`);
   await page.getByRole('button', { name: /Save poem/ }).waitFor();
-  await waitForCommittedReadingState(page);
+  await waitForCommittedReadingState(page, { recent: ['old-pond-basho'], mirror: true });
   const staged = await stageInterruptedReadingState(page, false, 'recent');
   assert.equal(await page.evaluate(() => localStorage.getItem('verso-library-v1')), staged.previous);
   await page.reload();
   await page.getByRole('button', { name: /Save poem/ }).waitFor();
-  await waitForCommittedReadingState(page);
-  const record = await readingStateRecord(page);
+  const record = await waitForCommittedReadingState(page, { recent: ['old-pond-basho', 'quiet-night-thought-li-bai'], mirror: true });
   assert.equal(record.pending, undefined);
   assert.deepEqual(JSON.parse(record.raw).saved, ['shakespeare-sonnet-18']);
   assert.ok(JSON.parse(record.raw).recent.includes('quiet-night-thought-li-bai'));
