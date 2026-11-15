@@ -27,6 +27,63 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('world classics support multilingual discovery, translation, saved state and static readers', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('world-'));
+  const rizal = selected.find(poem => poem.id === 'world-rizal-farewell');
+  const pushkin = selected.find(poem => poem.id === 'world-pushkin-kern');
+  const frost = selected.find(poem => poem.id === 'world-frost-stopping-by-woods');
+  const seed = { saved: ['tagore-baul-eka', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  assert.equal(selected.length, 13);
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Spanish');
+  await page.getByLabel('Search the poetry library').fill('Farewell, dear Fatherland');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  await page.locator(`#results a[href$="/poems/${rizal.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), rizal.text);
+  await page.getByRole('button', { name: 'Translation', exact: true }).click();
+  assert.equal(await page.locator('#translation-panel .verse').textContent(), rizal.translations[0].text);
+  assert.ok((await page.locator('#translation-panel .translation-rights').textContent()).includes('1921'));
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, rizal.id]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.evaluate(() => document.fonts.ready);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await page.goto(base);
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Russian');
+  await page.getByLabel('Search the poetry library').fill('Я помню чудное мгновенье');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  assert.equal(await page.locator(`#results a[href$="/poems/${pushkin.id}/"]`).count(), 1);
+  await page.getByLabel('Original language').selectOption('English');
+  await page.getByLabel('Search the poetry library').fill(frost.title);
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  assert.equal(await page.locator(`#results a[href$="/poems/${frost.id}/"]`).count(), 1);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1, poem.id);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200, poem.id);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text, poem.id);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    if (poem.translations.length) assert.equal(await staticPage.locator('#translations .verse').textContent(), poem.translations[0].text);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('1916 Bengali readings support discovery, self-reworking, saved state and static reading', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('tagore-1916-'));
   const prayer = selected.find(poem => poem.id === 'tagore-1916-naibedya-72');
