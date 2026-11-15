@@ -4,8 +4,8 @@
 
 [![Build and deploy](https://github.com/dmoliveira/ai-poems/actions/workflows/pages.yml/badge.svg)](https://github.com/dmoliveira/ai-poems/actions/workflows/pages.yml)
 [![Read Verso](https://img.shields.io/badge/read-Verso%20Poetry%20Library-697b50)](https://dmoliveira.github.io/ai-poems/)
-[![Poems](https://img.shields.io/badge/poems-2503-d4a084)](https://dmoliveira.github.io/ai-poems/#explore)
-[![Original languages](https://img.shields.io/badge/original%20languages-11-b99d78)](https://dmoliveira.github.io/ai-poems/#explore)
+[![Poems](https://img.shields.io/badge/poems-2514-d4a084)](https://dmoliveira.github.io/ai-poems/#explore)
+[![Original languages](https://img.shields.io/badge/original%20languages-12-b99d78)](https://dmoliveira.github.io/ai-poems/#explore)
 [![License: MIT](https://img.shields.io/badge/code%20license-MIT-blue.svg)](LICENSE)
 [![Support via Stripe](https://img.shields.io/badge/support%20via-Stripe-635bff?logo=stripe&logoColor=white)](https://buy.stripe.com/8x200i8bSgVe3Vl3g8bfO00)
 
@@ -15,7 +15,7 @@ Verso is a free, cozy, multilingual poetry library for discovering classic poetr
 
 ## A little room for discovery ✨
 
-- **Read:** more than 2,500 poems in English, Spanish, Portuguese, French, Italian, German, Russian, Bengali, Chinese, Japanese, and Arabic, from more than 200 named or traditional author groups.
+- **Read:** more than 2,500 poems in English, Spanish, Portuguese, French, Italian, German, Greek, Russian, Bengali, Chinese, Japanese, and Arabic, from more than 200 named or traditional author groups.
 - **Explore:** browse associated countries and regions with flags and poem counts, or search poem text, titles and poets. Choose a preferred reading language or filter independently for works available in a language, including originals and available translations; some are unreviewed AI-assisted reading aids. Filter by poet, original language, collection, form, transcribed line count, available translation, place and recorded year; quick year ranges count matches against the other filters. A year may describe composition, publication, an edition or a traditional date; records without a year are excluded from ranges. Filter-option counts reflect the search and other active filters; each poem is counted once per option. A work associated with multiple places is counted under each; an associated place is not necessarily where it was written. Results rotate through languages and poets, and “Surprise me” picks from the current results. Share or return to a search using its link, or continue through its results from the reader. When tab storage is available, returning to a matching search restores expanded results and the last poem read; a surprise outside the loaded results returns to the search controls instead. Theme tags cover only part of the catalogue.
 - **Understand:** shareable poet and traditional-voice pages bring catalogue works together without inventing biographies. Search the directory by display name or available original-script name; the full directory remains browsable without JavaScript. Each poem has source and rights notes, author, era, place, collection, and context. Linked, sourced relationships are distinct from varied suggestions labelled by shared poet, theme, original language or associated place; these suggestions do not claim influence.
 - **Find a way in:** browse catalogue-backed paths by original language, associated place or form; begin with a sourced featured poem; try a short poem by its original line count; or follow documented sequences in Leopardi's 1826 edition and Shakespeare's numbered sonnets.
