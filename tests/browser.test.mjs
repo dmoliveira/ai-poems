@@ -27,6 +27,58 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Bengali songs support mobile discovery, saved state and an attributed self-reworking', async () => {
+  const selected = poems.filter(poem => poem.language === 'Bengali');
+  const song = selected.find(poem => poem.id === 'tagore-gitanjali-bengali-120');
+  const english = song.translations[0];
+  const seed = { saved: ['goethe-ein-gleiches', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Bengali');
+  await page.getByText(`${selected.length} poems found`, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Bengali');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.getByLabel('Search the poetry library').fill(song.title);
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  await page.locator(`#results a[href$="/poems/${song.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), song.text);
+  assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'bn');
+  await page.getByRole('button', { name: 'Translation', exact: true }).click();
+  assert.equal(await page.locator('#translation-panel .verse').textContent(), english.text);
+  assert.equal(await page.locator('#translation-panel .verse').getAttribute('lang'), 'en');
+  assert.ok((await page.locator('#translation-panel .translation-credit').textContent()).includes('self-reworking'));
+  assert.ok((await page.locator('#translation-panel .translation-rights').textContent()).includes('not a literal line-by-line translation'));
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.equal(stored.preferredLanguage, 'Bengali');
+  for (const id of [...seed.saved, song.id]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Bengali a[href$="/poems/${poem.id}/"]`).count(), 1, poem.id);
+  for (const poem of [selected[0], selected[10], song]) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'bn');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  assert.equal(await staticPage.locator('#translations .verse').textContent(), english.text);
+  assert.equal(await staticPage.locator('#translations .verse').getAttribute('lang'), 'en');
+  assert.ok((await staticPage.locator('#translations').textContent()).includes('self-reworking'));
+  await fallback.close();
+});
+
 test('German discovery, saved preference and static readers work on mobile', async () => {
   const selected = poems.filter(poem => poem.language === 'German');
   const lorelei = selected.find(poem => poem.id === 'heine-die-lorelei');
@@ -6128,11 +6180,16 @@ test('the complete index groups every poem once and supports keyboard browsing w
   }
   assert.ok(await page.locator('#index-original-Chinese [lang|="zh"]').count() > 0);
   const navigation = index.getByRole('navigation', { name: 'Index by language of the original' });
-  const arabicCount = poems.filter(poem => poem.language === 'Arabic').length;
-  await navigation.getByRole('link', { name: `Arabic ${arabicCount} ${arabicCount === 1 ? 'poem' : 'poems'}`, exact: true }).focus();
-  await page.keyboard.press('Tab');
+  const links = navigation.locator('a');
+  const expectedLanguages = languages.toSorted((a, b) => a.localeCompare(b));
+  assert.deepEqual(await links.evaluateAll(items => items.map(item => decodeURIComponent(new URL(item.href).hash.slice('#index-original-'.length)))), expectedLanguages);
+  await links.first().focus();
+  for (let position = 0; position < expectedLanguages.length; position++) {
+    assert.equal(await links.nth(position).evaluate(element => document.activeElement === element), true, expectedLanguages[position]);
+    if (position < expectedLanguages.length - 1) await page.keyboard.press('Tab');
+  }
   const chinese = navigation.getByRole('link', { name: `Chinese ${poems.filter(poem => poem.language === 'Chinese').length} poems`, exact: true });
-  assert.equal(await chinese.evaluate(element => document.activeElement === element), true);
+  await chinese.focus();
   await page.keyboard.press('Enter');
   await page.waitForURL('**/#index-original-Chinese');
   assert.equal(await page.locator('#index-original-Chinese').isVisible(), true);
