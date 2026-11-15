@@ -18,6 +18,70 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('next recognized readings preserve complete texts, witnesses and work boundaries', () => {
+  const ids = [
+    'recognized-next-yosano-kimi-shinitamau', 'recognized-next-keats-belle-dame',
+    'recognized-next-dunbar-we-wear-the-mask', 'recognized-next-dunbar-sympathy',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.deepEqual(selected.map(lineCount), [41, 48, 15, 21]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '2be11094b2ca15bbbaebd0579c167af91223ca73a80d60eec48572626ab89bf7',
+    '463ec97eab02d3e3c948632c46490fcd273fec4bbb188514e044ad763d6167ed',
+    'c46759522e9b30cf8bca11ce5fb13d4d68b3d006d7fad7250230aa0f0f2cdc9a',
+    'e6181b9506769eb04e033c824d9e2c2b94e4f1a4b19e5f87d1a83fdcfec1fcb1',
+  ]);
+  for (const poem of selected) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { language: poem.language, query: poem.title }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const [yosano, keats, mask, sympathy] = selected;
+  assert.deepEqual(yosano.text.split('\n\n').map(part => part.split('\n').length), [1, 8, 8, 8, 8, 8]);
+  assert.match(yosano.text, /^旅順口包囲軍の中に在る弟を歎きて\n\nあゝをとうとよ、君を泣く、/);
+  assert.ok(yosano.text.endsWith('君死にたまふことなかれ。'));
+  assert.match(yosano.context, /1980 facsimile, not a directly inspected historical scan/);
+  assert.match(yosano.rights, /武田秀男.*kazuishi.*2 June 2004/);
+  assert.ok(filterPoems([yosano], { query: yosano.displayTitle }).includes(yosano));
+  assert.deepEqual(keats.text.split('\n\n').map(part => part.split('\n').length), Array(12).fill(4));
+  assert.equal((keats.text.match(/wretched wight/g) || []).length, 2);
+  assert.match(keats.text, /sedge is wither'd.*thy cheek/s);
+  assert.ok(!keats.text.includes('knight-at-arms'));
+  assert.ok(!keats.text.includes('Caviare'));
+  assert.equal(keats.titleLang, 'fr');
+  assert.equal(keats.displayTitleLang, 'fr');
+  assert.ok(filterPoems([keats], { query: 'La Belle Dame sans Merci' }).includes(keats));
+  assert.deepEqual(mask.text.split('\n\n').map(part => part.split('\n').length), [5, 4, 6]);
+  assert.match(mask.rights, /Wikisource contributors under CC BY-SA 4\.0.*oldid=15845393/);
+  assert.deepEqual(sympathy.text.split('\n\n').map(part => part.split('\n').length), [7, 7, 7]);
+  assert.ok(sympathy.text.endsWith('I know why the caged bird sings!'));
+  assert.match(sympathy.context, /Maya Angelou.*not included or counted as this poem/);
+
+  // Check exact and contained originals, translations and openings; variants can still escape this screen.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added === yosano ? added.text.split('\n\n')[1].split('\n')[0] : added.text.split('\n')[0]);
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) {
+          assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        }
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-readings.py', '--check'], { encoding: 'utf8' }), /Verified 4 historical readings/);
+});
+
 test('recognized global works preserve historical readings, boundaries and language markings', () => {
   const ids = [
     'recognized-konopnicka-rota', 'recognized-mickiewicz-romantycznosc', 'recognized-kipling-if',
@@ -5681,7 +5745,8 @@ test('Japanese additions preserve sourced edition readings and uncertain dates',
   const issa = poems.filter(p => p.id.startsWith('issa-1902-')).length;
   const chiyo = poems.filter(p => p.id.startsWith('chiyo-ni-1927-')).length;
   const ogura = poems.filter(p => p.id.startsWith('ogura-1900-')).length;
-  assert.equal(filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length, 6 + laterBasho + laterBuson + issa + chiyo + ogura);
+  const yosano = poems.filter(p => p.id === 'recognized-next-yosano-kimi-shinitamau').length;
+  assert.equal(filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length, 6 + laterBasho + laterBuson + issa + chiyo + ogura + yosano);
   assert.equal(filterPoems(poems, { query: '松尾芭蕉' }).length, 3 + laterBasho);
   assert.equal(filterPoems(poems, { query: '与謝蕪村' }).length, 2 + laterBuson);
 });
