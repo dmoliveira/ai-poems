@@ -18,6 +18,61 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('world classics retain complete historical readings, independent credits and work boundaries', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('world-'));
+  assert.deepEqual(selected.map(poem => poem.id), [
+    'world-rizal-farewell', 'world-pushkin-kern', 'world-pushkin-i-loved-you', 'world-pushkin-winter-morning',
+    'world-wordsworth-daffodils', 'world-shelley-ozymandias', 'world-yeats-innisfree', 'world-lazarus-new-colossus',
+    'world-frost-nothing-gold', 'world-frost-stopping-by-woods', 'world-hughes-rivers', 'world-hughes-mother-to-son',
+    'world-hughes-i-too',
+  ]);
+  assert.deepEqual(selected.map(lineCount), [70, 24, 8, 30, 24, 14, 12, 14, 8, 16, 10, 20, 18]);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '2a1ba9829f1e07169b246da06e021f4c6e6eb6db315f7b520d03157b35dcd698');
+  for (const poem of selected) {
+    assert.deepEqual(poem.themes, []);
+    assert.match(poem.yearLabel, /printing.*not necessarily composition/);
+    assert.match(poem.rights, /public domain in the United States.*jurisdiction/);
+    assert.ok(filterPoems([poem], { language: poem.language, query: poem.title }).includes(poem), poem.id);
+    assert.ok(filterPoems([poem], { query: poem.text.split('\n')[0] }).includes(poem), poem.id);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`), poem.id);
+    assert.ok(html.includes(escapeHtml(poem.source)), poem.id);
+  }
+  const rizal = selected[0];
+  assert.match(rizal.text, /amigos de la infancia an el perdido hogar!/);
+  assert.match(rizal.context, /'an el'.*retained/);
+  assert.equal(rizal.translations.length, 1);
+  const translation = rizal.translations[0];
+  assert.equal(translation.text.split('\n').filter(Boolean).length, 70);
+  assert.equal(createHash('sha256').update(translation.text).digest('hex'), '6c3f21a9bfad888a2b59a4a79ba2c4128c2a3dea9e13a75411a53aac3a5640e5');
+  assert.match(translation.translator, /Derbyshire/);
+  assert.match(translation.rights, /1921.*not necessarily a translation of the selected 1903/);
+  assert.ok(filterPoems([rizal], { readable: 'English', query: 'Farewell, dear Fatherland' }).includes(rizal));
+  assert.match(selected.find(poem => poem.id === 'world-pushkin-kern').context, /Pre-reform Russian spelling is modernized/);
+  assert.match(selected.find(poem => poem.id === 'world-wordsworth-daffodils').text, /the shew to me had brought/);
+  assert.match(selected.find(poem => poem.id === 'world-shelley-ozymandias').text, /Stand in the desart/);
+  assert.match(selected.find(poem => poem.id === 'world-hughes-i-too').text, /I'll sit at the table/);
+  assert.match(selected.find(poem => poem.id === 'world-hughes-i-too').context, /Epilogue.*later circulated versions/);
+  assert.ok(selected.filter(poem => poem.language === 'English').every(poem => /CC BY-SA 4\.0.*oldid=/.test(poem.rights)));
+
+  // This screen catches exact and contained readings, not every translation or variant.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    for (const reading of [added.text, ...added.translations.map(item => item.text)]) {
+      const full = fold(reading), opening = fold(reading.split('\n')[0]);
+      for (const other of poems.filter(poem => poem.id !== added.id)) {
+        for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+          const candidate = fold(text);
+          assert.notEqual(full, candidate, `${added.id} duplicates ${other.id}`);
+          if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+          if (opening.length > 24) assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+        }
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-world-classics.py', '--check'], { encoding: 'utf8' }), /Verified 13 readings and one translation/);
+});
+
 test('1916 Tagore readings retain complete sources and a separately credited self-reworking', () => {
   const selected = poems.filter(poem => poem.id.startsWith('tagore-1916-'));
   assert.deepEqual(selected.map(poem => poem.id), [
