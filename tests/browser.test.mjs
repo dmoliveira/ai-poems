@@ -27,6 +27,52 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('lyric classics support mobile discovery, saved state and static readers', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('recognized-lyric-classics-'));
+  assert.equal(selected.length, 7);
+  const seed = { saved: ['world-rizal-farewell', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const poem of selected) {
+    await page.goto(base);
+    await page.getByText(totalText, { exact: true }).waitFor();
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption(poem.language);
+    await page.getByLabel('Search the poetry library').fill(poem.displayTitle || poem.title);
+    const count = filterPoems(poems, { language: poem.language, query: poem.displayTitle || poem.title }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    if (poem.id.endsWith('machado-la-saeta')) {
+      assert.match(await staticPage.locator('body').textContent(), /traditional epigraph[\s\S]*not attributed to Machado/);
+    }
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('early classics support mobile discovery, saved state and static readers', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('recognized-early-classics-'));
   assert.equal(selected.length, 5);
@@ -1824,8 +1870,10 @@ test('Teasdale poems support English search, preserved saves and JavaScript-free
   await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
   await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
   await page.getByLabel('Search the poetry library').fill('Sara Teasdale');
-  assert.equal(filterPoems(poems, { ...filters, query: 'Sara Teasdale' }).length, 25);
-  await page.getByText('25 poems found', { exact: true }).waitFor();
+  const authorMatches = filterPoems(poems, { ...filters, query: 'Sara Teasdale' });
+  assert.ok(selected.every(poem => authorMatches.includes(poem)));
+  assert.ok(authorMatches.some(poem => poem.id === 'recognized-lyric-classics-teasdale-soft-rains'));
+  await page.getByText(`${authorMatches.length} poems found`, { exact: true }).waitFor();
   const samples = [
     ['barter', 'life has loveliness to sell'],
     ['i-shall-not-care', 'lean above me broken-hearted'],
