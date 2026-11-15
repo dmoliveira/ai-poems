@@ -6,7 +6,7 @@ The launch introduced 161 sourced works, eight original languages, static poem p
 
 ## Beyond 1,000 works
 
-The catalogue now contains more than 2,500 works from over 200 named or traditional author groups across thirteen original languages. Coverage remains uneven across poets, languages and periods, and translations are much rarer than originals. Continue expanding and independently checking batches by language, era, author and geography. Prioritize diverse public-domain or permission-cleared editions, evidence for dates and textual variants, and separate rights checks for each translation. Add documented influence and response edges with sources, and keep AI-assisted reading aids clearly labeled while expanding independently reviewed alternatives. Grow the catalogue based on editorial quality rather than generating placeholder entries.
+The catalogue now contains more than 2,500 works from over 200 named or traditional author groups across fourteen original languages. Coverage remains uneven across poets, languages and periods, and translations are much rarer than originals. Continue expanding and independently checking batches by language, era, author and geography. Prioritize diverse public-domain or permission-cleared editions, evidence for dates and textual variants, and separate rights checks for each translation. Add documented influence and response edges with sources, and keep AI-assisted reading aids clearly labeled while expanding independently reviewed alternatives. Grow the catalogue based on editorial quality rather than generating placeholder entries.
 
 ## Enrich the experience
 

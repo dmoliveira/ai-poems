@@ -18,6 +18,55 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Polish classics retain distinct work boundaries, historical sources and credited readings', () => {
+  const selected = poems.filter(poem => poem.language === 'Polish');
+  const short = selected.filter(poem => poem.authorId === 'maria-pawlikowska-jasnorzewska');
+  const mickiewicz = selected.filter(poem => poem.authorId === 'adam-mickiewicz');
+  assert.equal(selected.length, 59);
+  assert.equal(short.length, 55);
+  assert.equal(mickiewicz.length, 3);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '3b44a12f93ef6c4087f96cd7f732c66b3ab4693ac5dd176c38bb77d54df0e7cf');
+  assert.ok(short.every(poem => lineCount(poem) === 4 && poem.year === 1926));
+  assert.deepEqual(mickiewicz.map(lineCount), [14, 75, 36]);
+  for (const poem of selected) {
+    assert.equal(poem.lang, 'pl');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.country, 'Poland');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*Polish Wikisource contributors.*CC BY-SA 4\.0.*check local law/);
+    assert.match(poem.contextSource, /pl\.wikisource\.org\/w\/index\.php\?title=.*&oldid=\d+$/);
+    assert.ok(filterPoems([poem], { language: 'Polish', readable: 'Polish', query: poem.title }).includes(poem));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const reader = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(reader.includes(`class="verse" lang="pl" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(reader.includes(escapeHtml(poem.source)));
+    assert.ok(reader.includes(escapeHtml(poem.contextSource)));
+  }
+  assert.ok(short.every(poem => /1927 Wachlarz reprints Pocałunki/.test(poem.context)));
+  assert.ok(!selected.some(poem => /kobieta-w-morzu|oczy-na-skrzydlach|wiersz-ukradziony|spozniony-list/.test(poem.id)));
+  const byId = id => selected.find(poem => poem.id === id);
+  const photograph = byId('pawlikowska-1926-fotografja');
+  assert.equal(photograph.displayTitle, 'Fotografia');
+  assert.ok(filterPoems(selected, { query: 'Fotografia' }).includes(photograph));
+  assert.ok(filterPoems(selected, { query: 'Fotografja' }).includes(photograph));
+  assert.match(byId('pawlikowska-1926-milosc').text, /^Nie widziałam cię już od miesiąca\.[\s\S]*bez powietrza!$/);
+  assert.match(byId('mickiewicz-1826-stepy-akermanskie').text, /Wpłynąłem[\s\S]*jedźmy, nikt nie woła\.$/);
+  const colonel = byId('mickiewicz-1899-smierc-pulkownika');
+  assert.match(colonel.text, /^W głuchej puszczy, przed chatą leśnika,/);
+  assert.match(colonel.context, /chatą leśnika.*chatką leśnika/);
+  assert.match(colonel.rights, /oldid=2633517.*oldid=2633518/);
+  const song = byId('konopnicka-1903-a-jak-poszedl-krol');
+  assert.equal(lineCount(song), 24);
+  assert.equal(song.era, '19th century');
+  assert.match(song.text, /A jak poszedł król na wojnę[\s\S]*Te dzwoneczki, te liliowe/);
+  assert.match(song.context, /liliowe.*liljowe/);
+  assert.match(song.rights, /oldid=1916199.*oldid=1916198/);
+  const synthetic = { ...short[0], translations: [{ language: 'Polish', title: 'Przykład', text: 'Przykład tekstu', translator: 'Example', rights: 'Example', source: 'https://example.org/' }] };
+  assert.match(renderPoem(synthetic, poems, '/ai-poems/'), /class="verse" lang="pl" dir="ltr">Przykład tekstu/);
+});
+
 test('Ukrainian classics retain complete scan readings, page credits and edition differences', () => {
   const selected = poems.filter(poem => poem.language === 'Ukrainian');
   assert.deepEqual(selected.map(poem => poem.id), [
@@ -692,13 +741,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all thirteen original languages', () => {
+test('catalogue has distinct, sourced records in all fourteen original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Ukrainian', 'Bengali', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');
