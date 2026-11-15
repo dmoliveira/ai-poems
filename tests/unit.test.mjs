@@ -18,6 +18,75 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Kabir-attributed dohas preserve complete historical readings and textual caveats', () => {
+  const ids = [
+    'kabir-1928-jis-maranai', 'kabir-1928-maya-papani', 'kabir-1928-kaba-phir-kasi',
+    'kabir-1928-maya-mui', 'kabir-1928-yahu-ghar-prem', 'kabir-1928-sab-jag-suta', 'kabir-1928-had-jalai',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.authorId === 'kabir').length, 7);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '766cb9dc7b706db9592f40093aa992b9b4d73ef6c8843831428dbdfb72756e31');
+  assert.deepEqual(selected.map(lineCount), [2, 2, 2, 2, 2, 2, 2]);
+  for (const poem of selected) {
+    assert.equal(poem.language, 'Hindi');
+    assert.equal(poem.lang, 'hi');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.country, 'India');
+    assert.equal(poem.anonymous, true);
+    assert.equal(poem.uncertainAttribution, true);
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.year, 1928);
+    assert.match(poem.yearLabel, /edition.*composition date unknown/);
+    assert.match(poem.context, /Traditionally attributed.*disputed attributions.*historical mixed Hindavi.*not a claim of modern standard Hindi/);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.doesNotMatch(poem.text, /\s[।॥]/);
+    assert.match(poem.rights, /public domain in the United States.*Hindi Wikisource.*CC BY-SA 4\.0.*check local law/);
+    assert.match(poem.source, /hi\.wikisource\.org\/w\/index\.php\?title=.*&oldid=\d+$/);
+    assert.match(poem.contextSource, /archive\.org\/download\/.*\.pdf#page=\d+$/);
+    assert.ok(filterPoems([poem], { language: 'Hindi', readable: 'Hindi', query: poem.title }).includes(poem));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const reader = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(reader.includes(`class="verse" lang="hi" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(reader.includes('Attribution: <strong><a href="/ai-poems/poets/kabir/">Kabir</a></strong>'));
+    assert.ok(reader.includes(`${escapeHtml(poem.title)} attributed to Kabir`));
+    const schema = JSON.parse(reader.match(/<script type="application\/ld\+json">([^<]+)<\/script>/)[1]);
+    assert.equal(schema.author, undefined);
+    assert.ok(reader.includes(escapeHtml(poem.source)));
+    assert.ok(reader.includes(escapeHtml(poem.contextSource)));
+  }
+  assert.match(selected[3].text, /आसा त्रिष्णां/);
+  assert.match(selected[3].context, /आसा.*प्रासा.*यौं कहि गया कबीर.*यौं कहै दास कबीर/);
+  assert.match(selected[4].text, /घर नांहिं/);
+  assert.match(selected[4].context, /नांहिं.*नंहिं.*number is 19.*gives 16/);
+  assert.match(selected[5].text, /तोरणि आया बींद/);
+  assert.match(selected[5].context, /आया.*पाया/);
+  assert.match(selected[6].context, /not proofread.*checked against the scan/);
+  assert.ok(!selected.some(poem => /पोथी पढ़ि|कस्तूरी कुंडलि/.test(poem.text)));
+
+  // Preserve vowel marks in Indic scripts; these checks cannot recognize every
+  // variant, translation or independent oral reworking.
+  const fold = text => text.normalize('NFC').toLowerCase().replace(/[^\p{L}\p{M}\p{N}]/gu, '');
+  for (const added of selected) {
+    const reading = fold(added.text);
+    for (const other of poems) {
+      const texts = [...(other.id === added.id ? [] : [other.text]), ...other.translations.map(item => item.text)];
+      for (const text of texts) {
+        const candidate = fold(text);
+        if (candidate.length >= 35 && reading.length >= 35) {
+          assert.ok(!reading.includes(candidate) && !candidate.includes(reading), `${added.id} overlaps ${other.id}`);
+        }
+      }
+    }
+  }
+  const synthetic = { ...selected[0], translations: [{ language: 'Hindi', title: 'उदाहरण', text: 'उदाहरण पाठ', translator: 'Example', rights: 'Example', source: 'https://example.org/' }] };
+  assert.match(renderPoem(synthetic, poems, '/ai-poems/'), /class="verse" lang="hi" dir="ltr">उदाहरण पाठ/);
+  const prior = poems.find(poem => poem.id === 'shakespeare-sonnet-18');
+  assert.match(renderPoem(prior, poems, '/ai-poems/'), /<title>Sonnet 18 by William Shakespeare/);
+  assert.match(execFileSync('python3', ['scripts/import-kabir-hindavi.py', '--check'], { encoding: 'utf8' }), /Verified 7 readings/);
+});
+
 test('Polish classics retain distinct work boundaries, historical sources and credited readings', () => {
   const selected = poems.filter(poem => poem.language === 'Polish');
   const short = selected.filter(poem => poem.authorId === 'maria-pawlikowska-jasnorzewska');
@@ -800,13 +869,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all fourteen original languages', () => {
+test('catalogue has distinct, sourced records in all fifteen original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');

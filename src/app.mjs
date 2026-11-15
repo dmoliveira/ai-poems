@@ -637,7 +637,7 @@ function setupReader() {
     const preferred = poem.translations.findIndex(t => t.language === state.language);
     if (preferred >= 0) selector.value = String(preferred);
   }
-  const languages = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', German: 'de', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
+  const languages = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', German: 'de', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Hindi: 'hi', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
   function renderTranslation() {
     const item = selector && poem.translations[Number(selector.value)];
     if (!item) return;

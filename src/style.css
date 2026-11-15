@@ -128,6 +128,12 @@ blockquote {
   line-height: 1.04;
   letter-spacing: -0.025em;
 }
+h1:lang(hi),
+h2:lang(hi),
+h3:lang(hi) {
+  line-height: 1.35;
+  letter-spacing: normal;
+}
 h1 em,
 h2 em {
   font-weight: 500;

@@ -27,6 +27,60 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Kabir-attributed dohas support Hindi discovery, preserved saves and static reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'kabir');
+  const example = selected.find(poem => poem.id === 'kabir-1928-maya-mui');
+  assert.equal(selected.length, 7);
+  const seed = { saved: ['tagore-gitanjali-bengali-021', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Hindi');
+  await page.getByText('7 poems found', { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Hindi');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.getByLabel('Search the poetry library').fill('कबीर');
+  await page.getByText('7 poems found', { exact: true }).waitFor();
+  await page.getByLabel('Search the poetry library').fill(example.title);
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  await page.locator(`#results a[href$="/poems/${example.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), example.text);
+  assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'hi');
+  assert.match(await page.locator('.reader-byline').textContent(), /Attribution:\s*Kabir/);
+  assert.match(await page.title(), /attributed to Kabir/);
+  const heading = await page.locator('.reader-intro h1').evaluate(element => {
+    const style = getComputedStyle(element);
+    return { lineHeight: parseFloat(style.lineHeight), fontSize: parseFloat(style.fontSize), letterSpacing: style.letterSpacing };
+  });
+  assert.ok(heading.lineHeight / heading.fontSize >= 1.3);
+  assert.equal(heading.letterSpacing, 'normal');
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, example.id]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Hindi');
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Hindi a[href$="/poems/${poem.id}/"]`).count(), 1, poem.id);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200, poem.id);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text, poem.id);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'hi');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('Polish classics support discovery, saved data and static reading', async () => {
   const selected = poems.filter(poem => poem.language === 'Polish');
   const photograph = selected.find(poem => poem.id === 'pawlikowska-1926-fotografja');
