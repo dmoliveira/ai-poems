@@ -18,7 +18,7 @@ export function titleAttributes(poem) {
 const searchIndex = new WeakMap();
 function searchableText(poem) {
   if (!searchIndex.has(poem)) {
-    const original = [poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form, poem.collection, poem.language, poem.text, ...poem.themes];
+    const original = [poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form, poem.collection, poem.language, poem.text, ...poem.themes, ...(poem.searchAliases || []), ...(poem.authorAliases || [])];
     if (poem.language === 'Finnish') {
       searchIndex.set(poem, {
         original: normalizeFinnish(original.join(' ')),
