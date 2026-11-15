@@ -18,6 +18,41 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('German classics retain distinct complete readings, attribution and edition boundaries', () => {
+  const selected = poems.filter(poem => poem.language === 'German');
+  assert.equal(selected.length, 25);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '07fed8a2e994629e691bd29522568c3e34914d3c460307310709e52a220cc221');
+  assert.deepEqual(selected.map(lineCount), [21, 32, 98, 32, 8, 8, 12, 24, 20, 104, 40, 8, 8, 8, 20, 12, 12, 8, 8, 12, 12, 12, 24, 24, 8]);
+  assert.deepEqual(new Set(selected.map(poem => poem.authorId)), new Set(['johann-wolfgang-von-goethe', 'joseph-von-eichendorff', 'friedrich-schiller', 'traditional-german-song', 'heinrich-heine']));
+  for (const poem of selected) {
+    assert.equal(poem.lang, 'de');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.country, 'Germany');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.source, /de\.wikisource\.org\/w\/index\.php\?title=.*&oldid=\d+$/);
+    assert.match(poem.contextSource, /commons\.wikimedia\.org\/wiki\/File:/);
+    assert.match(poem.rights, /public domain in the United States.*Wikisource contributors, CC BY-SA 4\.0.*check local law/);
+    assert.ok(filterPoems([poem], { language: 'German', readable: 'German', query: poem.title }).includes(poem));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="de" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const byId = id => selected.find(poem => poem.id === id);
+  assert.ok(byId('goethe-der-zauberlehrling').text.endsWith('Erst hervor der alte Meister.“'));
+  assert.equal(byId('schiller-an-die-freude').text.split('\n').filter(line => line === 'Chor').length, 8);
+  assert.match(byId('traditional-die-gedanken-sind-frei').context, /Geadnken.*Gedanken/);
+  assert.equal(byId('traditional-die-gedanken-sind-frei').anonymous, true);
+  assert.match(byId('eichendorff-sehnsucht').context, /267–268.*268–269/);
+  assert.match(byId('heine-die-lorelei').text, /Lore-Ley gethan\.$/);
+  assert.ok(filterPoems(selected, { query: 'Lorelei' }).includes(byId('heine-die-lorelei')));
+  assert.ok(filterPoems(selected, { query: 'Über allen Gipfeln' }).includes(byId('goethe-ein-gleiches')));
+  const synthetic = { ...selected[0], translations: [{ language: 'German', title: 'Beispiel', text: 'Beispieltext', translator: 'Example', rights: 'Example', source: 'https://example.org/' }] };
+  assert.match(renderPoem(synthetic, poems, '/ai-poems/'), /class="verse" lang="de" dir="ltr">Beispieltext/);
+});
+
 test('popular multilingual poems retain complete historical readings and disclosed variants', () => {
   const ids = [
     'frost-1916-the-road-not-taken', 'rimbaud-1895-le-dormeur-du-val', 'rimbaud-1895-voyelles',
@@ -472,13 +507,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all eight original languages', () => {
+test('catalogue has distinct, sourced records in all nine original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');
