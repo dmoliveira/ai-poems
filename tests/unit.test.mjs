@@ -18,6 +18,49 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Montes del Valle poems retain complete 1883 readings and the printed errata', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('montes-del-valle-1883-'));
+  const slugs = ['a-mi-hija-luz', 'a-zoila-rosa-del-valle', 'una-azucena', 'apologo', 'a-magdalena-giraldo-de-a', 'no-te-olvidare', 'pepita-grillo', 'en-el-piano', 'adios', 'la-esperanza', 'dos-artistas', 'un-canario', 'la-imprenta'];
+  const pages = [64, 83, 113, 114, 124, 125, 131, 136, 137, 170, 198, 199, 201];
+  const lineCounts = [17, 22, 16, 16, 16, 24, 16, 14, 16, 16, 16, 12, 14];
+  assert.equal(selected.length, 13);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '89941f058ea911e5d33cc21db41c2ce7c7f0d9d11b16805222cbd032bbbb4acb');
+  assert.equal(createHash('sha256').update(JSON.stringify(selected.map(({ id, title, source }) => ({ id, title, source })))).digest('hex'), '9d1acb4c834681c5e1bd42adee9d7e9b510877ccf19b0fe4d79d3cce79ffd910');
+  assert.equal(groupPoets(poems).find(group => group.id === 'agripina-montes-del-valle').poems.length, 13);
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.id, `montes-del-valle-1883-${slugs[index]}`);
+    assert.equal(lineCount(poem), lineCounts[index]);
+    assert.equal(poem.author, 'Agripina Montes del Valle');
+    assert.equal(poem.authorYears, '1844–1915');
+    assert.equal(poem.country, 'Colombia');
+    assert.equal(poem.language, 'Spanish');
+    assert.equal(poem.lang, 'es');
+    assert.equal(poem.year, 1883);
+    assert.equal(poem.yearLabel, 'Printed in 1883');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.ok(poem.source.endsWith(`#page=${pages[index]}`));
+    assert.match(poem.context, /does not establish when or where the poem was composed/);
+    assert.match(poem.context, /PDF may download/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { query: poem.text.split('\n').find(line => line.length > 15) }).includes(poem));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(poem.text)));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+  }
+  const bySlug = slug => selected.find(poem => poem.id === `montes-del-valle-1883-${slug}`);
+  const magdalena = bySlug('a-magdalena-giraldo-de-a');
+  assert.match(magdalena.text, /Se evaporó su esencia bendecida/);
+  assert.match(magdalena.context, /prints ‘Se evaporó su aroma bendecida’.*errata.*‘esencia’/);
+  assert.ok(magdalena.contextSource.endsWith('#page=206'));
+  assert.match(bySlug('una-azucena').context, /index gives ‘A una azucena’/);
+  assert.match(bySlug('apologo').text, /La flor, la roca, el insecto,$/);
+  assert.match(bySlug('adios').context, /‘1865’.*without specifying what the date denotes/);
+  assert.equal(filterPoems(selected, { query: 'Agripina Montes del Valle', country: 'Colombia' }).length, 13);
+});
+
 test('Agustini poems retain complete 1913 readings, distinct Nocturnos and source caveats', () => {
   const selected = poems.filter(poem => poem.id.startsWith('agustini-1913-'));
   const slugs = ['ofrendando-el-libro', 'nocturno-invierno', 'tu-boca', 'dia-nuestro', 'tres-petalos-a-tu-perfil', 'la-ruptura', 'con-tu-retrato', 'en-silencio', 'otra-estirpe', 'fiera-de-amor', 'ceguera', 'inextinguibles', 'nocturno-lago'];
