@@ -18,6 +18,64 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('crossroads readings preserve complete works, witnesses and variant boundaries', () => {
+  const ids = [
+    'recognized-crossroads-henley-invictus', 'recognized-crossroads-mistral-balada',
+    'recognized-crossroads-rilke-herbsttag', 'recognized-crossroads-dario-lo-fatal',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.deepEqual(selected.map(lineCount), [16, 24, 12, 13]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '8bf1060768e3213544d5604b503c74fd2439be8439e8ba6aa209ba0db90d1999',
+    '546395dd70bb7c6857dc432d996ac570f855e293f3853b06f36551413e3e238e',
+    '25ffffeb32ca3240c5e97dccdbabfe835efebf10040eae35956b5ec9a8ebe42d',
+    'eb25997600ac51544e40bc28e3042162a04895629f1727043bc5b6183dbbcaf7',
+  ]);
+  const [henley, mistral, rilke, dario] = selected;
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(part => part.split('\n').length)), [
+    [4, 4, 4, 4], [6, 6, 6, 6], [3, 4, 5], [4, 4, 5],
+  ]);
+  assert.match(henley.context, /heading is IV.*dedication.*1875.*later familiar title.*not a second work/);
+  assert.ok(henley.text.endsWith('I am the master of my fate:\nI am the captain of my soul.'));
+  assert.match(mistral.text, /^El pasó con otra;\nyo le vi pasar\n/);
+  assert.match(mistral.text, /\(Dios quiere callar\)\n¡Y él irá con otra\npor la eternidad!$/);
+  assert.match(mistral.rights, /CC BY-SA 4\.0.*oldid=1604056.*oldid=1604054/);
+  assert.match(rilke.text, /Leg Deinen Schatten.*\ngieb ihnen/s);
+  assert.ok(rilke.text.endsWith('unruhig wandern wenn die Blätter treiben.'));
+  assert.match(rilke.rights, /CC BY-SA 4\.0.*oldid=2353125/);
+  assert.ok(dario.text.endsWith('Y no saber á donde vamos,\nNi de donde venimos...!'));
+  assert.match(dario.context, /René Pérez.*FIN.*complete as printed, not an excerpt/);
+  for (const poem of selected) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { language: poem.language, query: poem.title }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Screen originals and translations, including German ß/ss; variants can still escape this check.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/ß/g, 'ss').replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) {
+          assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        }
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-crossroads.py', '--check'], { encoding: 'utf8' }), /Verified 4 historical readings/);
+});
+
 test('Atlantic readings preserve both complete works and their edition boundaries', () => {
   const ids = ['recognized-atlantic-rimbaud-bateau-ivre', 'recognized-atlantic-mistral-sonetos'];
   const selected = ids.map(id => poems.find(poem => poem.id === id));
@@ -1049,7 +1107,9 @@ test('Darío poems retain complete 1896 readings, Nicaragua identity and edition
   assert.equal(selected.length, 12);
   assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '753ba6b336ed7d994bb4a65e9b9292ff52f716c3844250bf04285d8b56fd577c');
   assert.equal(createHash('sha256').update(JSON.stringify(selected.map(({ id, title, source }) => ({ id, title, source })))).digest('hex'), '32659750f886e5f3af3dd5c53feaacfabf6804cd5681d4a0593d9016fe5ad38f');
-  assert.equal(groupPoets(poems).find(group => group.id === 'ruben-dario').poems.length, 12);
+  const darioGroup = groupPoets(poems).find(group => group.id === 'ruben-dario').poems;
+  assert.equal(darioGroup.length, poems.filter(poem => poem.authorId === 'ruben-dario').length);
+  assert.ok(selected.every(poem => darioGroup.some(item => item.id === poem.id)));
   for (const [index, poem] of selected.entries()) {
     assert.equal(poem.id, `dario-1896-${slugs[index]}`);
     assert.equal(lineCount(poem), lineCounts[index]);
