@@ -18,6 +18,87 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('lyric classics preserve complete witnesses, epigraph attribution and distinct works', () => {
+  const ids = [
+    'recognized-lyric-classics-machado-retrato', 'recognized-lyric-classics-machado-anoche-cuando-dormia',
+    'recognized-lyric-classics-machado-la-saeta', 'recognized-lyric-classics-ronsard-mignonne',
+    'recognized-lyric-classics-teasdale-soft-rains', 'recognized-lyric-classics-frost-fire-and-ice',
+    'recognized-lyric-classics-yeats-cloths-of-heaven',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-lyric-classics-')).length, 7);
+  assert.deepEqual(selected.map(lineCount), [36, 28, 21, 18, 12, 9, 8]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    Array(9).fill(4), [8, 8, 8, 4], [4, 1, 16], [6, 6, 6], [2, 2, 2, 2, 2, 2], [9], [8],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '294d83ee51cfc3dc10079985c33b3f75e37f2c26b8760eb9f7955c1f2d71be9c',
+    '90bb9196da3ba652417a0ed106d1efdca39a81f4518bd8a5a65b8f9937bb5eaa',
+    'd7e8177d1d027d8b43a335d730aed6fad1d600295c7af9b0ecb4be4e9f6f1b46',
+    'bfbbac4706ea0f028501f8adc878eb7a8b8ff057576fe59d5792ecc3796cd042',
+    'c8827df268ecf35a6e8690a58386a89ceb290c6ad172bdaddc9fced8312014d4',
+    '38e14415df4149103218d1a4427c4cd4b7967b34663e0481d91a89bcef3a16c2',
+    '406accb8a678e8f827eee5869ce8e3a21e6e6a61371ad662d894aebb30df6382',
+  ]);
+  const [retrato, anoche, saeta, ronsard, rains, fire, cloths] = selected;
+  assert.match(retrato.text, /Hay en mi venas gotas de sangre jacobina;[\s\S]*me encontraréis á bordo, ligero de equipaje,/);
+  assert.match(retrato.context, /apparently|apparent error/);
+  assert.match(anoche.text, /Di, ¿por qué acequia escondida,[\s\S]*en donde nunca bebí\?[\s\S]*con las amarguras viejas\nblanca cera y dulce miel\.[\s\S]*dentro de mi corazón\.$/);
+  assert.match(anoche.context, /numbered LX.*third stanza crosses a page break/i);
+  assert.match(anoche.context, /1928.*'en donde nunca bebí'.*'de donde nunca bebí'/);
+  assert.equal(anoche.year, 1928);
+  assert.match(anoche.source, /bdh0000252161\.pdf\?page=80$/);
+  assert.match(saeta.text, /^¿Quién me presta una escalera,[\s\S]*a Jesús el Nazareno\?\n\nSAETA POPULAR\.\n\n¡Oh, la saeta, el cantar[\s\S]*sino al que anduvo en el mar!$/);
+  assert.match(saeta.context, /traditional epigraph.*not attributed to Machado.*sixteen-line poem.*line count/s);
+  assert.match(ronsard.text, /avoit desclose[\s\S]*Las, las, ses beautez laissé cheoir ![\s\S]*Fera ternir vostre beauté\.$/);
+  assert.match(ronsard.context, /stanza breaks.*indentations/i);
+  assert.match(rains.text, /swallows circling[\s\S]*wild plum-trees[\s\S]*Would scarcely know that we were gone\.$/);
+  assert.match(rains.context, /1918.*calling.*circling.*same work/);
+  assert.match(fire.text, /To say that for destruction ice/);
+  assert.match(fire.context, /1920.*To know.*not separate works/);
+  assert.match(cloths.text, /the half light,[\s\S]*Tread softly because you tread on my dreams\.$/);
+  assert.ok(filterPoems([ronsard], { query: 'a cassandre' }).includes(ronsard));
+  assert.ok(filterPoems([ronsard], { query: 'mignonne, allons voir si la rose' }).includes(ronsard));
+  assert.ok(filterPoems([cloths], { query: 'aedh wishes for the cloths of heaven' }).includes(cloths));
+  assert.ok(filterPoems([cloths], { query: 'he wishes for the cloths of heaven' }).includes(cloths));
+  for (const poem of selected) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.yearLabel, /printing · not necessarily composition date/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const title of [poem.title, poem.displayTitle].filter(Boolean)) {
+      assert.ok(filterPoems([poem], { language: poem.language, query: title }).includes(poem));
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Screen originals and translations for the full reading and its own opening;
+  // these checks cannot identify every translated or substantially altered version.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/œ/g, 'oe').replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const original = added === saeta ? added.text.split('SAETA POPULAR.\n\n')[1] : added.text;
+    const full = fold(original);
+    const opening = fold(original.split('\n').slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) {
+        for (const title of [added.title, added.displayTitle].filter(Boolean)) {
+          assert.ok(![other.title, other.displayTitle].filter(Boolean).some(candidate => fold(candidate) === fold(title)), other.id);
+        }
+      }
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-lyric-classics.py', '--check'], { encoding: 'utf8' }), /Verified 7 historical readings/);
+});
+
 test('early classics preserve complete scan-backed readings and distinct work boundaries', () => {
   const ids = [
     'recognized-early-classics-leino-hyva-on-hiihtajan-hiihdella',
@@ -1946,8 +2027,9 @@ test('Teasdale poems retain complete Love Songs readings and edition caveats', a
   assert.match(get('swans').text, /link it with chains of gold,\nThe lake bears/);
   assert.ok(!selected.some(poem => /Interlude|Summer Night, Riverside/i.test(poem.title)));
   const group = groupPoets(poems).find(item => item.id === 'sara-teasdale');
-  assert.equal(group.poems.length, slugs.length);
+  assert.equal(group.poems.filter(poem => poem.id.startsWith('teasdale-love-songs-')).length, slugs.length);
   for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
+  assert.ok(group.poems.some(poem => poem.id === 'recognized-lyric-classics-teasdale-soft-rains'));
 });
 test('Further Xue Tao poems preserve print variants and separate work boundaries', () => {
   const cases = [
