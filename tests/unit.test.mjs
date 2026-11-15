@@ -15,9 +15,116 @@ import { renderFeed } from '../scripts/feed.mjs';
 import { groupPoets } from '../scripts/poets.mjs';
 import { relatedPoems } from '../scripts/recommendations.mjs';
 import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
-import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
+import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Finnish readings preserve complete historical witnesses and individual work boundaries', () => {
+  const ids = [
+    'recognized-finnish-leino-nocturne', 'recognized-finnish-kivi-kaukametsa',
+    'recognized-finnish-kivi-sunnuntai', 'recognized-finnish-kivi-onnelliset',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.deepEqual(selected.map(lineCount), [20, 28, 36, 35]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [10, 10], [4, 4, 4, 4, 4, 4, 4], [6, 6, 6, 6, 6, 6], [7, 7, 7, 7, 7],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '224a9aacf10d79e936e71383ce8aa24cc36283754c59bfe0cb4f5ffe7084b34c',
+    '2d91b0bdb2131920a2cb57b0bcc2c37d173dd0da50e877043dfb722c1a98d2ef',
+    '2d370dd4340204475479acad0f79911e33d50ba80605c6560f96c13e2fbd23b4',
+    'cf9fa831242ac7d07ab779ff89a1b2669674195b0854e68e54d629a2c0827bb1',
+  ]);
+  const [nocturne, kaukametsa, sunnuntai, onnelliset] = selected;
+  assert.equal((nocturne.text.match(/En ma /g) || []).length, 2);
+  assert.match(nocturne.context, /stanza break.*editorial.*not counted as additional works/);
+  assert.match(kaukametsa.text, /^Alas kalliolta lapsi riensi,/);
+  assert.match(kaukametsa.text, /missä ilmanrannat\nKaukametsä haamottaa/);
+  assert.match(sunnuntai.text, /Kultaset santarannat\.[\s\S]*Mut vait oil impeni kaino/);
+  assert.match(sunnuntai.text, /Ja poskellans kyynele kiilsi/);
+  assert.match(onnelliset.text, /Hän hymyen luokseni käy,[\s\S]*Ja linnut laulelee\./);
+  assert.match(onnelliset.context, /without 'ne'.*punctuation varies/);
+  assert.ok(readingLanguages.includes('Finnish'));
+  for (const poem of selected) {
+    assert.equal(poem.language, 'Finnish');
+    assert.equal(poem.lang, 'fi');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.yearLabel, /printing · not necessarily composition date/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { language: 'Finnish', query: poem.title }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="fi" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // This catches exact or embedded originals and openings, not every translation or variant.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-finnish.py', '--check'], { encoding: 'utf8' }), /Verified 4 historical readings/);
+});
+
+test('Finnish search preserves distinct letters and canonical equivalence without weakening translations', () => {
+  const example = { ...poems[0], author: 'Test', authorOriginal: '', title: 'Test', displayTitle: '',
+    country: 'Finland', era: '', form: 'Verse', collection: '', language: 'Finnish', lang: 'fi', themes: [], translations: [] };
+  const a = { ...example, id: 'finnish-a', text: 'pää yö', translations: [
+    { language: 'French', title: 'Étoile', text: 'rivière' },
+    { language: 'Finnish', title: 'Hökkö', text: 'hökkö' },
+  ] };
+  const b = { ...example, id: 'finnish-b', text: 'paa yo' };
+  const sample = [a, b];
+  const ids = query => filterPoems(sample, { query }).map(poem => poem.id);
+  assert.deepEqual(ids('pää'), ['finnish-a']);
+  assert.deepEqual(ids('pa\u0308a\u0308'), ['finnish-a']);
+  assert.deepEqual(ids('PÄÄ'), ['finnish-a']);
+  assert.deepEqual(ids('paa'), ['finnish-b']);
+  assert.deepEqual(ids('yö'), ['finnish-a']);
+  assert.deepEqual(ids('yo'), ['finnish-b']);
+  assert.deepEqual(ids('hökko\u0308'), ['finnish-a']);
+  assert.deepEqual(ids('hokko'), []);
+  assert.deepEqual(ids('etoile'), ['finnish-a']);
+  assert.deepEqual(ids('riviere'), ['finnish-a']);
+  assert.equal(normalizeFinnish('pa\u0308a\u0308'), normalizeFinnish('pää'));
+  assert.notEqual(normalizeFinnish('pää'), normalizeFinnish('paa'));
+  assert.ok(filterPoems(poems, { language: 'Finnish', query: 'pa\u0308iva\u0308' }).some(poem => poem.id === 'recognized-finnish-leino-nocturne'));
+  assert.equal(filterPoems(poems, { language: 'Finnish', query: 'paiva' }).length, 0);
+});
+
+test('the new search path leaves prior catalogue search results unchanged', () => {
+  const previous = poems.filter(poem => poem.language !== 'Finnish');
+  const legacy = new Map(previous.map(poem => [poem.id, normalize([
+    poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
+    poem.collection, poem.language, poem.text, ...poem.themes,
+    ...poem.translations.flatMap(item => [item.language, item.title, item.text]),
+  ].join(' '))]));
+  const queries = new Set(['jose marti', 'BASHO', '蛙とびこむ', '杜甫', 'hafez', 'حافظ', 'कबीर',
+    'বাংলা', 'Ιθακη', 'Заповіт', 'fiancée', 'FianCee', 'pa\u0308a\u0308', 'paa', '\u0308', '']);
+  for (const [index, poem] of previous.entries()) {
+    if (index % 103 === 0) {
+      queries.add(poem.author);
+      queries.add(poem.title);
+      queries.add(poem.text.split('\n').find(Boolean).slice(0, 24));
+    }
+  }
+  for (const query of queries) {
+    const normalized = normalize(query).trim();
+    const expected = previous.filter(poem => !normalized || legacy.get(poem.id).includes(normalized)).map(poem => poem.id);
+    assert.deepEqual(filterPoems(previous, { query }).map(poem => poem.id), expected, JSON.stringify(query));
+  }
+});
+
 test('crossroads readings preserve complete works, witnesses and variant boundaries', () => {
   const ids = [
     'recognized-crossroads-henley-invictus', 'recognized-crossroads-mistral-balada',
@@ -1347,13 +1454,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all sixteen original languages', () => {
+test('catalogue has distinct, sourced records in all seventeen original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Finnish', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');

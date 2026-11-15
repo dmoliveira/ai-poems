@@ -27,6 +27,88 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Finnish originals support mobile spelling-sensitive search, saved state and static readers', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('recognized-finnish-'));
+  assert.equal(selected.length, 4);
+  const seed = { saved: ['world-rizal-farewell', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Finnish');
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Finnish');
+  const search = page.getByLabel('Search the poetry library');
+  assert.match(await page.locator('#search-spelling-note').textContent(), /distinguish ä and ö/);
+  await search.fill('pa\u0308iva\u0308');
+  await page.getByText('4 poems found', { exact: true }).waitFor();
+  await search.fill('paiva');
+  await page.getByText('0 poems found', { exact: true }).waitFor();
+  for (const poem of selected) {
+    await search.fill(poem.title);
+    await page.getByText('1 poem found', { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'fi');
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+    await page.goto(base);
+    await page.getByText(totalText, { exact: true }).waitFor();
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Finnish');
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Finnish');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Finnish a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'fi');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
+test('Finnish-only poet directory entries distinguish letters without changing older names', async () => {
+  const example = { ...poems[0], language: 'Finnish', lang: 'fi', direction: 'ltr', authorOriginal: '' };
+  const sample = [
+    { ...example, id: 'directory-finnish-a', authorId: 'directory-finnish-a', author: 'Aino Pääri' },
+    { ...example, id: 'directory-finnish-b', authorId: 'directory-finnish-b', author: 'Aino Paari' },
+    poems.find(poem => poem.author === 'José Martí'),
+  ];
+  assert.ok(sample.every(Boolean));
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route(base, route => route.fulfill({ contentType: 'text/html', body: renderHome(sample, '/ai-poems/') }));
+  await page.route('**/data/catalog.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(sample) }));
+  await page.goto(base);
+  await page.getByText('3 poems found', { exact: true }).waitFor();
+  await page.locator('.poet-directory summary').click();
+  const input = page.getByRole('searchbox', { name: 'Find a poet or voice' });
+  const visible = page.locator('.poet-list a:not([hidden])');
+  assert.match(await page.locator('#poet-spelling-note').textContent(), /ä and ö/);
+  await input.fill('pa\u0308a\u0308ri');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Aino Pääri']);
+  await input.fill('paari');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Aino Paari']);
+  await input.fill('jose marti');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['José Martí']);
+  await context.close();
+});
+
 test('crossroads readings support multilingual mobile discovery, saved state and static readers', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('recognized-crossroads-'));
   assert.equal(selected.length, 4);
@@ -7223,7 +7305,7 @@ test('poet directory search handles native names, accents, empty results and cat
   const visible = directory.locator('.poet-list a:not([hidden])');
   assert.equal(await input.isVisible(), true);
   assert.equal(await input.getAttribute('aria-controls'), 'poet-list');
-  assert.equal(await input.getAttribute('aria-describedby'), 'poet-count');
+  assert.equal(await input.getAttribute('aria-describedby'), 'poet-count poet-spelling-note');
   assert.equal(await count.getAttribute('aria-live'), 'polite');
   assert.equal(await count.textContent(), 'Showing all names and voices.');
   assert.equal(await visible.count(), groupPoets(poems).length);

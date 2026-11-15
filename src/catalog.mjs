@@ -1,6 +1,8 @@
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 export const normalize = value => String(value ?? '').normalize('NFKD').replace(/\p{M}/gu, '').toLocaleLowerCase();
-export const readingLanguages = ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic'];
+// In Finnish, ä and ö are letters distinct from a and o, not optional accents.
+export const normalizeFinnish = value => String(value ?? '').normalize('NFKC').toLocaleLowerCase();
+export const readingLanguages = ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Finnish', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic'];
 // Discovery labels can be welcoming without rewriting historical source titles.
 export const collectionLabel = value => value === 'The Book of American Negro Poetry' ? 'American poetry · 1922 anthology' : value;
 
@@ -16,7 +18,19 @@ export function titleAttributes(poem) {
 const searchIndex = new WeakMap();
 function searchableText(poem) {
   if (!searchIndex.has(poem)) {
-    searchIndex.set(poem, normalize([poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form, poem.collection, poem.language, poem.text, ...poem.themes, ...poem.translations.flatMap(t => [t.language, t.title, t.text])].join(' ')));
+    const original = [poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form, poem.collection, poem.language, poem.text, ...poem.themes];
+    if (poem.language === 'Finnish') {
+      searchIndex.set(poem, {
+        original: normalizeFinnish(original.join(' ')),
+        translations: poem.translations.map(t => ({
+          finnish: t.language === 'Finnish',
+          text: (t.language === 'Finnish' ? normalizeFinnish : normalize)([t.language, t.title, t.text].join(' ')),
+        })),
+      });
+    } else {
+      // Keep the existing single index and matching behavior for older records.
+      searchIndex.set(poem, normalize([...original, ...poem.translations.flatMap(t => [t.language, t.title, t.text])].join(' ')));
+    }
   }
   return searchIndex.get(poem);
 }
@@ -40,6 +54,7 @@ export function lineCount(poem) {
 
 export function filterPoems(poems, filters = {}) {
   const query = normalize(filters.query).trim();
+  const finnishQuery = normalizeFinnish(filters.query).trim();
   return poems.filter(poem => {
     for (const key of ['author', 'language', 'form', 'collection']) if (filters[key] && poem[key] !== filters[key]) return false;
     if (filters.country && poem.country !== filters.country && !associatedPlaces(poem).includes(filters.country)) return false;
@@ -54,7 +69,12 @@ export function filterPoems(poems, filters = {}) {
     }
     if (filters.from && (poem.year == null || poem.year < Number(filters.from))) return false;
     if (filters.to && (poem.year == null || poem.year > Number(filters.to))) return false;
-    if (query && !searchableText(poem).includes(query)) return false;
+    if (query) {
+      const index = searchableText(poem);
+      if (poem.language === 'Finnish') {
+        if (!index.original.includes(finnishQuery) && !index.translations.some(t => t.text.includes(t.finnish ? finnishQuery : query))) return false;
+      } else if (!index.includes(query)) return false;
+    }
     return true;
   });
 }
