@@ -18,6 +18,58 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('1916 Tagore readings retain complete sources and a separately credited self-reworking', () => {
+  const selected = poems.filter(poem => poem.id.startsWith('tagore-1916-'));
+  assert.deepEqual(selected.map(poem => poem.id), [
+    'tagore-1916-naibedya-72', 'tagore-1916-banglar-mati', 'tagore-1916-ami-chini',
+  ]);
+  assert.deepEqual(selected.map(lineCount), [14, 18, 11]);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '5e964f5d7a1be674f805d7c575f21361a53ac6b059daa208bdb6efd7eafcd23e');
+  for (const poem of selected) {
+    assert.equal(poem.authorId, 'rabindranath-tagore');
+    assert.equal(poem.language, 'Bengali');
+    assert.equal(poem.lang, 'bn');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.displayTitleLang, 'bn-Latn');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.match(poem.yearLabel, /1916 printing.*composition date not established/);
+    assert.match(poem.rights, /public domain in the United States.*unproofread.*CC BY-SA 4\.0.*oldid=/);
+    assert.ok(filterPoems([poem], { language: 'Bengali', query: poem.displayTitle }).includes(poem));
+    assert.ok(filterPoems([poem], { query: poem.text.split('\n')[0] }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="bn" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const [prayer, bengal, foreigner] = selected;
+  assert.match(prayer.text, /নিজ হস্তে নির্দয় আঘাত করি’ পিতঃ\nভারতেরে সেই স্বর্গে কর জাগরিত।$/);
+  assert.equal(prayer.translations.length, 1);
+  const english = prayer.translations[0];
+  assert.equal(createHash('sha256').update(english.text).digest('hex'), 'ce9e461db9e45d9e3ab482aeaa291131d496999025a53da881d324bb02bc579b');
+  assert.match(english.translator, /Tagore.*self-reworking.*1913/);
+  assert.match(english.rights, /predates the selected 1916.*not a literal line-by-line translation/);
+  assert.match(english.rights, /oldid=7781783.*oldid=15393716/);
+  assert.ok(filterPoems([prayer], { readable: 'English', query: 'Where the mind is without fear' }).includes(prayer));
+  assert.ok(renderPoem(prayer, poems, '/ai-poems/').includes(`class="verse" lang="en" dir="ltr">${escapeHtml(english.text)}`));
+  assert.match(bengal.text, /বাঙালীর ঘরে যত ভাই বোন,\nএক হউক\nএক হউক\nএক হউক\nহে ভগবান॥$/);
+  assert.match(foreigner.text, /আমি তোমারে সঁপেচি প্রাণ.*আমি অতিথি তোমারি দ্বারে ওগো বিদেশিনী॥$/s);
+  assert.deepEqual(bengal.translations, []);
+  assert.deepEqual(foreigner.translations, []);
+
+  // Exact opening screening cannot exclude all spellings or translated variants.
+  const fold = text => text.normalize('NFC').toLowerCase().replace(/[\u200c\u200d]/gu, '').replace(/[^\p{L}\p{M}\p{N}]/gu, '');
+  for (const added of selected) {
+    const openings = [added.text.split('\n')[0], ...added.translations.map(item => item.text.split('\n')[0])].map(fold);
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        for (const opening of openings) assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-tagore-1916.py', '--check'], { encoding: 'utf8' }), /Verified 3 readings/);
+});
+
 test('Baul songs retain complete early readings, individual identities and source caveats', () => {
   const selected = poems.filter(poem => poem.id.startsWith('tagore-baul-'));
   assert.deepEqual(selected.map(poem => poem.id), [

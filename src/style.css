@@ -1895,6 +1895,7 @@ h2 em {
 }
 .translation-rights {
   margin-top: 25px;
+  overflow-wrap: anywhere;
 }
 .translation-rights a {
   text-decoration: underline;
@@ -2038,6 +2039,7 @@ h2 em {
 .translation-index p {
   font-size: 11px;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 .translation-index .verse {
   font-size: 19px;
