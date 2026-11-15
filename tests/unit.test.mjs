@@ -18,6 +18,71 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('recognized global works preserve historical readings, boundaries and language markings', () => {
+  const ids = [
+    'recognized-konopnicka-rota', 'recognized-mickiewicz-romantycznosc', 'recognized-kipling-if',
+    'recognized-arnold-dover-beach', 'recognized-vallejo-heraldos', 'recognized-garcilaso-soneto-xxiii',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.deepEqual(selected.map(lineCount), [18, 75, 32, 37, 17, 14]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '4c5432c45b3e1f1740df3a466c1393858236cb76b60247b51e10059035033345',
+    'b15fbe6c3a3b5998d1a0b389b672cf71bcdf0cb4bb3b38aef766b8fbd00ec48c',
+    '07149d28e34f325a2b40ef7c3ff6d12d06ea3db8a8e147e97ed8a82f4565e3b8',
+    '59661fd74b5d6458ad8ca25418df3cfa82bd8cdc81c44af8d98e794cb7ecd920',
+    '2aa8b4c42f8fefc38dc883f23de312f3c744f6a08c3790ea34f2338363928a9a',
+    'c546863a6dbd35451f9f10c3cce7befbc90fe1ae189d29c0590ece8ac1288086',
+  ]);
+  for (const poem of selected) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { language: poem.language, query: poem.title }).includes(poem), poem.id);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(poem.source)), poem.id);
+    assert.ok(html.includes(escapeHtml(poem.contextSource)), poem.id);
+  }
+  const [rota, romantic, kipling, dover, vallejo, garcilaso] = selected;
+  assert.deepEqual(rota.text.split('\n\n').map(stanza => stanza.split('\n').length), [6, 6, 6]);
+  assert.match(rota.context, /additional stanza as an autograph variant.*Other versions have four/s);
+  assert.match(romantic.text, /^Methinks I see\.\.\.[\s\S]*Przed oczyma duszy mojej\.[\s\S]*Słuchaj, dzieweczko!/);
+  assert.ok(romantic.text.endsWith('Miej serce i patrzaj w serce!«'));
+  assert.ok(!romantic.text.includes('Ktokolwiek będziesz'));
+  assert.deepEqual(romantic.textLanguageOverrides, [1, 2, 3, 4].map(line => ({ line, lang: 'en' })));
+  const romanticHtml = renderPoem(romantic, poems, '/ai-poems/');
+  assert.equal((romanticHtml.match(/<span lang="en" dir="auto">/g) || []).length, 4);
+  assert.ok(poemCard(romantic, '/ai-poems/').includes('<span lang="en" dir="auto">Methinks I see...</span>'));
+  assert.deepEqual(kipling.text.split('\n\n').map(stanza => stanza.split('\n').length), [8, 8, 8, 8]);
+  assert.match(kipling.text, /your loss:\nIf you can force your heart/);
+  assert.match(dover.text, /moon-blanched sand/);
+  assert.match(dover.context, /moon-blanched sand.*moon-blanched land/);
+  assert.deepEqual(vallejo.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 4, 4, 1]);
+  assert.match(vallejo.text, /rostro mas fiero.*talvez.*caidas[\s\S]*Esos golpes/s);
+  assert.match(vallejo.text, /los heraldos negros que nos manda la Muerte,\n/);
+  assert.match(vallejo.context, /title page is dated 1918.*distributed in 1919/);
+  assert.match(vallejo.yearLabel, /1918 title-page date.*1919/);
+  assert.deepEqual(garcilaso.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 3, 3]);
+  assert.match(garcilaso.rights, /Navarro Tomás died in 1979.*rights may differ outside/s);
+  assert.match(garcilaso.context, /enciende el corazón y lo refrena.*con clara luz la tempestad serena/);
+  assert.match(garcilaso.context, /Stanza breaks are editorial/);
+  assert.ok(selected.slice(0, 4).every(poem => /Wikisource contributors under CC BY-SA 4\.0.*oldid=/s.test(poem.rights)));
+
+  // Exact and contained readings, including translations; this is not an exhaustive variant screen.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      for (const text of [other.text, ...other.translations.map(translation => translation.text)]) {
+        const candidate = fold(text);
+        if (candidate.length > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-global.py', '--check'], { encoding: 'utf8' }), /Verified 6 historical readings/);
+});
+
 test('world classics retain complete historical readings, independent credits and work boundaries', () => {
   const selected = poems.filter(poem => poem.id.startsWith('world-'));
   assert.deepEqual(selected.map(poem => poem.id), [
@@ -323,7 +388,11 @@ test('Kabir-attributed dohas preserve complete historical readings and textual c
 });
 
 test('Polish classics retain distinct work boundaries, historical sources and credited readings', () => {
-  const selected = poems.filter(poem => poem.language === 'Polish');
+  const historicIds = new Set([
+    'mickiewicz-1826-stepy-akermanskie', 'mickiewicz-1899-oda-do-mlodosci',
+    'mickiewicz-1899-smierc-pulkownika', 'konopnicka-1903-a-jak-poszedl-krol',
+  ]);
+  const selected = poems.filter(poem => poem.id.startsWith('pawlikowska-1926-') || historicIds.has(poem.id));
   const short = selected.filter(poem => poem.authorId === 'maria-pawlikowska-jasnorzewska');
   const mickiewicz = selected.filter(poem => poem.authorId === 'adam-mickiewicz');
   assert.equal(selected.length, 59);
