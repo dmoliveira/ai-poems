@@ -18,6 +18,55 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('international classics retain complete scan readings, variants and separately credited translations', () => {
+  const ids = [
+    'pushkin-1917-winter-evening', 'pushkin-1917-the-cloud', 'pushkin-1917-monument',
+    'lermontov-1917-the-angel', 'lermontov-1917-the-sail', 'lermontov-1917-prayer',
+    'lermontov-1917-alone-on-the-road', 'lermontov-1917-the-clouds',
+    'nekrasov-1917-schoolboy', 'nekrasov-1917-forgive', 'nekrasov-1917-hearing-the-horrors-of-war',
+    'shijing-1871-guan-ju', 'shijing-1871-jian-jia', 'goethe-1900-erlkoenig',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(new Set(selected.map(poem => poem.id)).size, 14);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '8423bd7f97563c6f47c16bf59e9934701deb49d54a9980aa7891d07913fac8be');
+  assert.equal(createHash('sha256').update(selected.flatMap(poem => poem.translations).map(item => item.text).join('\0')).digest('hex'), 'fed0ed679ba0118cd9f7efef87c6641acb7e432d05471d9bbf325a28ab33971c');
+  assert.deepEqual(selected.map(lineCount), [32, 12, 20, 16, 12, 12, 20, 12, 40, 8, 17, 10, 12, 32]);
+  assert.equal(selected.filter(poem => poem.language === 'Russian').length, 11);
+  assert.deepEqual(new Set(selected.slice(0, 11).map(poem => poem.authorId)), new Set(['alexander-pushkin', 'mikhail-lermontov', 'nikolai-nekrasov']));
+  for (const poem of selected) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { query: poem.title, readable: poem.language }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+    for (const translation of poem.translations) {
+      assert.match(translation.rights, /public domain in the United States/);
+      assert.ok(html.includes(escapeHtml(translation.text)));
+      assert.ok(filterPoems([poem], { readable: 'English', query: translation.text.split('\n')[0] }).includes(poem));
+    }
+  }
+  const byId = id => selected.find(poem => poem.id === id);
+  assert.match(byId('pushkin-1917-winter-evening').context, /запоздалой.*запоздалый/);
+  assert.match(byId('lermontov-1917-alone-on-the-road').context, /дремали.*дрожали/);
+  assert.match(byId('nekrasov-1917-schoolboy').context, /пустых.*тупых/);
+  assert.match(byId('lermontov-1917-the-sail').context, /скрипит.*скрыпит/);
+  assert.match(byId('shijing-1871-jian-jia').context, /淒淒.*萋萋/);
+  assert.equal(byId('shijing-1871-guan-ju').anonymous, true);
+  assert.match(byId('goethe-1900-erlkoenig').text, /Erlkönig hat mir ein Leids gethan!/);
+  assert.equal(byId('lermontov-1917-the-angel').translations.length, 1);
+  assert.match(byId('lermontov-1917-the-angel').translations[0].translator, /Babette Deutsch and Avrahm Yarmolinsky/);
+  assert.match(byId('lermontov-1917-the-angel').translations[0].rights, /may persist elsewhere/);
+  assert.equal(selected.flatMap(poem => poem.translations).length, 3);
+  assert.equal(filterPoems(selected, { readable: 'English' }).length, 3);
+  assert.equal(selected.some(poem => /^(?:Осень|Зимняя дорога)$/.test(poem.title)), false);
+  const synthetic = { ...selected[0], translations: [{ language: 'Russian', title: 'Пример', text: 'Пример текста', translator: 'Example', rights: 'Example', source: 'https://example.org/' }] };
+  assert.match(renderPoem(synthetic, poems, '/ai-poems/'), /class="verse" lang="ru" dir="ltr">Пример текста/);
+});
+
 test('Bengali Gitanjali songs retain complete readings, page credits and the self-reworking', () => {
   const selected = poems.filter(poem => poem.language === 'Bengali');
   assert.equal(selected.length, 21);
@@ -65,7 +114,7 @@ test('Bengali Gitanjali songs retain complete readings, page credits and the sel
 });
 
 test('German classics retain distinct complete readings, attribution and edition boundaries', () => {
-  const selected = poems.filter(poem => poem.language === 'German');
+  const selected = poems.filter(poem => poem.language === 'German' && poem.id !== 'goethe-1900-erlkoenig');
   assert.equal(selected.length, 25);
   assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '07fed8a2e994629e691bd29522568c3e34914d3c460307310709e52a220cc221');
   assert.deepEqual(selected.map(lineCount), [21, 32, 98, 32, 8, 8, 12, 24, 20, 104, 40, 8, 8, 8, 20, 12, 12, 8, 8, 12, 12, 12, 24, 24, 8]);
@@ -553,13 +602,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all ten original languages', () => {
+test('catalogue has distinct, sourced records in all eleven original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Bengali', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Russian', 'Bengali', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');
