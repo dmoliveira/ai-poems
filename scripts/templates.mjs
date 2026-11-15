@@ -1,4 +1,4 @@
-import { associatedPlaces, collectionLabel, escapeHtml as e, filterPoems, lineCount, normalize, placeCounts, poemCard, readingLanguages, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
+import { associatedPlaces, collectionLabel, escapeHtml as e, filterPoems, lineCount, normalize, placeCounts, poemCard, readingLanguages, titleAttributes, verseLine, yearRangeCounts } from '../src/catalog.mjs';
 import { groupPoets } from './poets.mjs';
 import { relatedPoems } from './recommendations.mjs';
 
@@ -56,20 +56,25 @@ function disambiguation(poem) {
 
 // Overrides use one-based nonblank verse lines, so stanza breaks stay intact.
 function originalVerse(poem) {
-  if (poem.textLanguageOverrides === undefined) return e(poem.text);
-  if (!Array.isArray(poem.textLanguageOverrides)) throw new Error(`Invalid verse language overrides: ${poem.id}`);
+  if (poem.textLanguageOverrides === undefined && poem.textLanguageSpans === undefined) return e(poem.text);
+  const overrides = poem.textLanguageOverrides === undefined ? [] : poem.textLanguageOverrides;
+  const spans = poem.textLanguageSpans === undefined ? [] : poem.textLanguageSpans;
+  if (!Array.isArray(overrides) || !Array.isArray(spans)) throw new Error(`Invalid verse language overrides: ${poem.id}`);
   const languages = new Map();
-  for (const item of poem.textLanguageOverrides) {
+  for (const item of overrides) {
     if (!item || !Number.isSafeInteger(item.line) || item.line < 1 || typeof item.lang !== 'string' || !/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(item.lang) || languages.has(item.line)) throw new Error(`Invalid verse language override: ${poem.id}`);
     languages.set(item.line, item.lang);
+  }
+  for (const item of spans) {
+    if (!item || !Number.isSafeInteger(item.line) || item.line < 1 || typeof item.lang !== 'string' || !/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(item.lang) || typeof item.text !== 'string' || !item.text || /[\r\n]/.test(item.text)) throw new Error(`Invalid verse language span: ${poem.id}`);
   }
   let lineNumber = 0;
   const html = poem.text.split('\n').map(line => {
     if (!line.trim()) return e(line);
-    const language = languages.get(++lineNumber);
-    return language ? `<span lang="${e(language)}" dir="auto">${e(line)}</span>` : e(line);
+    lineNumber++;
+    return verseLine(line, languages.get(lineNumber), spans.filter(item => item.line === lineNumber));
   }).join('\n');
-  if ([...languages.keys()].some(line => line > lineNumber)) throw new Error(`Verse language line out of range: ${poem.id}`);
+  if ([...languages.keys(), ...spans.map(item => item.line)].some(line => line > lineNumber)) throw new Error(`Verse language line out of range: ${poem.id}`);
   return html;
 }
 
@@ -206,7 +211,7 @@ export function renderPoet(poet, base) {
   const places = values(associatedPlaces);
   const languages = values(p => [p.language]);
   const works = poet.poems.toSorted((a, b) => (a.displayTitle || a.title).localeCompare(b.displayTitle || b.title, undefined, { numeric: true }) || a.id.localeCompare(b.id));
-  const workLink = p => `<li><a href="${e(base)}poems/${e(p.id)}/"><span><strong${titleAttributes(p)}>${e(p.displayTitle || p.title)}</strong>${p.displayTitle ? `<small lang="${e(p.lang)}" dir="${e(p.direction)}">${e(p.title)}</small>` : ''}${p.disambiguation ? `<small>Opening line: ${disambiguation(p)}</small>` : ''}<small>${e(p.language)} · ${e(p.yearLabel)}</small></span><span aria-hidden="true">↗</span></a></li>`;
+  const workLink = p => `<li><a href="${e(base)}poems/${e(p.id)}/"><span><strong${titleAttributes(p)}>${e(p.displayTitle || p.title)}</strong>${p.displayTitle ? `<small lang="${e(p.titleLang || p.lang)}" dir="${e(p.direction)}">${e(p.title)}</small>` : ''}${p.disambiguation ? `<small>Opening line: ${disambiguation(p)}</small>` : ''}<small>${e(p.language)} · ${e(p.yearLabel)}</small></span><span aria-hidden="true">↗</span></a></li>`;
   const first = works.slice(0, 8).map(workLink).join('');
   const remaining = works.slice(8);
   const more = remaining.length ? `<details class="poet-more"><summary>Show ${remaining.length.toLocaleString('en-US')} more ${remaining.length === 1 ? 'poem' : 'poems'}</summary><ul class="poet-works-list">${remaining.map(workLink).join('')}</ul></details>` : '';
@@ -236,8 +241,8 @@ export function renderPoem(poem, poems, base) {
   const translations = labels.map((label, i) => `<option value="${i}">${e(labelCounts.get(label) > 1 ? `${label} · version ${i + 1}` : label)}</option>`).join('');
   const versionNote = hasVersions ? '<p id="translation-version-note" class="translation-version-note">Only the language can be saved; choose a version each visit.</p>' : '';
   const viewSwitch = translations ? `<div class="view-switch" role="group" aria-label="Poem view"><button type="button" data-view="original" aria-pressed="true" disabled>Original</button><button type="button" data-view="translation" aria-pressed="false" disabled>Translation</button><button type="button" data-view="both" aria-pressed="false" disabled>Side by side</button></div>` : '<span class="muted">Original only · translation not yet available</span>';
-  const languageTags = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', German: 'de', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Hindi: 'hi', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
-  const translationIndex = poem.translations.length ? `<details id="translations" class="translation-index" open><summary>All available translations and reading aids (${poem.translations.length})</summary>${poem.translations.map(t => `<section><h3>${e(t.title)} · ${e(t.language)}</h3><p>${e(t.translator)}</p><p class="verse" lang="${e(languageTags[t.language] || 'und')}" dir="${t.language === 'Arabic' ? 'rtl' : 'ltr'}">${e(t.text)}</p><p>${e(t.rights)} <a href="${e(t.source)}" target="_blank" rel="noopener noreferrer">Source ↗</a></p></section>`).join('')}</details>` : '';
+  const languageTags = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', German: 'de', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Hindi: 'hi', Persian: 'fa', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
+  const translationIndex = poem.translations.length ? `<details id="translations" class="translation-index" open><summary>All available translations and reading aids (${poem.translations.length})</summary>${poem.translations.map(t => `<section><h3>${t.language === 'Persian' ? `<span lang="fa" dir="rtl">${e(t.title)}</span>` : e(t.title)} · ${e(t.language)}</h3><p>${e(t.translator)}</p><p class="verse" lang="${e(languageTags[t.language] || 'und')}" dir="${['Arabic', 'Persian'].includes(t.language) ? 'rtl' : 'ltr'}">${e(t.text)}</p><p>${e(t.rights)} <a href="${e(t.source)}" target="_blank" rel="noopener noreferrer">Source ↗</a></p></section>`).join('')}</details>` : '';
   const connectionNames = { followed_by: 'Followed by', preceded_by: 'Preceded by', influenced_by: 'Influenced by', inspired: 'Inspired', response_to: 'A response to' };
   const contextSource = poem.contextSource ? `<a href="${e(poem.contextSource)}" target="_blank" rel="noopener noreferrer">${e(poem.contextSourceTitle)} ↗</a>` : '';
   const connections = (poem.connections || []).map(connection => {
@@ -252,7 +257,7 @@ export function renderPoem(poem, poems, base) {
   <main id="main" class="reader-wrap"><a class="back-link" data-back-to-library href="${e(base)}#explore">← Back to the library</a>
     <div class="reader-intro"><div><p class="eyebrow"><span>THE READING ROOM</span> &nbsp; / &nbsp; ${e(poem.language.toUpperCase())} POETRY</p>
       <h1${titleAttributes(poem)}>${e(title)}</h1>
-      ${poem.displayTitle ? `<p class="reader-original-title" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}
+      ${poem.displayTitle ? `<p class="reader-original-title" lang="${e(poem.titleLang || poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}
       ${poem.disambiguation ? `<p class="reader-disambiguation">Opening line: ${disambiguation(poem)}</p>` : ''}
       <p class="reader-byline">${poem.anonymous ? 'Attribution:' : 'by'} <strong><a href="${e(base)}poets/${e(poem.authorId)}/">${e(poem.author)}</a></strong> <span>·</span> ${e(poem.yearLabel)}</p></div>
       <div class="reader-actions"><button type="button" class="button secondary reader-save js-required" data-save="${e(poem.id)}" aria-pressed="false" disabled>♡ &nbsp; Save poem</button><button type="button" id="focus-toggle" class="button secondary focus-toggle" hidden><span aria-hidden="true">◐</span> <span class="focus-label">Focus mode</span></button></div></div>

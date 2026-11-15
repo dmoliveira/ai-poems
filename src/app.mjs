@@ -199,7 +199,10 @@ function updateSaveButtons() {
     button.setAttribute('aria-pressed', String(saved));
     const isReader = button.classList.contains('reader-save');
     if (isReader) button.textContent = saved ? '♥  Saved to your shelf' : '♡  Save poem';
-    else { button.textContent = saved ? '♥' : '♡'; button.setAttribute('aria-label', `${saved ? 'Remove from' : 'Save to'} shelf: ${poems.find(p => p.id === button.dataset.save)?.displayTitle || poems.find(p => p.id === button.dataset.save)?.title || 'poem'}`); }
+    else if (button.querySelector('[data-save-action]')) {
+      button.querySelector('[data-save-icon]').textContent = saved ? '♥' : '♡';
+      button.querySelector('[data-save-action]').textContent = `${saved ? 'Remove from' : 'Save to'} shelf: `;
+    } else { button.textContent = saved ? '♥' : '♡'; button.setAttribute('aria-label', `${saved ? 'Remove from' : 'Save to'} shelf: ${poems.find(p => p.id === button.dataset.save)?.displayTitle || poems.find(p => p.id === button.dataset.save)?.title || 'poem'}`); }
   });
   document.querySelectorAll('[data-shelf-count]').forEach(count => { count.textContent = state.saved.length ? String(state.saved.length) : ''; });
   const shelf = document.querySelector('#shelf-items');
@@ -452,7 +455,7 @@ function setupExplore() {
   function rememberJourney(id, source = 'results') {
     try {
       const token = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2) || '0'}`;
-      sessionStorage.setItem(journeyKey, JSON.stringify({ search: location.search, items: filtered.map(p => ({ id: p.id, title: p.displayTitle || p.title, ...(p.displayTitle && p.displayTitleLang ? { titleLang: p.displayTitleLang } : {}) })), limit, entryId: id, entryPending: true, source, token }));
+      sessionStorage.setItem(journeyKey, JSON.stringify({ search: location.search, items: filtered.map(p => ({ id: p.id, title: p.displayTitle || p.title, ...((p.displayTitle ? p.displayTitleLang : p.titleLang) ? { titleLang: p.displayTitle ? p.displayTitleLang : p.titleLang } : {}) })), limit, entryId: id, entryPending: true, source, token }));
       if (history.state === null || (typeof history.state === 'object' && !Array.isArray(history.state))) history.replaceState({ ...history.state, versoJourney: token }, '', location.href);
     } catch { /* Reading still works when browser storage is unavailable. */ }
   }
@@ -637,12 +640,12 @@ function setupReader() {
     const preferred = poem.translations.findIndex(t => t.language === state.language);
     if (preferred >= 0) selector.value = String(preferred);
   }
-  const languages = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', German: 'de', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Hindi: 'hi', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
+  const languages = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', German: 'de', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Hindi: 'hi', Persian: 'fa', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
   function renderTranslation() {
     const item = selector && poem.translations[Number(selector.value)];
     if (!item) return;
     const lang = languages[item.language] || 'und';
-    translation.innerHTML = `<span class="language-pill">TRANSLATION · ${e(item.language.toUpperCase())}</span><h2 lang="${e(lang)}" dir="${lang === 'ar' ? 'rtl' : 'ltr'}">${e(item.title)}</h2><p class="translation-credit">${e(item.translator)}</p><p class="verse" lang="${e(lang)}" dir="${lang === 'ar' ? 'rtl' : 'ltr'}">${e(item.text)}</p><p class="translation-rights">${e(item.rights)} <a href="${e(item.source)}" target="_blank" rel="noopener noreferrer">Source ↗</a></p>`;
+    translation.innerHTML = `<span class="language-pill">TRANSLATION · ${e(item.language.toUpperCase())}</span><h2 lang="${e(lang)}" dir="${['ar', 'fa'].includes(lang) ? 'rtl' : 'ltr'}">${e(item.title)}</h2><p class="translation-credit">${e(item.translator)}</p><p class="verse" lang="${e(lang)}" dir="${['ar', 'fa'].includes(lang) ? 'rtl' : 'ltr'}">${e(item.text)}</p><p class="translation-rights">${e(item.rights)} <a href="${e(item.source)}" target="_blank" rel="noopener noreferrer">Source ↗</a></p>`;
   }
   function renderView() {
     original.hidden = view === 'translation';

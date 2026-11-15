@@ -1,0 +1,84 @@
+[
+  {
+    "id": "hafez-1802-ala-ya-ayyoha-saqi",
+    "title": "الا یا ایها الساقی ادر کاسا و ناولها",
+    "titleLang": "ar",
+    "author": "Hafez",
+    "authorOriginal": "حافظ",
+    "authorId": "hafez-shirazi",
+    "authorYears": "c. 1315–1390 · dates uncertain",
+    "country": "Iran",
+    "language": "Persian",
+    "lang": "fa",
+    "direction": "rtl",
+    "era": "14th century",
+    "form": "Ghazal",
+    "themes": [],
+    "mood": "paper",
+    "year": 1802,
+    "yearLabel": "1802 edition · composition date unknown",
+    "collection": "A Specimen of Persian Poetry · 1802",
+    "context": "This seven-couplet ghazal follows the complete first ode in John Richardson's A Specimen of Persian Poetry, revised by S. Rousseau in 1802. Its first and last lines are Arabic; the rest is Persian. The 1802 printing reads ‘چه جای عیش’; the linked 1941 comparison has ‘چه امن عیش’ and reverses the third and fourth couplets. Interpretations of the poem differ, and its opening Arabic line's earlier attribution is disputed. The opening line supplies the title. Spelling variants, spacing and typography are normalized in the transcription. Iran is an associated place, not a documented composition location; 1802 dates this edition, not the poem.",
+    "sourceTitle": "Richardson · A Specimen of Persian Poetry (1802), pp. 1–2",
+    "source": "https://archive.org/download/aspecimenpersia00revigoog/aspecimenpersia00revigoog.pdf#page=24",
+    "contextSourceTitle": "Persian Wikisource · 1941 comparison, revision 143728",
+    "contextSource": "https://fa.wikisource.org/w/index.php?title=%D8%A8%D8%B1%DA%AF%D9%87%3A%D8%AD%D8%A7%D9%81%D8%B8_%D9%82%D8%B2%D9%88%DB%8C%D9%86%DB%8C_%D8%BA%D9%86%DB%8C.pdf%2F%DB%B1%DB%B3%DB%B2&oldid=143728",
+    "rights": "Persian and Arabic original transcribed from the 1802 printing; public domain in the United States. The scan is linked, not republished. Copyright and moral rights vary elsewhere; check local law.",
+    "text": "الا یا ایها الساقی ادر کاسا و ناولها\nکه عشق آسان نمود اول ولی افتاد مشکلها\n\nببوی نافه کاخر صبا زان طره بگشاید\nز تاب جعد مشکینش چه خون افتاد در دلها\n\nبمی سجاده رنگین کن گرت پیر مغان گوید\nکه سالک بی خبر نبود ز راه و رسم منزلها\n\nمرا در منزل جانان چه جای عیش چون هر دم\nجرس فریاد میدارد که بربندید محملها\n\nشب تاریک و بیم موج و گردابی چنین هایل\nکجا دانند حال ما سبکباران ساحلها\n\nهمه کارم ز خودکامی به بدنامی کشید آخر\nنهان کی ماند آن رازی کزو سازند محفلها\n\nحضوری گر همی خواهی ازو غایب مشو حافظ\nمتی ما تلق من تهوی دع الدنیا و اهملها",
+    "textLanguageOverrides": [
+      {
+        "line": 1,
+        "lang": "ar"
+      },
+      {
+        "line": 14,
+        "lang": "ar"
+      }
+    ],
+    "translations": [
+      {
+        "language": "English",
+        "title": "The First Ode of Hafez paraphrased",
+        "translator": "John Richardson · verse paraphrase, 1802 edition revised by S. Rousseau",
+        "source": "https://archive.org/download/aspecimenpersia00revigoog/aspecimenpersia00revigoog.pdf#page=25",
+        "rights": "English paraphrase as printed in Richardson's A Specimen of Persian Poetry (1802), revised by S. Rousseau; public domain in the United States. Copyright and moral rights vary elsewhere; check local law. This is a free literary paraphrase, not a literal translation: it adds Leila and a female beloved. Punctuation is normalized; the mark after ‘look'd’ is unclear in the scan.",
+        "text": "Fill, fill the cup with sparkling wine,\nDeep let me drink the juice divine,\nTo soothe my tortur'd heart;\nFor Love, who seem'd at first so mild,\nSo gently look'd, so gaily smil'd,\nHere deep has plung'd his dart.\n\nWhen, sweeter than the damask rose,\nFrom Leila's locks the Zephyr blows,\nHow glows my keen desire!\nI chide the wanton gale's delay,\nI'm jealous of his am'rous play,\nAnd all my soul's on fire.\n\nTo Love the flowing goblet drain,\nWith wine the sacred carpet stain,\nIf your gay host invites;\nFor he who treads the mazy round\nOf mighty Love's enchanted ground,\nKnows all his laws and rites.\n\nBut longer, 'midst the young and fair,\nWith happy mind and easy air,\nCan I delighted roam?\nWhen, hark; the heart-alarming bell\nProclaims aloud, with dismal knell,\nDepart, thy hour is come!\n\nThe night now darkens all around,\nNow howl the winds, the waves resound;\nWe part to meet no more:\nOur dreadful fate how can they know,\nWhose tranquil hours unruffl'd flow\nSecure upon the shore?\n\nHow many tales does slander frame,\nAnd rumour whisper 'gainst my fame;\nWith malice both combine:\nBecause I wish to pass my days,\nDespising what each snarler says,\nWith friendship, love, and wine.\n\nBut, Hafez, if thou would'st enjoy,\nEcstatic rapture, soul-felt joy,\nBlest as the powers above,\nSnatch to thine arms the blooming maid,\nThen, on her charming bosom laid,\nAbandon all for Love."
+      }
+    ]
+  },
+  {
+    "id": "hafez-1902-shirazi-turk",
+    "title": "اگر آن ترک شیرازی بدست آرد دل ما را",
+    "titleLang": "fa",
+    "author": "Hafez",
+    "authorOriginal": "حافظ",
+    "authorId": "hafez-shirazi",
+    "authorYears": "c. 1315–1390 · dates uncertain",
+    "country": "Iran",
+    "language": "Persian",
+    "lang": "fa",
+    "direction": "rtl",
+    "era": "14th century",
+    "form": "Ghazal",
+    "themes": [],
+    "mood": "paper",
+    "year": 1902,
+    "yearLabel": "1902 edition · composition date unknown",
+    "collection": "Dīwān-i Ḥāfiẓ · 1902 printing",
+    "context": "This nine-couplet ghazal, often called the Shirazi Turk, follows the complete reading on printed page 6 of the 1902 Dīwān scan. Interpretations and the text's manuscript history are disputed. The linked 1941 comparison orders the last three interior couplets differently and reads ‘اگر دشنام فرمایی و گر نفرین دعا گویم’ where this printing has ‘بدم گفتی و خرسندم عفاک الله نکو گفتی’. In an analysis of the 1941 version, Iraj Bashiri argues that its advice and insult-response couplets may be later additions; this is a hypothesis, not proof about this printing's different insult-response line. The 1902 scan is low-resolution: our reading ‘کاین’ may instead be ‘کین’, and the beginning of ‘به آب و رنگ’ is also uncertain. The opening line supplies the title. Spelling variants, spacing and typography are normalized in the transcription. Iran is an associated place, not a documented composition location; 1902 dates this printing, not the poem.",
+    "sourceTitle": "Dīwān-i Ḥāfiẓ (1902) · printed p. 6, PDF page 31",
+    "source": "https://archive.org/download/dli.ernet.286749/286749-Diwan%20Hafiz.pdf#page=31",
+    "contextSourceTitle": "Persian Wikisource · 1941 comparison, beginning at revision 143730",
+    "contextSource": "https://fa.wikisource.org/w/index.php?title=%D8%A8%D8%B1%DA%AF%D9%87%3A%D8%AD%D8%A7%D9%81%D8%B8_%D9%82%D8%B2%D9%88%DB%8C%D9%86%DB%8C_%D8%BA%D9%86%DB%8C.pdf%2F%DB%B1%DB%B3%DB%B3&oldid=143730",
+    "rights": "Persian original transcribed from the 1902 printing; public domain in the United States. The scan is linked, not republished. Copyright and moral rights vary elsewhere; check local law.",
+    "text": "اگر آن ترک شیرازی بدست آرد دل ما را\nبخال هندویش بخشم سمرقند و بخارا را\n\nبده ساقی می باقی که در جنت نخواهی یافت\nکنار آب رکناباد و گلگشت مصلی را\n\nفغان کاین لولیان شوخ شیرین کار شهرآشوب\nچنان بردند صبر از دل که ترکان خوان یغما را\n\nز عشق ناتمام ما جمال یار مستغنیست\nبه آب و رنگ و خال و خط چه حاجت روی زیبا را\n\nمن از آن حسن روزافزون که یوسف داشت دانستم\nکه عشق از پرده عصمت برون آرد زلیخا را\n\nحدیث از مطرب و می گو و راز دهر کمتر جو\nکه کس نگشود و نگشاید به حکمت این معما را\n\nنصیحت گوش کن جانا که از جان دوست تر دارند\nجوانان سعادتمند پند پیر دانا را\n\nبدم گفتی و خرسندم عفاک الله نکو گفتی\nجواب تلخ میزیبد لب لعل شکرخا را\n\nغزل گفتی و در سفتی بیا و خوش بخوان حافظ\nکه بر نظم تو افشاند فلک عقد ثریا را",
+    "textLanguageSpans": [
+      {
+        "line": 15,
+        "text": "عفاک الله",
+        "lang": "ar"
+      }
+    ],
+    "translations": []
+  }
+]

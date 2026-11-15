@@ -27,6 +27,95 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Persian ghazals support mixed-language RTL discovery, saves and static reading', async () => {
+  const selected = poems.filter(poem => poem.authorId === 'hafez-shirazi');
+  const first = selected.find(poem => poem.id === 'hafez-1802-ala-ya-ayyoha-saqi');
+  const turk = selected.find(poem => poem.id === 'hafez-1902-shirazi-turk');
+  assert.equal(selected.length, 2);
+  const seed = { saved: ['kabir-1928-maya-mui', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Persian');
+  await page.getByText('2 poems found', { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Persian');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.getByLabel('Search the poetry library').fill('حافظ');
+  await page.getByText('2 poems found', { exact: true }).waitFor();
+  const card = page.locator('#results .poem-card').filter({ has: page.locator(`a[href$="/poems/${first.id}/"]`) });
+  assert.equal(await card.locator('h3').getAttribute('lang'), 'ar');
+  assert.equal(await card.locator('h3').getAttribute('dir'), 'rtl');
+  assert.equal(await card.locator('.card-excerpt').getAttribute('lang'), 'fa');
+  assert.equal(await card.locator('.card-excerpt span[lang="ar"]').textContent(), first.text.split('\n')[0]);
+  assert.equal(await card.locator('.card-excerpt').textContent(), first.text.split('\n').slice(0, 2).join(' / '));
+  const saveCard = card.getByRole('button', { name: `Save to shelf: ${first.title}` });
+  assert.equal(await saveCard.locator('span[lang="ar"]').textContent(), first.title);
+  await saveCard.click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  await card.getByRole('button', { name: `Remove from shelf: ${first.title}` }).click();
+  await page.getByRole('status').getByText('Removed from your shelf.').waitFor();
+  await page.locator(`#results a[href$="/poems/${turk.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), turk.text);
+  assert.equal(await page.locator('#original-panel .verse span[lang="ar"]').textContent(), 'عفاک الله');
+  const journeyTitle = page.locator(`#reading-journey a[href$="/poems/${first.id}/"] strong`);
+  assert.equal(await journeyTitle.getAttribute('lang'), 'ar');
+  await journeyTitle.click();
+  assert.equal(await page.locator(`#reading-journey a[href$="/poems/${turk.id}/"] strong`).getAttribute('lang'), 'fa');
+  assert.equal(await page.locator(`#reading-journey a[href$="/poems/${turk.id}/"] strong`).getAttribute('dir'), 'auto');
+  const verse = page.locator('#original-panel .verse');
+  assert.equal(await verse.textContent(), first.text);
+  assert.equal(await verse.getAttribute('lang'), 'fa');
+  assert.equal(await verse.getAttribute('dir'), 'rtl');
+  assert.deepEqual(await verse.locator('span[lang="ar"]').allTextContents(), [first.text.split('\n')[0], first.text.split('\n').at(-1)]);
+  assert.equal(await page.locator('.reader-intro h1').getAttribute('lang'), 'ar');
+  assert.equal(await page.locator('#translation-panel').isVisible(), false);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('English');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  assert.equal(await page.locator('#original-panel').isVisible(), true);
+  assert.equal(await page.locator('#translation-panel .verse').textContent(), first.translations[0].text);
+  assert.equal(await page.locator('#translation-panel .verse').getAttribute('lang'), 'en');
+  assert.equal(await page.locator('#translation-panel .verse').getAttribute('dir'), 'ltr');
+  assert.match(await page.locator('#translation-panel .translation-rights').textContent(), /free literary paraphrase, not a literal translation/);
+  await page.reload();
+  await page.locator('#translation-panel .verse').waitFor();
+  assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'English');
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, first.id]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) {
+    assert.equal(await staticPage.locator(`#index-original-Persian a[href$="/poems/${poem.id}/"]`).count(), 1, poem.id);
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200, poem.id);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text, poem.id);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'fa');
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('dir'), 'rtl');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+    if (poem.id === first.id) {
+      assert.equal(await staticPage.locator('.reader-intro h1').getAttribute('lang'), 'ar');
+      assert.deepEqual(await staticPage.locator('#original-panel .verse span[lang="ar"]').allTextContents(), [first.text.split('\n')[0], first.text.split('\n').at(-1)]);
+      assert.equal(await staticPage.locator('#translations .verse').textContent(), first.translations[0].text);
+      assert.match(await staticPage.locator('#translations').textContent(), /not a literal translation/);
+    } else {
+      assert.equal(await staticPage.locator('#original-panel .verse span[lang="ar"]').textContent(), 'عفاک الله');
+    }
+    await staticPage.goto(base);
+    await staticPage.locator('#complete-index summary').click();
+  }
+  await fallback.close();
+});
+
 test('Kabir-attributed dohas support Hindi discovery, preserved saves and static reading', async () => {
   const selected = poems.filter(poem => poem.authorId === 'kabir');
   const example = selected.find(poem => poem.id === 'kabir-1928-maya-mui');

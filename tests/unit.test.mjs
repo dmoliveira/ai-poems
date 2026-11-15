@@ -18,6 +18,83 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Hafez ghazals preserve distinct historical readings, Arabic lines and paraphrase provenance', () => {
+  const selected = poems.filter(poem => poem.authorId === 'hafez-shirazi');
+  assert.deepEqual(selected.map(poem => poem.id), ['hafez-1802-ala-ya-ayyoha-saqi', 'hafez-1902-shirazi-turk']);
+  assert.deepEqual(selected.map(lineCount), [14, 18]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '099263a65be5df70148347e983756bfb519b70b50a3225c6c31b60125ca90545',
+    'e9a05f8242ba6a05496390d155cee204dff81c548e7649c5b3992beae75d605f',
+  ]);
+  for (const poem of selected) {
+    assert.equal(poem.language, 'Persian');
+    assert.equal(poem.lang, 'fa');
+    assert.equal(poem.direction, 'rtl');
+    assert.equal(poem.country, 'Iran');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.match(poem.yearLabel, /edition.*composition date unknown/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { language: 'Persian', readable: 'Persian', query: poem.title }).includes(poem));
+    assert.ok(filterPoems([poem], { query: 'حافظ' }).includes(poem));
+    const reader = renderPoem(poem, poems, '/ai-poems/');
+    assert.match(reader, /class="verse" lang="fa" dir="rtl"/);
+    assert.ok(reader.includes(escapeHtml(poem.source)));
+    assert.ok(reader.includes(escapeHtml(poem.contextSource)));
+    const schema = JSON.parse(reader.match(/<script type="application\/ld\+json">([^<]+)<\/script>/)[1]);
+    assert.equal(schema.inLanguage, 'fa');
+    assert.equal(schema.author.name, 'Hafez');
+  }
+  const [first, turk] = selected;
+  assert.equal(first.titleLang, 'ar');
+  assert.equal(titleAttributes(first), ' lang="ar" dir="rtl"');
+  assert.equal(titleAttributes(turk), ' lang="fa" dir="rtl"');
+  assert.deepEqual(first.textLanguageOverrides, [{ line: 1, lang: 'ar' }, { line: 14, lang: 'ar' }]);
+  assert.equal((renderPoem(first, poems, '/ai-poems/').match(/<span lang="ar" dir="auto">/g) || []).length, 2);
+  const [arabicLine, persianLine] = first.text.split('\n');
+  assert.ok(poemCard(first, '/ai-poems/').includes(`<p class="card-excerpt" lang="fa" dir="rtl"><span lang="ar" dir="auto">${escapeHtml(arabicLine)}</span> / ${escapeHtml(persianLine)}</p>`));
+  const mixedSample = { ...first, text: 'A & <one>\n\nB & <two>', textLanguageOverrides: [{ line: 2, lang: 'ar' }] };
+  assert.ok(poemCard(mixedSample, '/').includes('A &amp; &lt;one&gt; / <span lang="ar" dir="auto">B &amp; &lt;two&gt;</span>'));
+  assert.ok(poemCard({ ...mixedSample, textLanguageOverrides: [{ line: 2, lang: 'ar" onclick="x' }] }, '/').includes('lang="ar&quot; onclick=&quot;x"'));
+  assert.match(first.text, /چه جای عیش/);
+  assert.match(first.context, /چه امن عیش.*reverses/);
+  assert.match(turk.text, /بدم گفتی و خرسندم عفاک الله نکو گفتی/);
+  assert.deepEqual(turk.textLanguageSpans, [{ line: 15, text: 'عفاک الله', lang: 'ar' }]);
+  assert.ok(renderPoem(turk, poems, '/ai-poems/').includes('بدم گفتی و خرسندم <span lang="ar" dir="auto">عفاک الله</span> نکو گفتی'));
+  assert.match(turk.context, /اگر دشنام فرمایی.*بدم گفتی/);
+  assert.match(turk.context, /Bashiri.*may be later additions.*hypothesis/);
+  assert.match(turk.context, /‘کاین’ may instead be ‘کین’.*‘به آب و رنگ’ is also uncertain/);
+  assert.deepEqual(turk.translations, []);
+  assert.equal(first.translations.length, 1);
+  assert.equal(first.translations[0].text.split('\n').filter(Boolean).length, 42);
+  assert.equal(createHash('sha256').update(first.translations[0].text).digest('hex'), '17034c2768a32aadf7dc5069abb4c4ebda470c1a5ad3cfd33ba2661725ae7a49');
+  assert.match(first.translations[0].translator, /John Richardson.*paraphrase.*Rousseau/);
+  assert.match(first.translations[0].rights, /public domain in the United States.*not a literal translation.*Leila/);
+  assert.match(first.translations[0].rights, /Punctuation is normalized.*look'd.*unclear/);
+  assert.equal(filterPoems(selected, { readable: 'English' }).length, 1);
+  const synthetic = { ...turk, translations: [{ language: 'Persian', title: 'نمونه', text: 'متن نمونه', translator: 'Example', rights: 'Example', source: 'https://example.org/' }] };
+  assert.match(renderPoem(synthetic, poems, '/ai-poems/'), /class="verse" lang="fa" dir="rtl">متن نمونه/);
+  assert.match(renderPoem(synthetic, poems, '/ai-poems/'), /<h3><span lang="fa" dir="rtl">نمونه<\/span> · Persian<\/h3>/);
+  assert.equal(titleAttributes({ ...first, titleLang: 'ar" onmouseover="x' }), ' lang="ar&quot; onmouseover=&quot;x" dir="rtl"');
+
+  // Normalized containment catches exact and embedded repeats, not every
+  // manuscript variant or translation of the same work.
+  const fold = text => text.normalize('NFKC').toLowerCase().replace(/[\u064a\u0649]/gu, 'ی').replace(/\u0643/gu, 'ک').replace(/[^\p{L}\p{M}\p{N}]/gu, '');
+  for (const added of selected) {
+    for (const reading of [added.text, ...added.translations.map(item => item.text)].map(fold)) {
+      for (const other of poems.filter(item => item.id !== added.id)) {
+        for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+          const candidate = fold(text);
+          if (candidate.length >= 40 && reading.length >= 40) {
+            assert.ok(!reading.includes(candidate) && !candidate.includes(reading), `${added.id} overlaps ${other.id}`);
+          }
+        }
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-hafez-persian.py', '--check'], { encoding: 'utf8' }), /Verified 2 readings and one paraphrase/);
+});
+
 test('Kabir-attributed dohas preserve complete historical readings and textual caveats', () => {
   const ids = [
     'kabir-1928-jis-maranai', 'kabir-1928-maya-papani', 'kabir-1928-kaba-phir-kasi',
@@ -869,13 +946,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all fifteen original languages', () => {
+test('catalogue has distinct, sourced records in all sixteen original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');
@@ -2621,6 +2698,20 @@ test('original verse language overrides preserve text and reject invalid markup'
     assert.throws(() => renderPoem({ ...sample, textLanguageOverrides: overrides }, poems, '/ai-poems/'), /verse language/i);
   }
   assert.ok(renderPoem({ ...sample, textLanguageOverrides: undefined }, poems, '/ai-poems/').includes('Primeira &amp; &lt;linha&gt;\n\nSegunda &amp; &lt;línea&gt;'));
+  const inline = { ...sample, textLanguageOverrides: undefined, textLanguageSpans: [{ line: 2, text: '<línea>', lang: 'es' }] };
+  assert.ok(renderPoem(inline, poems, '/ai-poems/').includes('Segunda &amp; <span lang="es" dir="auto">&lt;línea&gt;</span>'));
+  assert.ok(poemCard(inline, '/').includes('Primeira &amp; &lt;linha&gt; / Segunda &amp; <span lang="es" dir="auto">&lt;línea&gt;</span>'));
+  for (const spans of [null, {}, [{ line: 0, text: 'Segunda', lang: 'es' }], [{ line: 3, text: 'Segunda', lang: 'es' }], [{ line: 2, text: 'missing', lang: 'es' }], [{ line: 2, text: '', lang: 'es' }], [{ line: 2, text: 'Segunda', lang: 'es" onclick="x' }], [{ line: 2, text: 'Segunda', lang: 'es' }, { line: 2, text: 'unda', lang: 'es' }]]) {
+    assert.throws(() => renderPoem({ ...inline, textLanguageSpans: spans }, poems, '/'), /verse language/i);
+  }
+  assert.throws(() => renderPoem({ ...inline, text: 'same same', textLanguageSpans: [{ line: 1, text: 'same', lang: 'es' }] }, poems, '/'), /verse language/i);
+  assert.throws(() => renderPoem({ ...inline, textLanguageOverrides: [{ line: 2, lang: 'pt' }] }, poems, '/'), /verse language/i);
+  const windows = { ...inline, text: 'Alpha\r\nBeta', textLanguageSpans: undefined, textLanguageOverrides: [{ line: 1, lang: 'es' }] };
+  assert.ok(renderPoem(windows, poems, '/').includes('<span lang="es" dir="auto">Alpha</span>\r\nBeta'));
+  assert.throws(() => renderPoem({ ...windows, textLanguageOverrides: undefined, textLanguageSpans: [{ line: 1, text: 'Alpha\r', lang: 'es' }] }, poems, '/'), /verse language/i);
+  const emoji = { ...inline, text: '😀 okay', textLanguageSpans: [{ line: 1, text: '😀', lang: 'es' }] };
+  assert.ok(renderPoem(emoji, poems, '/').includes('<span lang="es" dir="auto">😀</span> okay'));
+  for (const half of ['\ud83d', '\ude00']) assert.throws(() => renderPoem({ ...emoji, textLanguageSpans: [{ line: 1, text: half, lang: 'es' }] }, poems, '/'), /verse language/i);
 });
 
 test('Bécquer Rimas preserve the 1912 selection, source caveats and existing works', () => {
