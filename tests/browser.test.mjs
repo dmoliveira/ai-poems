@@ -27,6 +27,49 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('crossroads readings support multilingual mobile discovery, saved state and static readers', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('recognized-crossroads-'));
+  assert.equal(selected.length, 4);
+  const seed = { saved: ['world-rizal-farewell', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const poem of selected) {
+    await page.goto(base);
+    await page.getByText(totalText, { exact: true }).waitFor();
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption(poem.language);
+    await page.getByLabel('Search the poetry library').fill(poem.title);
+    const count = filterPoems(poems, { language: poem.language, query: poem.title }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  for (const poem of selected) {
+    await staticPage.goto(base);
+    await staticPage.locator('#complete-index summary').click();
+    assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1);
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('Atlantic readings support mobile discovery, saved state and static readers', async () => {
   const ids = ['recognized-atlantic-rimbaud-bateau-ivre', 'recognized-atlantic-mistral-sonetos'];
   const selected = ids.map(id => poems.find(poem => poem.id === id));
@@ -1221,10 +1264,10 @@ test('Darío poems support Nicaragua search, preserved saves and JavaScript-free
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   await page.goto(filterUrl);
-  await page.getByText('12 poems found', { exact: true }).waitFor();
+  await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
   await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
   await page.getByLabel('Search the poetry library').fill('Rubén Darío');
-  await page.getByText('12 poems found', { exact: true }).waitFor();
+  await page.getByText(`${filterPoems(poems, { ...filters, query: 'Rubén Darío' }).length} poems found`, { exact: true }).waitFor();
   await page.getByLabel('Search the poetry library').fill('Ite, missa est');
   await page.getByText('1 poem found', { exact: true }).waitFor();
   assert.equal(await page.locator('#results a[href$="/poems/dario-1896-ite-misa-est/"]').count(), 1);
@@ -1238,7 +1281,7 @@ test('Darío poems support Nicaragua search, preserved saves and JavaScript-free
     await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     await page.goto(filterUrl);
-    await page.getByText('12 poems found', { exact: true }).waitFor();
+    await page.getByText(`${filterPoems(poems, filters).length} poems found`, { exact: true }).waitFor();
   }
   const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
   for (const id of [...seed.saved, ...samples.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
