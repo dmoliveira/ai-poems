@@ -311,8 +311,100 @@ test('Finnish search preserves distinct letters and canonical equivalence withou
   assert.equal(filterPoems(poems, { language: 'Finnish', query: 'paiva' }).length, 0);
 });
 
+test('Swedish readings preserve complete works, source variants and individual boundaries', () => {
+  const ids = [
+    'dagen-svalnar', 'vierge-moderne', 'landet-som-icke-ar', 'i-rorelse', 'jag-vill-mota',
+    'fran-en-stygg-flicka', 'du-ar-min-renaste-trost', 'morgon',
+  ].map(id => `recognized-swedish-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.deepEqual(selected.map(lineCount), [34, 13, 22, 10, 20, 8, 8, 12]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'ea3efec5be44695dd00a5e2bbfa2f5eae3da06b4968fb14434caa75bf2251f71',
+    '59095ee77c23a6ae786aa4568c014fc1ffecf471f9a79de0d2a66be0026be05c',
+    '1e9fea5b993063370325295f9cd6f81416844e6f4ca0ed293d8176c240eab7e0',
+    '30b8940f94c6c0c02d18474ae63c144e6866e3fb856a6528db82820e59efb22b',
+    'f755deade3f734acceef6db69d816c5a9e8982a4c28eca803f9887e68430117e',
+    'b887e9932032defb43593b3b1de50ecde36660e7666d038f0cb15ec6fabd743f',
+    '3179177a4d0e2113f5b1a25577eb122693ce65c9f420289800f0333fb55dccbe',
+    '3eb4755b457acc9e8f3cdf6887ad45566c5c44578de095d3d884da4dc13baddc',
+  ]);
+  const [dagen, vierge, landet, rorelse, mota, stygg, trost, morgon] = selected;
+  assert.deepEqual(dagen.text.split('\n\n').map(section => section.split('\n')[0]), ['I', 'II', 'III', 'IV']);
+  assert.match(dagen.text, /mot mina skära, skära drömmar\./);
+  assert.ok(dagen.text.endsWith('och fann en själ –\ndu är besviken.'));
+  assert.match(dagen.context, /four numbered sections.*one work.*Two copies/);
+  assert.equal(vierge.titleLang, 'fr');
+  assert.match(renderPoem(vierge, poems, '/ai-poems/'), /<h1 lang="fr" dir="ltr">Vierge moderne<\/h1>/);
+  assert.match(landet.text, /verkligen vunnit –\nvägen till landet som icke är\.\n\nI landet som icke är/);
+  assert.ok(landet.text.endsWith('Jag är den du älskar och alltid skall älska.'));
+  assert.deepEqual(rorelse.text.split('\n\n').map(stanza => stanza.split('\n').length), [2, 2, 2, 2, 2]);
+  assert.deepEqual(mota.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 4, 4, 4]);
+  assert.match(stygg.text, /stund …\nJag hoppas du inte får en blund!$/);
+  assert.match(stygg.context, /lowercase 'jag'/);
+  assert.deepEqual(trost.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4]);
+  assert.ok(morgon.text.endsWith('väntande livet är du!'));
+  assert.ok(readingLanguages.includes('Swedish'));
+  assert.deepEqual(dagen.authorAliases, ['Edith Irene Södergran']);
+  for (const poem of selected) {
+    assert.equal(poem.language, 'Swedish');
+    assert.equal(poem.lang, 'sv');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.match(poem.yearLabel, /printing · not necessarily composition date/);
+    assert.ok(filterPoems([poem], { language: 'Swedish', query: poem.title }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="sv" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').filter(line => line && !/^(I|II|III|IV)$/.test(line)).slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-swedish-classics.py', '--check'], { encoding: 'utf8' }), /Verified 8 historical readings/);
+});
+
+test('Swedish search distinguishes å, ä and ö, including aliases and same-language translations', () => {
+  const example = { ...poems[0], author: 'Test', authorOriginal: '', title: 'Test', displayTitle: '',
+    country: 'Sweden', era: '', form: 'Verse', collection: '', language: 'Swedish', lang: 'sv', themes: [], translations: [], authorAliases: [], searchAliases: [] };
+  const a = { ...example, id: 'swedish-a', text: 'så läs öl', searchAliases: ['stålblå'], authorAliases: ['Aino Åberg'], translations: [
+    { language: 'French', title: 'Étoile', text: 'rivière' }, { language: 'Swedish', title: 'Röda', text: 'båt' },
+  ] };
+  const b = { ...example, id: 'swedish-b', text: 'sa las ol' };
+  const ids = query => filterPoems([a, b], { query }).map(poem => poem.id);
+  assert.deepEqual(ids('sa\u030a'), ['swedish-a']);
+  assert.deepEqual(ids('SÅ'), ['swedish-a']);
+  assert.deepEqual(ids('sa'), ['swedish-b']);
+  assert.deepEqual(ids('lä'), ['swedish-a']);
+  assert.deepEqual(ids('las'), ['swedish-b']);
+  assert.deepEqual(ids('öl'), ['swedish-a']);
+  assert.deepEqual(ids('ol'), ['swedish-b']);
+  assert.deepEqual(ids('stålblå'), ['swedish-a']);
+  assert.deepEqual(ids('stalbla'), []);
+  assert.deepEqual(ids('a\u030aberg'), ['swedish-a']);
+  assert.deepEqual(ids('aberg'), []);
+  assert.deepEqual(ids('röda'), ['swedish-a']);
+  assert.deepEqual(ids('roda'), []);
+  assert.deepEqual(ids('etoile'), ['swedish-a']);
+  assert.deepEqual(ids('riviere'), ['swedish-a']);
+  assert.equal(filterPoems(poems, { language: 'Swedish', query: 'edith irene so\u0308dergran' }).length, 3);
+  assert.equal(filterPoems(poems, { language: 'Swedish', query: 'edith irene sodergran' }).length, 0);
+});
+
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => poem.language !== 'Finnish' && !poem.id.startsWith('recognized-chinese-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
@@ -1663,13 +1755,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all seventeen original languages', () => {
+test('catalogue has distinct, sourced records in all eighteen original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Finnish', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Finnish', 'Swedish', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');
