@@ -18,6 +18,46 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Greek and Russian historical-print readings preserve work boundaries, sources and variants', () => {
+  const ids = [
+    'cavafy-1926-candles', 'cavafy-1926-supplication', 'cavafy-1926-walls', 'cavafy-1926-windows',
+    'cavafy-1927-voices', 'cavafy-1927-thermopylae', 'cavafy-1911-antony', 'cavafy-1911-ithaka',
+    'akhmatova-1912-clasped-hands', 'akhmatova-1912-last-meeting', 'akhmatova-1912-grey-eyed-king',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '660a178715ec2a93b8ec0acb3712d441c1b5d4cb3a3acdcd3865cb3072fe0907');
+  assert.deepEqual(selected.map(lineCount), [13, 8, 8, 8, 8, 14, 19, 36, 12, 16, 14]);
+  assert.equal(selected.filter(poem => poem.language === 'Greek').length, 8);
+  assert.equal(selected.filter(poem => poem.language === 'Russian').length, 3);
+  for (const poem of selected) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.ok(filterPoems([poem], { language: poem.language, readable: poem.language, query: poem.title }).includes(poem));
+    assert.equal(filterPoems([poem], { readable: 'English' }).length, 0);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const byId = id => selected.find(poem => poem.id === id);
+  assert.ok(byId('cavafy-1911-ithaka').text.endsWith('ἤδη θὰ τὸ κατάλαβες ἡ Ἰθάκες τὶ σημαίνουν.'));
+  assert.match(byId('cavafy-1911-ithaka').context, /final three lines.*page 287/);
+  assert.match(byId('cavafy-1926-candles').text, /^Τοῦ μέλλοντος ἡ μέρες/);
+  assert.match(byId('cavafy-1926-candles').rights, /Greek Wikisource contributors.*CC BY-SA 4\.0/);
+  assert.match(byId('cavafy-1926-candles').context, /θλιβερὴ σειρὰ.*θλιβερή γραμμή/);
+  assert.match(byId('cavafy-1926-windows').context, /Πλὴν τὰ παράθυρα.*Μα τα παράθυρα/);
+  assert.match(byId('akhmatova-1912-last-meeting').text, /Я обманут, слышишь, унылый/);
+  assert.match(byId('akhmatova-1912-last-meeting').context, /page 26.*Я обманут моей унылой/);
+  assert.match(byId('akhmatova-1912-grey-eyed-king').rights, /died in 1966.*may persist elsewhere/);
+  assert.ok(filterPoems(selected, { query: 'Καβάφης', language: 'Greek' }).length === 8);
+  assert.ok(filterPoems(selected, { query: 'Αντωνιον', language: 'Greek' }).some(poem => poem.id === 'cavafy-1911-antony'));
+  const synthetic = { ...selected[8], translations: [{ language: 'Greek', title: 'Παράδειγμα', text: 'Παράδειγμα', translator: 'Example', rights: 'Example', source: 'https://example.org/' }] };
+  assert.match(renderPoem(synthetic, poems, '/ai-poems/'), /class="verse" lang="el" dir="ltr">Παράδειγμα/);
+});
+
 test('international classics retain complete scan readings, variants and separately credited translations', () => {
   const ids = [
     'pushkin-1917-winter-evening', 'pushkin-1917-the-cloud', 'pushkin-1917-monument',
@@ -602,13 +642,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all eleven original languages', () => {
+test('catalogue has distinct, sourced records in all twelve original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Russian', 'Bengali', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Bengali', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');
