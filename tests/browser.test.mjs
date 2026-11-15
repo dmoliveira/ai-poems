@@ -27,6 +27,56 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Russian and scan-backed Chinese classics support mobile search, preserved saves and static reading', async () => {
+  const russian = poems.filter(poem => poem.language === 'Russian');
+  const angel = russian.find(poem => poem.id === 'lermontov-1917-the-angel');
+  const selected = [...russian, ...poems.filter(poem => poem.id.startsWith('shijing-1871-')), poems.find(poem => poem.id === 'goethe-1900-erlkoenig')];
+  const seed = { saved: ['tagore-gitanjali-bengali-120', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Russian');
+  await page.getByText(`${russian.length} poems found`, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Russian');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.getByLabel('Search the poetry library').fill('Ангел');
+  const matching = filterPoems(poems, { language: 'Russian', query: 'Ангел' });
+  assert.ok(matching.some(poem => poem.id === angel.id));
+  await page.getByText(`${matching.length} ${matching.length === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+  await page.locator(`#results a[href$="/poems/${angel.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), angel.text);
+  assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'ru');
+  await page.getByRole('button', { name: 'Translation', exact: true }).click();
+  assert.equal(await page.locator('#translation-panel .verse').textContent(), angel.translations[0].text);
+  assert.ok((await page.locator('#translation-panel .translation-credit').textContent()).includes('Babette Deutsch and Avrahm Yarmolinsky'));
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  assert.equal(stored.preferredLanguage, 'Russian');
+  for (const id of [...seed.saved, angel.id]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1, poem.id);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200, poem.id);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text, poem.id);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    if (poem.translations.length) assert.equal(await staticPage.locator('#translations .verse').textContent(), poem.translations[0].text);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('Bengali songs support mobile discovery, saved state and an attributed self-reworking', async () => {
   const selected = poems.filter(poem => poem.language === 'Bengali');
   const song = selected.find(poem => poem.id === 'tagore-gitanjali-bengali-120');
