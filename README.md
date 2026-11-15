@@ -4,7 +4,7 @@
 
 [![Build and deploy](https://github.com/dmoliveira/ai-poems/actions/workflows/pages.yml/badge.svg)](https://github.com/dmoliveira/ai-poems/actions/workflows/pages.yml)
 [![Read Verso](https://img.shields.io/badge/read-Verso%20Poetry%20Library-697b50)](https://dmoliveira.github.io/ai-poems/)
-[![Poems](https://img.shields.io/badge/poems-2629-d4a084)](https://dmoliveira.github.io/ai-poems/#explore)
+[![Poems](https://img.shields.io/badge/poems-2631-d4a084)](https://dmoliveira.github.io/ai-poems/#explore)
 [![Original languages](https://img.shields.io/badge/original%20languages-16-b99d78)](https://dmoliveira.github.io/ai-poems/#explore)
 [![License: MIT](https://img.shields.io/badge/code%20license-MIT-blue.svg)](LICENSE)
 [![Support via Stripe](https://img.shields.io/badge/support%20via-Stripe-635bff?logo=stripe&logoColor=white)](https://buy.stripe.com/8x200i8bSgVe3Vl3g8bfO00)

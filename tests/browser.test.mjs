@@ -27,6 +27,51 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Atlantic readings support mobile discovery, saved state and static readers', async () => {
+  const ids = ['recognized-atlantic-rimbaud-bateau-ivre', 'recognized-atlantic-mistral-sonetos'];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  const [rimbaud, mistral] = selected;
+  const seed = { saved: ['world-rizal-farewell', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('French');
+  await page.getByLabel('Search the poetry library').fill('Le Bateau ivre');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  await page.locator(`#results a[href$="/poems/${rimbaud.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), rimbaud.text);
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, rimbaud.id]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await page.goto(base);
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Spanish');
+  await page.getByLabel('Search the poetry library').fill('Los sonetos de la muerte');
+  await page.getByText('1 poem found', { exact: true }).waitFor();
+  assert.equal(await page.locator(`#results a[href$="/poems/${mistral.id}/"]`).count(), 1);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('next recognized readings support mobile search, saved state and static readers', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('recognized-next-'));
   assert.equal(selected.length, 4);
@@ -5541,10 +5586,12 @@ test('reviewed poet places have matching counts, sources and static reader pages
   await page.getByText(totalText).waitFor();
   await page.locator('#countries .more-countries summary').click();
   for (const [place, code, id] of [['Canada', 'ca', 'american-1922-00633'], ['Chile', 'cl', 'castellana-072']]) {
-    const card = page.locator('#countries').getByRole('link', { name: `${place} 1 poem` });
+    const count = placeCounts(poems).find(item => item.place === place).count;
+    const label = `${count} ${count === 1 ? 'poem' : 'poems'}`;
+    const card = page.locator('#countries').getByRole('link', { name: `${place} ${label}` });
     assert.equal(await card.locator('img').getAttribute('src'), `/ai-poems/assets/flags/${code}.svg`);
     await card.click();
-    await page.getByText('1 poem found', { exact: true }).waitFor();
+    await page.getByText(`${label} found`, { exact: true }).waitFor();
     assert.equal(new URL(page.url()).searchParams.get('country'), place);
     assert.equal(await page.locator(`#results a[href*="/poems/${id}/"]`).count(), 1);
     await page.goto(base);
