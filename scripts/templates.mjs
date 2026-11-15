@@ -223,7 +223,8 @@ export function renderPoem(poem, poems, base) {
   const title = poem.displayTitle || poem.title;
   const path = `poems/${poem.id}/`;
   const seoTitle = poem.disambiguation ? `${title} — ${poem.disambiguation}` : title;
-  const desc = `${title} by ${poem.author}. Read the ${poem.language} original, explore its ${poem.form.toLowerCase()} form, context, sources and related poetry on Verso.`;
+  const credit = `${poem.uncertainAttribution ? 'attributed to' : 'by'} ${poem.author}`;
+  const desc = `${title} ${credit}. Read the ${poem.language} original, explore its ${poem.form.toLowerCase()} form, context, sources and related poetry on Verso.`;
   const schema = { '@context': 'https://schema.org', '@type': 'CreativeWork', '@id': absolute(path), name: title, alternateName: poem.displayTitle ? poem.title : undefined, ...(poem.anonymous ? {} : { author: { '@type': 'Person', name: poem.author } }), inLanguage: poem.lang, description: poem.context, isBasedOn: poem.source, ...(poem.year && poem.yearLabel.startsWith('Published') ? { datePublished: String(poem.year) } : {}) };
   const suggestions = relatedPoems(poem, poems);
   const languageCounts = new Map();
@@ -235,7 +236,7 @@ export function renderPoem(poem, poems, base) {
   const translations = labels.map((label, i) => `<option value="${i}">${e(labelCounts.get(label) > 1 ? `${label} · version ${i + 1}` : label)}</option>`).join('');
   const versionNote = hasVersions ? '<p id="translation-version-note" class="translation-version-note">Only the language can be saved; choose a version each visit.</p>' : '';
   const viewSwitch = translations ? `<div class="view-switch" role="group" aria-label="Poem view"><button type="button" data-view="original" aria-pressed="true" disabled>Original</button><button type="button" data-view="translation" aria-pressed="false" disabled>Translation</button><button type="button" data-view="both" aria-pressed="false" disabled>Side by side</button></div>` : '<span class="muted">Original only · translation not yet available</span>';
-  const languageTags = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', German: 'de', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
+  const languageTags = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', German: 'de', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Hindi: 'hi', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
   const translationIndex = poem.translations.length ? `<details id="translations" class="translation-index" open><summary>All available translations and reading aids (${poem.translations.length})</summary>${poem.translations.map(t => `<section><h3>${e(t.title)} · ${e(t.language)}</h3><p>${e(t.translator)}</p><p class="verse" lang="${e(languageTags[t.language] || 'und')}" dir="${t.language === 'Arabic' ? 'rtl' : 'ltr'}">${e(t.text)}</p><p>${e(t.rights)} <a href="${e(t.source)}" target="_blank" rel="noopener noreferrer">Source ↗</a></p></section>`).join('')}</details>` : '';
   const connectionNames = { followed_by: 'Followed by', preceded_by: 'Preceded by', influenced_by: 'Influenced by', inspired: 'Inspired', response_to: 'A response to' };
   const contextSource = poem.contextSource ? `<a href="${e(poem.contextSource)}" target="_blank" rel="noopener noreferrer">${e(poem.contextSourceTitle)} ↗</a>` : '';
@@ -247,7 +248,7 @@ export function renderPoem(poem, poems, base) {
   const connectionsSection = connections ? `<section class="connections-section"><p class="eyebrow">TRACING CONNECTIONS</p><h2>Connections we can trace.</h2>${connections}</section>` : '';
   const relatedSection = suggestions.length ? `<section class="related-section"><div class="section-heading"><div><p class="eyebrow">KEEP WANDERING</p><h2>One poem leads <em>to another.</em></h2><p>Suggestions share catalogue details, not claims of historical influence.</p></div><a class="text-link" href="${e(base)}#explore">Explore all poems ↗</a></div><div class="poem-grid">${suggestions.map(item => poemCard(item.poem, base, item.reason)).join('')}</div></section>` : '';
   const readerData = [poem, ...suggestions.map(({ poem: p }) => ({ id: p.id, title: p.title, displayTitle: p.displayTitle }))];
-  return `${head({ title: `${seoTitle} by ${poem.author} | Verso Poetry Library`, description: desc, path, base, schema })}<body class="reader-page tone-${e(poem.mood)}" data-poem-id="${e(poem.id)}">${header(base)}
+  return `${head({ title: `${seoTitle} ${credit} | Verso Poetry Library`, description: desc, path, base, schema })}<body class="reader-page tone-${e(poem.mood)}" data-poem-id="${e(poem.id)}">${header(base)}
   <main id="main" class="reader-wrap"><a class="back-link" data-back-to-library href="${e(base)}#explore">← Back to the library</a>
     <div class="reader-intro"><div><p class="eyebrow"><span>THE READING ROOM</span> &nbsp; / &nbsp; ${e(poem.language.toUpperCase())} POETRY</p>
       <h1${titleAttributes(poem)}>${e(title)}</h1>
