@@ -1868,6 +1868,7 @@ h2 em {
 }
 .verse[lang="ja"],
 .verse[lang="zh-Hant"],
+.verse[lang="fa"],
 .verse[lang="ar"] {
   font-family: Georgia, "Hiragino Mincho ProN", "Noto Serif CJK SC", serif;
   line-height: 2;
@@ -1883,7 +1884,8 @@ h2 em {
 :root[data-verse-typeface="clear"] .verse:lang(zh) {
   font-family: "PingFang TC", "Noto Sans CJK TC", sans-serif;
 }
-:root[data-verse-typeface="clear"] .verse:lang(ar) {
+:root[data-verse-typeface="clear"] .verse:lang(ar),
+:root[data-verse-typeface="clear"] .verse:lang(fa) {
   font-family: "Geeza Pro", "Noto Sans Arabic", Arial, sans-serif;
 }
 .translation-credit,

@@ -1,6 +1,6 @@
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 export const normalize = value => String(value ?? '').normalize('NFKD').replace(/\p{M}/gu, '').toLocaleLowerCase();
-export const readingLanguages = ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Chinese', 'Japanese', 'Arabic'];
+export const readingLanguages = ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic'];
 // Discovery labels can be welcoming without rewriting historical source titles.
 export const collectionLabel = value => value === 'The Book of American Negro Poetry' ? 'American poetry · 1922 anthology' : value;
 
@@ -8,7 +8,7 @@ export const collectionLabel = value => value === 'The Book of American Negro Po
 // original language. Explicit metadata keeps both kinds accessible.
 export function titleAttributes(poem) {
   if (poem.displayTitle) return poem.displayTitleLang ? ` lang="${escapeHtml(poem.displayTitleLang)}" dir="auto"` : '';
-  return ` lang="${escapeHtml(poem.lang)}" dir="${escapeHtml(poem.direction)}"`;
+  return ` lang="${escapeHtml(poem.titleLang || poem.lang)}" dir="${escapeHtml(poem.direction)}"`;
 }
 
 // Catalogue records are immutable after loading. Index each record only when
@@ -132,9 +132,47 @@ export function surprisePoem(poems, random = Math.random) {
   return group[Math.floor(random() * group.length)];
 }
 
+// The original text stays unmodified; each inline passage must match exactly
+// once on its line and cannot overlap another language override.
+export function verseLine(line, language, spans = []) {
+  const e = escapeHtml;
+  if (language && spans.length) throw new Error('Overlapping verse language overrides');
+  if (language) {
+    const content = line.endsWith('\r') ? line.slice(0, -1) : line;
+    return `<span lang="${e(language)}" dir="auto">${e(content)}</span>${line.endsWith('\r') ? '\r' : ''}`;
+  }
+  const splitsSurrogatePair = index => index > 0 && index < line.length
+    && line.charCodeAt(index - 1) >= 0xD800 && line.charCodeAt(index - 1) <= 0xDBFF
+    && line.charCodeAt(index) >= 0xDC00 && line.charCodeAt(index) <= 0xDFFF;
+  const matches = spans.map(span => {
+    if (typeof span.text !== 'string' || !span.text || /[\r\n]/.test(span.text) || !span.lang) throw new Error('Invalid verse language span');
+    const start = line.indexOf(span.text);
+    if (start < 0 || line.indexOf(span.text, start + 1) !== -1) throw new Error('Ambiguous verse language span');
+    const end = start + span.text.length;
+    if (splitsSurrogatePair(start) || splitsSurrogatePair(end)) throw new Error('Invalid verse language span boundary');
+    return { ...span, start, end };
+  }).toSorted((a, b) => a.start - b.start);
+  let cursor = 0;
+  let html = '';
+  for (const span of matches) {
+    if (span.start < cursor) throw new Error('Overlapping verse language spans');
+    html += `${e(line.slice(cursor, span.start))}<span lang="${e(span.lang)}" dir="auto">${e(span.text)}</span>`;
+    cursor = span.end;
+  }
+  return html + e(line.slice(cursor));
+}
+
 export function poemCard(poem, base, reason = '') {
   const e = escapeHtml;
-  const excerpt = poem.text.split('\n').filter(Boolean).slice(0, 2).join(' / ');
+  const wholeLines = Array.isArray(poem.textLanguageOverrides) ? poem.textLanguageOverrides : [];
+  const spans = Array.isArray(poem.textLanguageSpans) ? poem.textLanguageSpans : [];
+  const linesWithLanguages = [...wholeLines, ...spans].some(item => item?.line === 1 || item?.line === 2);
+  const excerpt = linesWithLanguages
+    ? poem.text.split('\n').filter(line => line.trim()).slice(0, 2).map((line, index) => verseLine(line, wholeLines.find(item => item?.line === index + 1)?.lang, spans.filter(item => item?.line === index + 1))).join(' / ')
+    : e(poem.text.split('\n').filter(Boolean).slice(0, 2).join(' / '));
   const lines = lineCount(poem);
-  return `<article class="poem-card tone-${e(poem.mood)}"><div class="poem-card-top"><span class="eyebrow">${e(poem.language)} · ${e(poem.form)} · ${lines} ${lines === 1 ? 'line' : 'lines'}</span><button class="save-button js-required" type="button" data-save="${e(poem.id)}" aria-label="Save ${e(poem.displayTitle || poem.title)}" aria-pressed="false" disabled>♡</button></div><a class="poem-card-link" href="${e(base)}poems/${e(poem.id)}/">${reason ? `<p class="card-reason">${e(reason)}</p>` : ''}<h3${titleAttributes(poem)}>${e(poem.displayTitle || poem.title)}</h3>${poem.displayTitle ? `<p class="original-title" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}<p class="card-author">${e(poem.author)} <span>·</span> ${e(poem.yearLabel)}</p><p class="card-excerpt" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${e(excerpt)}</p><span class="card-read">Read poem <span aria-hidden="true">↗</span></span></a></article>`;
+  const multilingualTitle = !poem.displayTitle && poem.titleLang;
+  const saveContents = multilingualTitle ? `<span data-save-icon aria-hidden="true">♡</span><span class="sr-only"><span data-save-action>Save to shelf: </span><span${titleAttributes(poem)}>${e(poem.title)}</span></span>` : '♡';
+  const saveLabel = multilingualTitle ? '' : ` aria-label="Save ${e(poem.displayTitle || poem.title)}"`;
+  return `<article class="poem-card tone-${e(poem.mood)}"><div class="poem-card-top"><span class="eyebrow">${e(poem.language)} · ${e(poem.form)} · ${lines} ${lines === 1 ? 'line' : 'lines'}</span><button class="save-button js-required" type="button" data-save="${e(poem.id)}"${saveLabel} aria-pressed="false" disabled>${saveContents}</button></div><a class="poem-card-link" href="${e(base)}poems/${e(poem.id)}/">${reason ? `<p class="card-reason">${e(reason)}</p>` : ''}<h3${titleAttributes(poem)}>${e(poem.displayTitle || poem.title)}</h3>${poem.displayTitle ? `<p class="original-title" lang="${e(poem.titleLang || poem.lang)}" dir="${e(poem.direction)}">${e(poem.title)}</p>` : ''}<p class="card-author">${e(poem.author)} <span>·</span> ${e(poem.yearLabel)}</p><p class="card-excerpt" lang="${e(poem.lang)}" dir="${e(poem.direction)}">${excerpt}</p><span class="card-read">Read poem <span aria-hidden="true">↗</span></span></a></article>`;
 }
