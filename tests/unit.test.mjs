@@ -18,6 +18,52 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Bengali Gitanjali songs retain complete readings, page credits and the self-reworking', () => {
+  const selected = poems.filter(poem => poem.language === 'Bengali');
+  assert.equal(selected.length, 21);
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), 'ce9ced7686c9b17e3423a11e6bdcc610a43e8bf34349017702f33df5d0f0d468');
+  assert.deepEqual(selected.map(lineCount), [20, 20, 20, 22, 18, 12, 13, 16, 20, 16, 28, 18, 25, 10, 22, 16, 20, 30, 16, 20, 24]);
+  assert.deepEqual(selected.map(poem => poem.id), [...Array.from({ length: 20 }, (_, index) => `tagore-gitanjali-bengali-${String(index + 1).padStart(3, '0')}`), 'tagore-gitanjali-bengali-120']);
+  for (const poem of selected) {
+    assert.equal(poem.lang, 'bn');
+    assert.equal(poem.direction, 'ltr');
+    assert.equal(poem.authorId, 'rabindranath-tagore');
+    assert.equal(poem.country, 'India');
+    assert.equal(poem.creationPlace, undefined);
+    assert.equal(poem.year, null);
+    assert.match(poem.yearLabel, /1320.*1913–1914/);
+    assert.deepEqual(poem.themes, []);
+    assert.match(poem.source, /bn\.wikisource\.org\/w\/index\.php\?title=.*&oldid=\d+$/);
+    assert.match(poem.rights, /public domain in the United States.*Bengali Wikisource contributors.*CC BY-SA 4\.0.*check local law/);
+    assert.ok(filterPoems([poem], { language: 'Bengali', readable: 'Bengali', query: poem.title }).includes(poem));
+    assert.ok(filterPoems([poem], { query: 'রবীন্দ্রনাথ ঠাকুর' }).includes(poem));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="bn" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const first = selected[0];
+  assert.match(first.rights, /oldid=1794741.*oldid=1962841/);
+  assert.ok(first.text.endsWith('ডুবাও চোখের জলে।'));
+  assert.ok(!selected.find(poem => poem.id.endsWith('-016')).text.includes('আষাঢ় ১৩১৬'));
+  const adapted = selected.at(-1);
+  assert.match(adapted.text, /বারো মাস/);
+  assert.match(adapted.text, /রাখোরে ধ্যান/);
+  assert.match(adapted.text, /কর্ম্মযোগে/);
+  assert.equal(adapted.translations.length, 1);
+  const english = adapted.translations[0];
+  assert.match(english.title, /prose reworking/);
+  assert.match(english.translator, /Tagore.*self-reworking.*1913/);
+  assert.match(english.rights, /public domain in the United States.*not a literal line-by-line translation/);
+  assert.match(english.text, /^Leave this chanting.*sweat of thy brow\.$/s);
+  assert.ok(filterPoems([adapted], { readable: 'English', query: 'Leave this chanting' }).includes(adapted));
+  assert.equal(filterPoems(selected.slice(0, -1), { readable: 'English' }).length, 0);
+  const html = renderPoem(adapted, poems, '/ai-poems/');
+  assert.ok(html.includes(`class="verse" lang="en" dir="ltr">${escapeHtml(english.text)}`));
+  const synthetic = { ...first, translations: [{ language: 'Bengali', title: 'উদাহরণ', text: 'বাংলা পাঠ', translator: 'Example', rights: 'Example', source: 'https://example.org/' }] };
+  assert.match(renderPoem(synthetic, poems, '/ai-poems/'), /class="verse" lang="bn" dir="ltr">বাংলা পাঠ/);
+});
+
 test('German classics retain distinct complete readings, attribution and edition boundaries', () => {
   const selected = poems.filter(poem => poem.language === 'German');
   assert.equal(selected.length, 25);
@@ -507,13 +553,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all nine original languages', () => {
+test('catalogue has distinct, sourced records in all ten original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'German', 'Bengali', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');
