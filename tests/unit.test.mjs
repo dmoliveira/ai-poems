@@ -18,6 +18,43 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, placeCounts, poemCard, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('popular multilingual poems retain complete historical readings and disclosed variants', () => {
+  const ids = [
+    'frost-1916-the-road-not-taken', 'rimbaud-1895-le-dormeur-du-val', 'rimbaud-1895-voyelles',
+    'machado-1917-a-un-olmo-seco', 'pessoa-1926-o-menino-da-sua-mae', 'shiki-1902-kaki-kueba',
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '28bd653784fccc68e6d3ff042a7a55d8b4c80de40f12b81e6a5b4c1e0335370b');
+  assert.deepEqual(selected.map(lineCount), [20, 14, 14, 30, 30, 3]);
+  assert.deepEqual(selected.map(poem => poem.lang), ['en', 'fr', 'fr', 'es', 'pt', 'ja']);
+  assert.deepEqual(selected.map(poem => poem.year), [1916, 1895, 1895, 1917, 1926, 1902]);
+  for (const poem of selected) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States/);
+    assert.match(poem.rights, /check local law/);
+    assert.ok(filterPoems(poems, { query: poem.title }).some(result => result.id === poem.id));
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(escapeHtml(poem.text)));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.rights)));
+  }
+  assert.match(selected[0].rights, /died in 1963.*protected elsewhere/);
+  assert.match(selected[1].text, /un petit val qui mousse/);
+  assert.match(selected[1].context, /prints ‘un petit aval’.*editorially uses ‘un petit val’/);
+  assert.match(selected[2].text, /bombillent/);
+  assert.match(selected[2].text, /plein de strideurs/);
+  assert.match(selected[2].context, /bombinent.*plein des strideurs/);
+  assert.match(selected[3].context, /Soria, 1912/);
+  assert.match(selected[4].text, /Tam jovem!/);
+  assert.match(selected[4].text, /Cahiu-lhe/);
+  assert.equal(selected[5].text, '柹くへば\n鐘が鳴るなり\n法隆寺');
+  assert.ok(filterPoems(poems, { query: '柿食えば鐘が鳴るなり法隆寺' }).includes(selected[5]));
+  assert.match(selected[5].context, /three phrase lines are editorial/);
+});
+
 test('Montes del Valle poems retain complete 1883 readings and the printed errata', () => {
   const selected = poems.filter(poem => poem.id.startsWith('montes-del-valle-1883-'));
   const slugs = ['a-mi-hija-luz', 'a-zoila-rosa-del-valle', 'una-azucena', 'apologo', 'a-magdalena-giraldo-de-a', 'no-te-olvidare', 'pepita-grillo', 'en-el-piano', 'adios', 'la-esperanza', 'dos-artistas', 'un-canario', 'la-imprenta'];
@@ -4929,7 +4966,7 @@ test('Japanese additions preserve sourced edition readings and uncertain dates',
   const issa = poems.filter(p => p.id.startsWith('issa-1902-')).length;
   const chiyo = poems.filter(p => p.id.startsWith('chiyo-ni-1927-')).length;
   const ogura = poems.filter(p => p.id.startsWith('ogura-1900-')).length;
-  assert.equal(filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length, 5 + laterBasho + laterBuson + issa + chiyo + ogura);
+  assert.equal(filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length, 6 + laterBasho + laterBuson + issa + chiyo + ogura);
   assert.equal(filterPoems(poems, { query: '松尾芭蕉' }).length, 3 + laterBasho);
   assert.equal(filterPoems(poems, { query: '与謝蕪村' }).length, 2 + laterBuson);
 });

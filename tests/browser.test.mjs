@@ -27,6 +27,55 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('popular multilingual works support search, saved state and static mobile reading', async () => {
+  const ids = ['frost-1916-the-road-not-taken', 'rimbaud-1895-le-dormeur-du-val', 'rimbaud-1895-voyelles', 'machado-1917-a-un-olmo-seco', 'pessoa-1926-o-menino-da-sua-mae', 'shiki-1902-kaki-kueba'];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  const samples = [selected[0], selected[5]];
+  const seed = { saved: ['montes-del-valle-1883-una-azucena', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  for (const poem of samples) {
+    const query = poem.displayTitle || poem.title;
+    await page.getByLabel('Search the poetry library').fill(query);
+    const count = filterPoems(poems, { query }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.goto(base);
+    await page.getByText(totalText).waitFor();
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...samples.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) {
+    assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1);
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    const verse = staticPage.locator('#original-panel .verse');
+    assert.equal(await verse.textContent(), poem.text);
+    assert.equal(await verse.getAttribute('lang'), poem.lang);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok((await staticPage.locator('.source-note').textContent()).includes('public domain in the United States'));
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+    await staticPage.goto(base);
+    await staticPage.locator('#complete-index summary').click();
+  }
+  assert.deepEqual(JSON.parse(await staticPage.evaluate(() => localStorage.getItem('verso-library-v1'))), seed);
+  await fallback.close();
+});
+
 test('search, filters, shelf and history work across page loads', async () => {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   const page = await context.newPage();
@@ -3039,7 +3088,7 @@ test('Petrarch sonnets support Italian search, source credits and static mobile 
 });
 
 test('Machado originals support Brazilian discovery, source credits and static reading', async () => {
-  const selected = poems.filter(p => p.id.startsWith('machado-'));
+  const selected = poems.filter(p => p.authorId === 'machado-de-assis');
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   await page.goto(`${base}?language=Portuguese&country=Brazil#explore`);
@@ -5897,7 +5946,7 @@ test('Japanese additions are searchable and readable on mobile with and without 
   await page.goto(`${base}?language=Japanese&country=Japan#explore`);
   const japanese = filterPoems(poems, { language: 'Japanese', country: 'Japan' }).length;
   await page.getByText(`${japanese} poems found`).waitFor();
-  assert.equal(japanese, 5 + poems.filter(p => p.id.startsWith('basho-oku-') || p.id.startsWith('basho-nozarashi-') || p.id.startsWith('buson-1926-') || p.id.startsWith('issa-1902-') || p.id.startsWith('chiyo-ni-1927-') || p.id.startsWith('ogura-1900-')).length);
+  assert.equal(japanese, 6 + poems.filter(p => p.id.startsWith('basho-oku-') || p.id.startsWith('basho-nozarashi-') || p.id.startsWith('buson-1926-') || p.id.startsWith('issa-1902-') || p.id.startsWith('chiyo-ni-1927-') || p.id.startsWith('ogura-1900-')).length);
   await page.getByLabel('Search the poetry library').fill('のたりのたり');
   await page.getByText('1 poem found').waitFor();
   const result = page.locator('#results .poem-card-link');
