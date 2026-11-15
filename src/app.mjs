@@ -1,4 +1,4 @@
-import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml as e, filterPoems, normalize, normalizeFinnish, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from './catalog.mjs';
+import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml as e, filterPoems, normalize, normalizeNordic, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from './catalog.mjs';
 import { readCommittedState, writeCommittedState } from './reading-state-store.mjs';
 
 const base = document.documentElement.dataset.base;
@@ -314,16 +314,16 @@ function setupPoetDirectory() {
   const status = finder.querySelector('#poet-count');
   const list = document.querySelector('#poet-list');
   const entries = [...list.querySelectorAll('[data-author]')].map(link => {
-    const finnish = link.dataset.searchLanguage === 'fi';
+    const nordic = ['fi', 'sv'].includes(link.dataset.searchLanguage);
     const names = [link.dataset.author, ...[...link.querySelectorAll('[data-poet-original]')].map(name => name.textContent), ...(link.dataset.authorAliases ? [link.dataset.authorAliases] : [])].join(' ');
-    return { link, finnish, names: (finnish ? normalizeFinnish : normalize)(names) };
+    return { link, nordic, names: (nordic ? normalizeNordic : normalize)(names) };
   });
   function render(resetScroll = false) {
     const query = normalize(input.value).trim();
-    const finnishQuery = normalizeFinnish(input.value).trim();
+    const nordicQuery = normalizeNordic(input.value).trim();
     let count = 0;
     for (const entry of entries) {
-      const matches = !query || entry.names.includes(entry.finnish ? finnishQuery : query);
+      const matches = !query || entry.names.includes(entry.nordic ? nordicQuery : query);
       entry.link.hidden = !matches;
       if (matches) count++;
     }
@@ -642,7 +642,7 @@ function setupReader() {
     const preferred = poem.translations.findIndex(t => t.language === state.language);
     if (preferred >= 0) selector.value = String(preferred);
   }
-  const languages = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', German: 'de', Finnish: 'fi', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Hindi: 'hi', Persian: 'fa', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
+  const languages = { English: 'en', Spanish: 'es', Portuguese: 'pt', French: 'fr', Italian: 'it', German: 'de', Finnish: 'fi', Swedish: 'sv', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Hindi: 'hi', Persian: 'fa', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
   function renderTranslation() {
     const item = selector && poem.translations[Number(selector.value)];
     if (!item) return;

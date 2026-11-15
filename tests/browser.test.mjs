@@ -259,6 +259,100 @@ test('Finnish-only poet directory entries distinguish letters without changing o
   await context.close();
 });
 
+test('Swedish originals support mobile spelling-sensitive discovery, saved state and static readers', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('recognized-swedish-classics-'));
+  assert.equal(selected.length, 8);
+  const seed = { saved: ['world-rizal-farewell', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Swedish');
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Swedish');
+  const search = page.getByLabel('Search the poetry library');
+  assert.match(await page.locator('#search-spelling-note').textContent(), /Swedish searches also distinguish å, ä and ö/);
+  await search.fill('so\u0308dergran');
+  await page.getByText('3 poems found', { exact: true }).waitFor();
+  await search.fill('sodergran');
+  await page.getByText('0 poems found', { exact: true }).waitFor();
+  await search.fill('Edith Irene Södergran');
+  await page.getByText('3 poems found', { exact: true }).waitFor();
+  for (const poem of selected) {
+    await search.fill(poem.title);
+    const count = filterPoems(poems, { language: 'Swedish', query: poem.title }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'sv');
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+    await page.goto(base);
+    await page.getByText(totalText, { exact: true }).waitFor();
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Swedish');
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Swedish');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Swedish a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'sv');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
+test('Swedish-only poet directory names and aliases distinguish letters without changing older names', async () => {
+  const example = { ...poems[0], language: 'Swedish', lang: 'sv', direction: 'ltr', authorOriginal: '', authorAliases: [] };
+  const sample = [
+    { ...example, id: 'directory-swedish-a', authorId: 'directory-swedish-a', author: 'Åse Ärlig' },
+    { ...example, id: 'directory-swedish-b', authorId: 'directory-swedish-b', author: 'Ase Arlig' },
+    poems.find(poem => poem.id === 'recognized-swedish-classics-dagen-svalnar'),
+    poems.find(poem => poem.author === 'José Martí'),
+  ];
+  assert.ok(sample.every(Boolean));
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route(base, route => route.fulfill({ contentType: 'text/html', body: renderHome(sample, '/ai-poems/') }));
+  await page.route('**/data/catalog.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(sample) }));
+  await page.goto(base);
+  await page.getByText('4 poems found', { exact: true }).waitFor();
+  await page.locator('.poet-directory summary').click();
+  const input = page.getByRole('searchbox', { name: 'Find a poet or voice' });
+  const visible = page.locator('.poet-list a:not([hidden])');
+  assert.match(await page.locator('#poet-spelling-note').textContent(), /Swedish also distinguishes å, ä and ö/);
+  await input.fill('a\u030ase');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Åse Ärlig']);
+  await input.fill('ase');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Ase Arlig']);
+  await input.fill('ärlig');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Åse Ärlig']);
+  await input.fill('arlig');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Ase Arlig']);
+  await input.fill('edith irene so\u0308dergran');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Edith Södergran']);
+  await input.fill('edith irene sodergran');
+  assert.equal(await visible.count(), 0);
+  await input.fill('jose marti');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['José Martí']);
+  await context.close();
+});
+
 test('crossroads readings support multilingual mobile discovery, saved state and static readers', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('recognized-crossroads-'));
   assert.equal(selected.length, 4);
