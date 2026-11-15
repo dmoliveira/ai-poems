@@ -1,0 +1,100 @@
+[
+  {
+    "id": "recognized-owen-classics-anthem-for-doomed-youth",
+    "title": "Anthem for Doomed Youth",
+    "author": "Wilfred Owen",
+    "authorId": "wilfred-owen",
+    "authorYears": "1893–1918",
+    "country": "England",
+    "language": "English",
+    "lang": "en",
+    "direction": "ltr",
+    "year": 1920,
+    "yearLabel": "1920 printing · not necessarily composition date",
+    "era": "20th century",
+    "form": "Sonnet",
+    "collection": "Poems · 1920",
+    "themes": [],
+    "mood": "paper",
+    "context": "This complete 1920 sonnet has an eight-line stanza and a six-line stanza; its first line reads 'these who die as cattle'. The secondary account of the 1995 BBC British viewer poll lists this individual poem. The text follows the posthumous printing, not a claim about a final manuscript; spacing, indentation and punctuation typography are normalized. England is an associated place, not a claim about where the poem was composed.",
+    "sourceTitle": "Poems · 1920, p. 11",
+    "source": "https://archive.org/download/poemsowenwil00owenrich/poemsowenwil00owenrich.pdf#page=31",
+    "contextSourceTitle": "Secondary account of the 1995 British poll",
+    "contextSource": "https://wykontario.org/index.php/features-category/1150-100-favorite-poems-of-britain",
+    "rights": "The 1920 printing is public domain in the United States; Owen died in 1918 and editor Siegfried Sassoon in 1967. Copyright, edition-related and moral rights vary by jurisdiction; check local law. The scan is linked, not republished; the verse was transcribed from its historical page. No introduction, portrait, translation or recording is included.",
+    "searchAliases": [],
+    "text": "What passing-bells for these who die as cattle?\nOnly the monstrous anger of the guns.\nOnly the stuttering rifles’ rapid rattle\nCan patter out their hasty orisons.\nNo mockeries for them; no prayers nor bells,\nNor any voice of mourning save the choirs,—\nThe shrill, demented choirs of wailing shells;\nAnd bugles calling for them from sad shires.\n\nWhat candles may be held to speed them all?\nNot in the hands of boys, but in their eyes\nShall shine the holy glimmers of goodbyes.\nThe pallor of girls’ brows shall be their pall;\nTheir flowers the tenderness of patient minds,\nAnd each slow dusk a drawing-down of blinds.",
+    "translations": []
+  },
+  {
+    "id": "recognized-owen-classics-dulce-et-decorum-est",
+    "title": "Dulce et Decorum Est",
+    "author": "Wilfred Owen",
+    "authorId": "wilfred-owen",
+    "authorYears": "1893–1918",
+    "country": "England",
+    "language": "English",
+    "lang": "en",
+    "direction": "ltr",
+    "year": 1920,
+    "yearLabel": "1920 printing · not necessarily composition date",
+    "era": "20th century",
+    "form": "Verse",
+    "collection": "Poems · 1920",
+    "themes": [],
+    "mood": "paper",
+    "context": "The complete 1920 printing has four stanzas and reads 'Bitten as the cud'; some later transcriptions read 'Bitter as the cud' and other modern readings have 'Obscene as cancer, bitter as the cud'. This documents textual variants, not a claim about Owen's final intention. The Latin title and closing words are marked as Latin. The secondary account of the 1995 BBC British viewer poll lists this individual poem. The text follows the posthumous printing, not a claim about a final manuscript; spacing, indentation and punctuation typography are normalized. England is an associated place, not a claim about where the poem was composed.",
+    "sourceTitle": "Poems · 1920, p. 15",
+    "source": "https://archive.org/download/poemsowenwil00owenrich/poemsowenwil00owenrich.pdf#page=35",
+    "contextSourceTitle": "Secondary account of the 1995 British poll",
+    "contextSource": "https://wykontario.org/index.php/features-category/1150-100-favorite-poems-of-britain",
+    "rights": "The 1920 printing is public domain in the United States; Owen died in 1918 and editor Siegfried Sassoon in 1967. Copyright, edition-related and moral rights vary by jurisdiction; check local law. The scan is linked, not republished; the verse was transcribed from its historical page. No introduction, portrait, translation or recording is included.",
+    "searchAliases": [
+      "Bitter as the cud",
+      "Obscene as cancer, bitter as the cud"
+    ],
+    "text": "Bent double, like old beggars under sacks,\nKnock-kneed, coughing like hags, we cursed through sludge,\nTill on the haunting flares we turned our backs,\nAnd towards our distant rest began to trudge.\nMen marched asleep. Many had lost their boots,\nBut limped on, blood-shod. All went lame, all blind;\nDrunk with fatigue; deaf even to the hoots\nOf gas-shells dropping softly behind.\n\nGas! GAS! Quick, boys!—An ecstasy of fumbling\nFitting the clumsy helmets just in time,\nBut someone still was yelling out and stumbling\nAnd flound’ring like a man in fire or lime.—\nDim through the misty panes and thick green light,\nAs under a green sea, I saw him drowning.\n\nIn all my dreams before my helpless sight\nHe plunges at me, guttering, choking, drowning.\n\nIf in some smothering dreams, you too could pace\nBehind the wagon that we flung him in,\nAnd watch the white eyes writhing in his face,\nHis hanging face, like a devil’s sick of sin,\nIf you could hear, at every jolt, the blood\nCome gargling from the froth-corrupted lungs\nBitten as the cud\nOf vile, incurable sores on innocent tongues,—\nMy friend, you would not tell with such high zest\nTo children ardent for some desperate glory,\nThe old Lie: Dulce et decorum est\nPro patria mori.",
+    "translations": [],
+    "titleLang": "la",
+    "textLanguageSpans": [
+      {
+        "line": 27,
+        "text": "Dulce et decorum est",
+        "lang": "la"
+      }
+    ],
+    "textLanguageOverrides": [
+      {
+        "line": 28,
+        "lang": "la"
+      }
+    ]
+  },
+  {
+    "id": "recognized-owen-classics-futility",
+    "title": "Futility",
+    "author": "Wilfred Owen",
+    "authorId": "wilfred-owen",
+    "authorYears": "1893–1918",
+    "country": "England",
+    "language": "English",
+    "lang": "en",
+    "direction": "ltr",
+    "year": 1920,
+    "yearLabel": "1920 printing · not necessarily composition date",
+    "era": "20th century",
+    "form": "Verse",
+    "collection": "Poems · 1920",
+    "themes": [],
+    "mood": "paper",
+    "context": "This complete 1920 printing has two seven-line stanzas. The secondary account of the 1995 BBC British viewer poll lists this individual poem. The text follows the posthumous printing, not a claim about a final manuscript; spacing, indentation and punctuation typography are normalized. England is an associated place, not a claim about where the poem was composed.",
+    "sourceTitle": "Poems · 1920, p. 25",
+    "source": "https://archive.org/download/poemsowenwil00owenrich/poemsowenwil00owenrich.pdf#page=45",
+    "contextSourceTitle": "Secondary account of the 1995 British poll",
+    "contextSource": "https://wykontario.org/index.php/features-category/1150-100-favorite-poems-of-britain",
+    "rights": "The 1920 printing is public domain in the United States; Owen died in 1918 and editor Siegfried Sassoon in 1967. Copyright, edition-related and moral rights vary by jurisdiction; check local law. The scan is linked, not republished; the verse was transcribed from its historical page. No introduction, portrait, translation or recording is included.",
+    "searchAliases": [],
+    "text": "Move him into the sun—\nGently its touch awoke him once,\nAt home, whispering of fields unsown.\nAlways it woke him, even in France,\nUntil this morning and this snow.\nIf anything might rouse him now\nThe kind old sun will know.\n\nThink how it wakes the seeds—\nWoke, once, the clays of a cold star.\nAre limbs so dear-achieved, are sides\nFull-nerved,—still warm,—too hard to stir?\nWas it for this the clay grew tall?\n—O what made fatuous sunbeams toil\nTo break earth’s sleep at all?",
+    "translations": []
+  }
+]

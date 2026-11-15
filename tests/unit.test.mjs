@@ -18,6 +18,70 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Owen classics preserve complete 1920 readings and Latin markings', () => {
+  const ids = ['anthem-for-doomed-youth', 'dulce-et-decorum-est', 'futility']
+    .map(id => `recognized-owen-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-owen-classics-')).length, 3);
+  assert.deepEqual(selected.map(lineCount), [14, 28, 14]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [8, 6], [8, 6, 2, 12], [7, 7],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '5d23ea32896f447c91fe1c0648583c707522659cbcf677a368e4810dde69eb3f',
+    'c0bb2fd32233330de7a87bc676693498ebcefb89d93823a0937c3f7a36491218',
+    'f0fb693076f327532baa3809b169bdb3160dd374c09136926fe9debb6820bff4',
+  ]);
+  const [anthem, dulce, futility] = selected;
+  assert.match(anthem.text, /^What passing-bells for these who die as cattle\?[\s\S]*And each slow dusk a drawing-down of blinds\.$/);
+  assert.match(dulce.text, /^Bent double, like old beggars under sacks,[\s\S]*Come gargling from the froth-corrupted lungs\nBitten as the cud\nOf vile, incurable sores[\s\S]*The old Lie: Dulce et decorum est\nPro patria mori\.$/);
+  assert.match(dulce.context, /Bitten as the cud.*Bitter as the cud.*Obscene as cancer, bitter as the cud.*not a claim about Owen's final intention/);
+  assert.match(futility.text, /^Move him into the sun—[\s\S]*Woke, once, the clays of a cold star\.[\s\S]*To break earth’s sleep at all\?$/);
+  assert.equal(dulce.titleLang, 'la');
+  assert.deepEqual(dulce.textLanguageSpans, [{ line: 27, text: 'Dulce et decorum est', lang: 'la' }]);
+  assert.deepEqual(dulce.textLanguageOverrides, [{ line: 28, lang: 'la' }]);
+  const dulceHtml = renderPoem(dulce, poems, '/ai-poems/');
+  assert.match(dulceHtml, /<h1 lang="la" dir="ltr">Dulce et Decorum Est<\/h1>/);
+  assert.ok(dulceHtml.includes('The old Lie: <span lang="la" dir="auto">Dulce et decorum est</span>\n<span lang="la" dir="auto">Pro patria mori.</span>'));
+  const queries = [
+    ['Anthem for Doomed Youth', 'What passing-bells for these'],
+    ['Dulce et Decorum Est', 'Bitter as the cud', 'Obscene as cancer, bitter as the cud'],
+    ['Futility', 'Move him into the sun'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.lang, 'en');
+    assert.equal(poem.authorId, 'wilfred-owen');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.yearLabel, /1920 printing · not necessarily composition date/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of [...queries[index], 'Wilfred Owen']) {
+      assert.ok(filterPoems([poem], { language: 'English', query }).includes(poem), query);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes('class="verse" lang="en" dir="ltr">'));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Exact text and openings do not exhaust every translated or variant duplicate.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-owen-classics.py', '--check'], { encoding: 'utf8' }), /Verified 3 historical readings/);
+});
+
 test('Coșbuc classics preserve complete, distinct 1897 readings', () => {
   const ids = ['nunta-zamfirei', 'rea-de-plata'].map(id => `recognized-cosbuc-classics-${id}`);
   const selected = ids.map(id => poems.find(poem => poem.id === id));
