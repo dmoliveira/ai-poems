@@ -18,6 +18,82 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('additional Hungarian poems preserve complete historical readings and distinct works', () => {
+  const ids = ['petofi-egy-gondolat-bant-engemet', 'petofi-foltamadott-a-tenger', 'petofi-az-alfold', 'petofi-a-tisza', 'kolcsey-hymnus']
+    .map(id => `recognized-hungarian-poems-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-hungarian-poems-')).length, 5);
+  assert.deepEqual(selected.map(lineCount), [36, 25, 48, 60, 64]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [36], [5, 5, 5, 5, 5], Array(12).fill(4), Array(15).fill(4), Array(8).fill(8),
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'aa80621c35b3664cf470e1576b70e1f8bce05e62bd32edc26a803ff809bd5a8f',
+    'acd1dc99f606e219d7248c693097d19c7cb57d3c33c77e325c33b479566d3e18',
+    'cb8a3706f1779592c634d6501d91def333410546f79c10e2a3b4821555ef8cb2',
+    'c3504f5dbc2fe882b18028a2d7e5ee2edf7c65c71e0ed5983d728b95d84c21e7',
+    '2b004e4ad4a34e955a4898abc0b6b2dbb03810300cf4575f3381e9cdd4122afe',
+  ]);
+  const [thought, sea, plain, river, hymn] = selected;
+  assert.match(thought.text, /^Egy gondolat bánt engemet:[\s\S]*Elharsogják kelettől nyúgatig,[\s\S]*Kik érted haltak, szent világszabadság!$/);
+  assert.match(sea.text, /^Föltámadott a tenger,[\s\S]*Sűlyednek a pokolra,[\s\S]*Habár fölűl a gálya,\nS alúl a víznek árja,\nAzért a víz az úr!$/);
+  assert.match(plain.text, /^Mit nekem te zordon Kárpátoknak[\s\S]*Deleléskor hosszu gémü kútnál[\s\S]*S a smaragdnak eleven szinével[\s\S]*A vadlúdak esti szürkületben,[\s\S]*Domborodjék a sir is fölöttem\.$/);
+  assert.match(river.text, /^Nyári napnak alkonyúlatánál[\s\S]*Megbotoljék habjai fodrába\.[\s\S]*„Jön az árviz! jön az árviz!“ hangzék,[\s\S]*El akarta nyelni a világot!$/);
+  assert.ok(hymn.text.startsWith("Isten! áldd-meg a' Magyart\n"));
+  assert.ok(hymn.text.includes("A' múltat 's jövendőt."));
+  assert.ok(hymn.text.includes("Tokaj' szőllővesszejin\nNektárt csepegtettél"));
+  assert.ok(hymn.text.includes("Hányszor támadt fenn fiad,\nSzép Hazám, kebledre;"));
+  assert.ok(hymn.text.includes("Árvánk' hő szeméből."));
+  assert.ok(hymn.text.endsWith("A' multat 's jövendőt."));
+  assert.equal(hymn.year, 1829);
+  assert.match(hymn.yearLabel, /December 1828/);
+  assert.match(hymn.context, /heading has no subtitle/);
+  assert.match(hymn.contextSource, /^https:\/\/erkel\.oszk\.hu\/tan\/hymnustol-himnuszig/);
+  assert.ok(selected.slice(0, 4).every(poem => poem.authorId === 'sandor-petofi'));
+  assert.ok(selected.slice(0, 4).every(poem => poem.sourceTitle.includes('afterword by György Király') && poem.rights.includes('Király in 1922')));
+  assert.equal(hymn.authorId, 'ferenc-kolcsey');
+  const queries = [
+    ['Egy gondolat bant engemet', 'nyúgatig'],
+    ['Foltamadott a tenger', 'fölűl'.normalize('NFD')],
+    ['Az alfold', 'vadlúdak'],
+    ['A Tisza', 'alkonyúlatánál'],
+    ['Himnusz', "Tokaj'"],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Hungarian');
+    assert.equal(poem.lang, 'hu');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Hungarian', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="hu" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  assert.equal(filterPoems([sea], { query: 'sűlyednek' }).length, 1);
+  assert.equal(filterPoems([sea], { query: 'sülyednek' }).length, 0);
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  // Alternate titles and selected translated openings are limited duplicate signals, not exhaustive proof.
+  const alternatives = ['One thought troubles me', 'The sea has risen', 'The Great Plain', 'The Tisza', 'God bless the Hungarians'];
+  for (const phrase of alternatives) for (const poem of poems.filter(item => !ids.includes(item.id))) {
+    assert.ok([poem.title, poem.text, ...(poem.searchAliases || []), ...poem.translations.flatMap(item => [item.title, item.text])]
+      .every(text => !fold(text || '').includes(fold(phrase))), phrase);
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-hungarian-poems.py', '--check'], { encoding: 'utf8' }), /Verified 5 historical readings/);
+});
+
 test('Slovenian classics preserve two complete historical readings and distinct works', () => {
   const ids = ['preseren-kam', 'preseren-slovo-od-mladosti']
     .map(id => `recognized-slovenian-classics-${id}`);
