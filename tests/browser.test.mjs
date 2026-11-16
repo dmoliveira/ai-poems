@@ -27,6 +27,108 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Norwegian classics support mobile search, preferences, saved state and static readers', async () => {
+  const ids = ['pigen', 'foraaret', 'gyldenlak', 'vaarnat', 'digtets-aand', 'fjelli']
+    .map(key => `recognized-norwegian-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  const queries = ['Pigen på Anatomikammeret', 'Til våren', 'Til min gyllenlakk', 'En vårnatt'.normalize('NFD'), 'Diktets ånd', 'Dei gamle fjella'];
+  const seed = { saved: ['recognized-ukrainian-2-hymn', 'world-rizal-farewell', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+    }
+    await page.getByLabel('Preferred reading language', { exact: true }).selectOption(poem.language);
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption(poem.language);
+    await page.getByLabel('Search the poetry library').fill(queries[index]);
+    const count = filterPoems(poems, { language: poem.language, query: queries[index] }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), poem.language);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...ids]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Norwegian');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
+test('Danish and Norwegian poet-directory spelling preserves letter distinctions and legacy names', async () => {
+  const example = { ...poems[0], direction: 'ltr', authorOriginal: '', authorAliases: [] };
+  const sample = [
+    { ...example, id: 'directory-da-a', authorId: 'directory-da-a', author: 'Åse Fjord', language: 'Danish', lang: 'da' },
+    { ...example, id: 'directory-da-b', authorId: 'directory-da-b', author: 'Ase Fjord', language: 'Danish', lang: 'da' },
+    { ...example, id: 'directory-nn-a', authorId: 'directory-nn-a', author: 'Åge Fjell', language: 'Norwegian', lang: 'nn' },
+    { ...example, id: 'directory-nn-b', authorId: 'directory-nn-b', author: 'Age Fjell', language: 'Norwegian', lang: 'nn' },
+    poems.find(poem => poem.author === 'José Martí'),
+  ];
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route(base, route => route.fulfill({ contentType: 'text/html', body: renderHome(sample, '/ai-poems/') }));
+  await page.route('**/data/catalog.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(sample) }));
+  await page.goto(base);
+  await page.getByText('5 poems found', { exact: true }).waitFor();
+  await page.locator('.poet-directory summary').click();
+  const input = page.getByRole('searchbox', { name: 'Find a poet or voice' });
+  const visible = page.locator('.poet-list a:not([hidden])');
+  assert.match(await page.locator('#poet-spelling-note').textContent(), /Danish-only and Norwegian-only entries/);
+  for (const [query, expected] of [['a\u030ase', 'Åse Fjord'], ['ase', 'Ase Fjord'], ['a\u030age', 'Åge Fjell'], ['age', 'Age Fjell'], ['jose marti', 'José Martí']]) {
+    await input.fill(query);
+    assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), [expected]);
+  }
+  await input.fill('\u030a');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['José Martí']);
+  await context.close();
+});
+
+test('Danish and Norwegian translation fixtures carry language tags in static and interactive readers', async () => {
+  const original = poems.find(poem => poem.id === 'recognized-british-classics-davies-leisure');
+  const fixture = { ...original, translations: [
+    { language: 'Danish', title: 'Prøve', text: 'Blå himmel', translator: 'Test fixture', rights: 'Test fixture', source: 'https://example.com/' },
+    { language: 'Norwegian', title: 'Prøve', text: 'Blå himmel', translator: 'Test fixture', rights: 'Test fixture', source: 'https://example.com/' },
+  ] };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const url = `${base}poems/${fixture.id}/`;
+  await page.route(url, route => route.fulfill({ contentType: 'text/html', body: renderPoem(fixture, poems, '/ai-poems/') }));
+  await page.goto(url);
+  assert.deepEqual(await page.locator('#translations .verse').evaluateAll(nodes => nodes.map(node => node.lang)), ['da', 'no']);
+  for (const [index, lang] of ['da', 'no'].entries()) {
+    await page.locator('#translation-select').selectOption(String(index));
+    assert.equal(await page.locator('#translation-panel .verse').textContent(), 'Blå himmel');
+    assert.equal(await page.locator('#translation-panel .verse').getAttribute('lang'), lang);
+  }
+  await context.close();
+});
+
 test('additional Dutch classics support mobile search, saved state and static readers', async () => {
   const ids = ['ik-ween-om-bloemen', 'de-waterlelie'].map(key => `recognized-dutch-classics-2-${key}`);
   const selected = ids.map(id => poems.find(poem => poem.id === id));
