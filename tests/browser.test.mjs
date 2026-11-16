@@ -47,6 +47,7 @@ test('early Nynorsk classics support mobile search, saved state and static reade
       await page.getByText(totalText, { exact: true }).waitFor();
     }
     await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Norwegian');
+    await page.getByRole('status').getByText('Language preference saved.').waitFor();
     await page.locator('#filter-summary').click();
     await page.getByLabel('Original language').selectOption('Norwegian');
     await page.getByLabel('Search the poetry library').fill(queries[index]);
@@ -101,6 +102,7 @@ test('Norwegian classics support mobile search, preferences, saved state and sta
       await page.getByText(totalText, { exact: true }).waitFor();
     }
     await page.getByLabel('Preferred reading language', { exact: true }).selectOption(poem.language);
+    await page.getByRole('status').getByText('Language preference saved.').waitFor();
     await page.locator('#filter-summary').click();
     await page.getByLabel('Original language').selectOption(poem.language);
     await page.getByLabel('Search the poetry library').fill(queries[index]);
@@ -109,6 +111,10 @@ test('Norwegian classics support mobile search, preferences, saved state and sta
     await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
     assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
     assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    await page.waitForFunction(() => {
+      const select = document.querySelector('[data-preferred-language]');
+      return select && !select.disabled;
+    });
     assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), poem.language);
     await page.getByRole('button', { name: /Save poem/ }).click();
     await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
@@ -516,6 +522,68 @@ test('Slovenian classics support mobile search, saved state and static readers',
   }
   const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
   for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Slovenian');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Slovenian a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'sl');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
+test('Slovenian lyrics support mobile search, saved state and static readers', async () => {
+  const ids = ['pod-oknom', 'prosnja', 'ukazi', 'k-slovesu', 'sila-spomina', 'izgubljena-vera', 'mornar']
+    .map(id => `recognized-slovenian-lyrics-preseren-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  const queries = [
+    ['Pod oknam', 'Luna sije'], ['Prosnja', 'repetnic'], ['Ukazi', 'pokoren bit'],
+    ['K slovesu', 'Bog te obar'], ['Sila spomina', 'tvoje srce me pogresa'],
+    ['Zgubljena vera', 'Izgubljena vera'], ['Mornar', 'nezvesta bodi zdrava'],
+  ];
+  const seed = { saved: ['world-rizal-farewell', 'recognized-slovenian-classics-preseren-kam', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Slovenian');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+      assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'Slovenian');
+    }
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Slovenian');
+    for (const query of queries[index]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { language: 'Slovenian', query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'sl');
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...ids]) assert.ok(stored.saved.includes(id), id);
   assert.deepEqual(stored.extra, seed.extra);
   assert.equal(stored.preferredLanguage, 'Slovenian');
   await context.close();
