@@ -315,24 +315,24 @@ function setupPoetDirectory() {
   const list = document.querySelector('#poet-list');
   const entries = [...list.querySelectorAll('[data-author]')].map(link => {
     const language = link.dataset.searchLanguage;
-    const kind = language === 'gl' ? 'galician' : language === 'hu' ? 'hungarian' : ['da', 'nn'].includes(language) ? 'scandinavian' : ['fi', 'sv'].includes(language) ? 'nordic' : 'general';
-    const normalizeName = kind === 'galician' ? normalizeGalician : ['nordic', 'scandinavian', 'hungarian'].includes(kind) ? normalizeNordic : normalize;
+    const kind = language === 'gl' ? 'galician' : language === 'hu' ? 'hungarian' : language === 'cs' ? 'czech' : ['da', 'nn'].includes(language) ? 'scandinavian' : ['fi', 'sv'].includes(language) ? 'nordic' : 'general';
+    const normalizeName = kind === 'galician' ? normalizeGalician : ['nordic', 'scandinavian', 'hungarian', 'czech'].includes(kind) ? normalizeNordic : normalize;
     const names = [link.dataset.author, ...[...link.querySelectorAll('[data-poet-original]')].map(name => name.textContent), ...(link.dataset.authorAliases ? [link.dataset.authorAliases] : [])].join(' ');
     return { link, kind, names: normalizeName(names) };
   });
   function render(resetScroll = false) {
     const query = normalize(input.value).trim();
     const exactQuery = normalizeNordic(input.value).trim();
-    const queries = { general: query, nordic: exactQuery, scandinavian: exactQuery, hungarian: exactQuery, galician: normalizeGalician(input.value).trim() };
+    const queries = { general: query, nordic: exactQuery, scandinavian: exactQuery, hungarian: exactQuery, czech: exactQuery, galician: normalizeGalician(input.value).trim() };
     let count = 0;
     for (const entry of entries) {
-      const activeQuery = ['hungarian', 'scandinavian'].includes(entry.kind) ? exactQuery : query;
+      const activeQuery = ['hungarian', 'scandinavian', 'czech'].includes(entry.kind) ? exactQuery : query;
       const matches = !activeQuery || entry.names.includes(queries[entry.kind]);
       entry.link.hidden = !matches;
       if (matches) count++;
     }
     clear.disabled = !input.value;
-    const active = query || (exactQuery && entries.some(entry => ['hungarian', 'scandinavian'].includes(entry.kind)));
+    const active = query || (exactQuery && entries.some(entry => ['hungarian', 'scandinavian', 'czech'].includes(entry.kind)));
     status.textContent = active ? `${count} ${count === 1 ? 'match' : 'matches'}${count ? '.' : '. Try another name.'}` : 'Showing all names and voices.';
     if (resetScroll) list.scrollTop = 0;
   }
@@ -647,7 +647,7 @@ function setupReader() {
     const preferred = poem.translations.findIndex(t => t.language === state.language);
     if (preferred >= 0) selector.value = String(preferred);
   }
-  const languages = { English: 'en', Spanish: 'es', Portuguese: 'pt', Galician: 'gl', French: 'fr', Italian: 'it', German: 'de', Danish: 'da', Norwegian: 'no', Finnish: 'fi', Swedish: 'sv', Hungarian: 'hu', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Hindi: 'hi', Persian: 'fa', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
+  const languages = { English: 'en', Spanish: 'es', Portuguese: 'pt', Galician: 'gl', French: 'fr', Italian: 'it', German: 'de', Danish: 'da', Norwegian: 'no', Finnish: 'fi', Swedish: 'sv', Hungarian: 'hu', Czech: 'cs', Greek: 'el', Russian: 'ru', Ukrainian: 'uk', Polish: 'pl', Bengali: 'bn', Hindi: 'hi', Persian: 'fa', Chinese: 'zh', Japanese: 'ja', Arabic: 'ar' };
   function renderTranslation() {
     const item = selector && poem.translations[Number(selector.value)];
     if (!item) return;

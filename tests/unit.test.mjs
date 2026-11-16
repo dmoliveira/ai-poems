@@ -18,6 +18,86 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Czech classics retain three complete, distinct historical readings', () => {
+  const ids = ['vrchlicky-za-trochu-lasky', 'sladek-lesni-studanka', 'nemcova-zenam-ceskym']
+    .map(key => `recognized-czech-classics-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-czech-classics-')).length, 3);
+  assert.ok(readingLanguages.includes('Czech'));
+  assert.deepEqual(selected.map(lineCount), [7, 12, 32]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(block => block.split('\n').length)), [
+    [7], [4, 4, 4], Array(8).fill(4),
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'd7acd169da09087487685b83eb335a8ec0c720efc608b9dc38f07336c2334f26',
+    '97c2abe913c4029b13f5127bd91bba4941c315e177dcf333777fc7029d016f16',
+    'f68fba193a806386e1a6d51cb1becf828d7821fbb3213efa05304758ea3dd7ff',
+  ]);
+  const [love, spring, women] = selected;
+  assert.match(love.text, /^Za trochu lásky šel bych světa kraj,[\s\S]*šel v ledu — ale v duši věčný máj,[\s\S]*jak ten, kdo zpívá u dveří a prosí\.$/);
+  assert.match(love.context, /1894 scan reads 'šel v ledu'.*'šel v lednu'/);
+  assert.match(spring.text, /^Znám křišťálovou studánku,[\s\S]*a nebesa i studánka\njsou plny zlatých hvězd\.$/);
+  assert.match(spring.context, /1907.*Lilie.*1894.*a nebesa.*tu nebesa.*musical setting/);
+  assert.match(women.text, /^Ženy české, matky české![\s\S]*ale útlá, slabá žena[\s\S]*Jmenujme jim slavné otce,[\s\S]*Ať z nich zrostou reci statní,[\s\S]*pro tu slavnou, drahou vlast\.$/);
+  assert.match(women.context, /signed 1843.*1891.*útlá.*Jmenujme.*zrostou.*Gmenugte.*two columns.*censorship-proof variant/);
+  assert.equal(women.authorYears, '1820?–1862');
+  const queries = [
+    ['Za trochu lásky', 'Za trochu lasky', 'šel v ledu'],
+    ['Lesní studánka', 'Lesni studanka', 'Znam kristalovou studanku'],
+    ['Ženám českým', 'Zenam ceskym', 'Bozena Nemcova'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Czech');
+    assert.equal(poem.lang, 'cs');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Czech', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="cs" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-czech-classics.py', '--check'], { encoding: 'utf8' }), /Verified 3 historical readings/);
+});
+
+test('Czech search preserves distinguishing marks and other-language translation behavior', () => {
+  const common = { ...poems[0], author: 'Test', authorOriginal: '', title: 'Test', displayTitle: '',
+    country: 'Czechia', era: '', form: 'Verse', collection: '', language: 'Czech', lang: 'cs', themes: [], authorAliases: [], searchAliases: [], translations: [] };
+  const order = { ...common, id: 'czech-order', text: 'řád', authorAliases: ['Bozena Nemcova'], translations: [
+    { language: 'French', title: 'Étoile', text: 'rivière' }, { language: 'Czech', title: 'básník', text: 'kůň' },
+  ] };
+  const glad = { ...common, id: 'czech-glad', text: 'rád' };
+  const ids = query => filterPoems([order, glad], { query }).map(poem => poem.id);
+  assert.deepEqual(ids('řád'), ['czech-order']);
+  assert.deepEqual(ids('r\u030ca\u0301d'), ['czech-order']);
+  assert.deepEqual(ids('rád'), ['czech-glad']);
+  assert.deepEqual(ids('rad'), []);
+  assert.deepEqual(ids('\u030c'), []);
+  assert.deepEqual(ids('Bozena Nemcova'), ['czech-order']);
+  assert.deepEqual(ids('básník'), ['czech-order']);
+  assert.deepEqual(ids('basnik'), []);
+  assert.deepEqual(ids('etoile'), ['czech-order']);
+  assert.deepEqual(ids('riviere'), ['czech-order']);
+  const html = renderPoem({ ...poems[0], translations: order.translations }, poems, '/ai-poems/');
+  assert.ok(html.includes('class="verse" lang="cs"'));
+});
+
 test('early Nynorsk classics retain complete historical readings and distinct works', () => {
   const ids = ['gamle-norig', 'nordmannen', 'gamle-grendi', 'den-saerde', 'vaaren']
     .map(key => `recognized-nynorsk-${key}`);
@@ -2488,7 +2568,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician', 'Hungarian'].includes(poem.language) && !poem.id.startsWith('recognized-danish-poems-') && !poem.id.startsWith('recognized-danish-classics-') && !poem.id.startsWith('recognized-nynorsk-') && !poem.id.startsWith('recognized-norwegian-') && !poem.id.startsWith('recognized-british-classics-') && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician', 'Hungarian', 'Czech'].includes(poem.language) && !poem.id.startsWith('recognized-danish-poems-') && !poem.id.startsWith('recognized-danish-classics-') && !poem.id.startsWith('recognized-nynorsk-') && !poem.id.startsWith('recognized-norwegian-') && !poem.id.startsWith('recognized-british-classics-') && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
