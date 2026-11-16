@@ -1,0 +1,61 @@
+[
+  {
+    "id": "recognized-dutch-classics-2-ik-ween-om-bloemen",
+    "title": "Ik ween om bloemen, in den knop gebroken",
+    "author": "Willem Kloos",
+    "authorId": "willem-kloos",
+    "authorYears": "1859–1938",
+    "country": "Netherlands",
+    "language": "Dutch",
+    "lang": "nl",
+    "direction": "ltr",
+    "year": 1902,
+    "yearLabel": "1902 printing · not necessarily composition date",
+    "era": "19th century",
+    "form": "Sonnet",
+    "collection": "Verzen I · second printing, 1902",
+    "themes": [],
+    "mood": "paper",
+    "context": "The complete fourteen-line sonnet is numbered LXI on p. 73; the opening supplies its title here. The 1902 printing has 'heen-gegaan' and 'geblaêrte'; a teaching text uses 'heengegaan' and 'geblaarte'. A publisher identifies this poem in the earlier 1894 volume. Kloos died in 1938. A 1997 review reports the individual poem in a Dutch teachers' survey selection; this documents educational attention, not a global ranking. Spacing, indentation and apostrophe typography are normalized; historical wording is retained. The associated country is not a claim about where the poem was composed.",
+    "sourceTitle": "Verzen I · second printing, 1902, p. 73",
+    "source": "https://archive.org/download/verzen00kloogoog/verzen00kloogoog.pdf#page=79",
+    "contextSourceTitle": "Dutch teachers' survey selection · 1997 review",
+    "contextSource": "https://www.dbnl.org/tekst/_tsj001199701_01/_tsj001199701_01_0028.php",
+    "rights": "The historical printing is public domain in the United States. Copyright, edition-related and moral rights vary by jurisdiction; check local law. The facsimile is linked, not republished; no translation, illustration or recording is included.",
+    "searchAliases": [
+      "Ik ween om bloemen in de knop gebroken",
+      "Ik ween om bloemen"
+    ],
+    "text": "Ik ween om bloemen, in den knop gebroken\nEn vóór den uchtend van haar bloei vergaan,\nIk ween om liefde, die niet is ontloken,\nEn om mijn harte dat niet werd verstaan:\n\nGij kwaamt, en ’k wist — gij zijt weer heen-gegaan...\nIk heb het nauw gezien, geen woord gesproken:\nIk zat weer roerloos, nà dien korten waan,\nIn de eeuwge schaduw van mijn smart gedoken:\n\nZoo als een vogel in den stillen nacht\nOp ééns ontwaakt, omdat de hemel gloeit,\nEn denkt, ’t is dag, en heft het kopje en fluit,\n\nMaar éer ’t zijn vaakrige oogjes gansch ontsluit,\nIs het weer donker, en slechts droevig vloeit\nDoor ’t sluimerend geblaêrte een zwakke klacht.",
+    "translations": []
+  },
+  {
+    "id": "recognized-dutch-classics-2-de-waterlelie",
+    "title": "De waterlelie",
+    "author": "Frederik van Eeden",
+    "authorId": "frederik-van-eeden",
+    "authorYears": "1860–1932",
+    "country": "Netherlands",
+    "language": "Dutch",
+    "lang": "nl",
+    "direction": "ltr",
+    "year": 1898,
+    "yearLabel": "1898 printing · not necessarily composition date",
+    "era": "19th century",
+    "form": "Verse",
+    "collection": "Enkele verzen · 1898",
+    "themes": [],
+    "mood": "paper",
+    "context": "The complete eight-line poem appears on the unnumbered first poem page, before De Lente. The 1898 printing has 'zoo' and 'wenscht'; a teaching text uses modern 'zo' and 'wenst'. Van Eeden died in 1932. A 1997 review reports the individual poem in a Dutch teachers' survey selection; this documents educational attention, not a global ranking. Spacing, indentation and apostrophe typography are normalized; historical wording is retained. The associated country is not a claim about where the poem was composed.",
+    "sourceTitle": "Enkele verzen · 1898, first poem, unnumbered page",
+    "source": "https://archive.org/download/enkeleverzen00eedegoog/enkeleverzen00eedegoog.pdf#page=11",
+    "contextSourceTitle": "Dutch teachers' survey selection · 1997 review",
+    "contextSource": "https://www.dbnl.org/tekst/_tsj001199701_01/_tsj001199701_01_0028.php",
+    "rights": "The historical printing is public domain in the United States. Copyright, edition-related and moral rights vary by jurisdiction; check local law. The facsimile is linked, not republished; no translation, illustration or recording is included.",
+    "searchAliases": [
+      "Ik heb de witte waterlelie lief"
+    ],
+    "text": "Ik heb de witte water-lelie lief,\ndaar die zoo blank is en zoo stil haar kroon\nuitplooit in ’t licht.\n\nRijzend uit donker-koelen vijvergrond,\nheeft zij het licht gevonden en ontsloot\ntoen blij het gouden hart.\n\nNu rust zij peinzend op het watervlak\nen wenscht niet meer....",
+    "translations": []
+  }
+]

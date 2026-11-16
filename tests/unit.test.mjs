@@ -18,6 +18,69 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('additional Dutch classics retain complete scan-checked readings and distinct works', () => {
+  const ids = ['ik-ween-om-bloemen', 'de-waterlelie'].map(key => `recognized-dutch-classics-2-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-dutch-classics-2-')).length, 2);
+  assert.deepEqual(selected.map(lineCount), [14, 8]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(block => block.split('\n').length)), [
+    [4, 4, 3, 3], [3, 3, 2],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'bf9de824f431c11478cbaf6b4961cdc5da4ef7229e9505d12ce1f318547ab5b9',
+    '16b49aa94d5cd1cd5f2a83e77f2339830c7ab4f98b23e381e95328aebdd55871',
+  ]);
+  const [kloos, eeden] = selected;
+  assert.equal(kloos.era, '19th century');
+  assert.equal(kloos.year, 1902);
+  assert.ok(kloos.text.startsWith('Ik ween om bloemen, in den knop gebroken\nEn vóór den uchtend'));
+  assert.ok(kloos.text.includes('gij zijt weer heen-gegaan...'));
+  assert.ok(kloos.text.endsWith('Door ’t sluimerend geblaêrte een zwakke klacht.'));
+  assert.match(kloos.context, /numbered LXI.*opening supplies its title.*heen-gegaan.*heengegaan/);
+  assert.ok(eeden.text.startsWith('Ik heb de witte water-lelie lief,\ndaar die zoo blank'));
+  assert.ok(eeden.text.endsWith('Nu rust zij peinzend op het watervlak\nen wenscht niet meer....'));
+  assert.match(eeden.context, /first poem page, before De Lente.*wenscht.*wenst/);
+  const queries = [
+    ['Willem Kloos', 'Ik ween om bloemen in de knop gebroken', 'geblaerte'],
+    ['Frederik van Eeden', 'De waterlelie', 'Ik heb de witte waterlelie lief', 'donker-koelen vijvergrond'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Dutch');
+    assert.equal(poem.lang, 'nl');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.yearLabel, /printing.*not necessarily composition/);
+    assert.match(poem.rights, /public domain in the United States.*check local law.*no translation/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Dutch', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="nl" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Exact readings and openings cannot identify every translation or paraphrase.
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) {
+        for (const title of [added.title, ...(added.searchAliases || [])]) {
+          assert.ok(![other.title, other.displayTitle, ...(other.searchAliases || []), ...other.translations.map(item => item.title)]
+            .filter(Boolean).some(candidate => fold(candidate) === fold(title)), other.id);
+        }
+      }
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-dutch-classics-2.py', '--check'], { encoding: 'utf8' }), /Verified 2 historical readings/);
+});
+
 test('additional Swedish classics retain complete scan-checked readings and distinct works', () => {
   const ids = ['spelmannen', 'minnet', 'jag-har-dromt']
     .map(key => `recognized-swedish-classics-2-andersson-${key}`);
@@ -1136,7 +1199,7 @@ test('Dutch classics preserve distinct historical readings and source limits', (
     .map(id => `recognized-dutch-classics-${id}`);
   const selected = ids.map(id => poems.find(poem => poem.id === id));
   assert.ok(selected.every(Boolean));
-  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-dutch-classics-')).length, 3);
+  assert.equal(poems.filter(poem => ids.includes(poem.id)).length, 3);
   assert.deepEqual(selected.map(lineCount), [16, 24, 44]);
   assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
     [4, 4, 4, 4], [24], [44],
