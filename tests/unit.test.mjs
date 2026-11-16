@@ -614,6 +614,69 @@ test('Danish classics retain five complete, distinct historical readings', () =>
   assert.match(execFileSync('python3', ['scripts/import-recognized-danish-classics.py', '--check'], { encoding: 'utf8' }), /Verified 5 historical readings/);
 });
 
+test('Further Danish classics retain four complete, distinct historical readings', () => {
+  const ids = [
+    'oehlenschlaeger-guldhornene', 'aakjaer-jens-vejmand', 'aakjaer-havren', 'ingemann-boernenes-julesang',
+  ].map(id => `recognized-danish-poems-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-danish-poems-')).length, 4);
+  assert.deepEqual(selected.map(lineCount), [166, 48, 48, 24]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [8, 12, 10, 15, 8, 24, 4, 8, 1, 9, 26, 8, 4, 7, 2, 4, 4, 4, 4, 4],
+    Array(6).fill(8), Array(12).fill(4), Array(3).fill(8),
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'fa50cf6ee9751c2b0a822ee6a7f618d8153b76c36aae5685ae515d5e0aa9471e',
+    '3706f4178edde57a8167f5491ee08839d51c020acf456cc48fe0994d5ac75e13',
+    'b6529449e17a2964c7760f6c7b3209a1fa23cebb317754fe9749b1e08ee91c2a',
+    'b94b911ea20a737645b70523325b897d827a38c82799ed6ea4b23deb3799e48c',
+  ]);
+  const [horns, roadman, oats, christmas] = selected;
+  assert.match(horns.text, /^De higer og söger[\s\S]*giv et Glimt tilbage!\n\nSkyen suser,[\s\S]*men som sine Fædre\nkraftig og stor,[\s\S]*ham vil vi hædre\.\nhan skal atter finde!”[\s\S]*Fugleskarer[\s\S]*Evig bortsvandt Helligdommen\.$/);
+  assert.match(horns.context, /1803.*1802.*1803.*no closing quotation mark.*paragraph breaks/);
+  assert.match(roadman.text, /^Hvem sidder dér bag Skjærmen[\s\S]*hvis Øjne staar i Vand[\s\S]*det var saamænd Jens Vejmand\nhan tabte Ham’ren brat,[\s\S]*man gav ham aldrig en\.$/);
+  assert.match(roadman.context, /first printed.*1905.*1906.*musical setting/);
+  assert.match(oats.text, /^Jeg er Havren\. Jeg har Bjælder paa;[\s\S]*for at gi mig Helse med paa Vej\.[\s\S]*forstaa:\nJeg er Lærkesangen[\s\S]*Landets lyse Bøgetrær,[\s\S]*herligt sammen paa den danske Jord\.$/);
+  assert.match(oats.context, /twelve quatrains.*only eight stanzas.*Bøgetrær/);
+  assert.match(christmas.text, /^Julen har bragt velsignet Bud,[\s\S]*den Have, Guds Engle flyvé i,[\s\S]*og lover os Englevinger\.$/);
+  assert.match(christmas.context, /three eight-line stanzas.*original six quatrains.*no denomination is inferred/);
+  const queries = [
+    ['Guldhornene', 'De higer og soger'], ['Jens Vejmand', 'Hvem sidder der bag skærmen'],
+    ['Jeg er havren', 'Bøgetrær'], ['Børnenes Julesang', 'Julen har bragt velsignet bud'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Danish');
+    assert.equal(poem.lang, 'da');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Danish', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="da" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  for (const phrase of ['Guldhornene', 'Jens Vejmand', 'Jeg er Havren', 'Julen har bragt velsignet bud']) {
+    for (const poem of poems.filter(item => !ids.includes(item.id))) {
+      assert.ok([poem.title, poem.displayTitle, ...(poem.searchAliases || []), ...poem.translations.map(item => item.title)]
+        .every(text => !fold(text).includes(fold(phrase))), `${phrase}: ${poem.id}`);
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-danish-classics-2.py', '--check'], { encoding: 'utf8' }), /Verified 4 historical readings/);
+});
+
 test('Slovenian lyrics retain seven complete, distinct 1914 readings', () => {
   const ids = ['pod-oknom', 'prosnja', 'ukazi', 'k-slovesu', 'sila-spomina', 'izgubljena-vera', 'mornar']
     .map(id => `recognized-slovenian-lyrics-preseren-${id}`);
@@ -2425,7 +2488,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician', 'Hungarian'].includes(poem.language) && !poem.id.startsWith('recognized-danish-classics-') && !poem.id.startsWith('recognized-nynorsk-') && !poem.id.startsWith('recognized-norwegian-') && !poem.id.startsWith('recognized-british-classics-') && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician', 'Hungarian'].includes(poem.language) && !poem.id.startsWith('recognized-danish-poems-') && !poem.id.startsWith('recognized-danish-classics-') && !poem.id.startsWith('recognized-nynorsk-') && !poem.id.startsWith('recognized-norwegian-') && !poem.id.startsWith('recognized-british-classics-') && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
