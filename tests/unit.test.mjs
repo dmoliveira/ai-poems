@@ -18,6 +18,63 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Dutch classics preserve distinct historical readings and source limits', () => {
+  const ids = ['zie-je-ik-hou-van-je', 'de-pruimeboom', 'het-schryverke']
+    .map(id => `recognized-dutch-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-dutch-classics-')).length, 3);
+  assert.deepEqual(selected.map(lineCount), [16, 24, 44]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [4, 4, 4, 4], [24], [44],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'ee0b9f79cfb6745cd24d061c8d1b4312b35dea7bafe04be80f24d61748e2d194',
+    'c2a6423d2c228a94e0739563af3efb6aeba7155c061b236b0430153f3400972f',
+    '4d082d7b3f9930f1bb766b7f8584a64eddc5b9a957afba64341790d79f2a39ca',
+  ]);
+  const [gorter, alphen, gezelle] = selected;
+  assert.match(gorter.text, /^Zie je ik hou van je,\nik vin je zoo lief en zoo licht —[\s\S]*Maar ik kan het toch niet zeggen\.$/);
+  assert.match(gorter.context, /prints no title; the opening words serve as the title/);
+  assert.match(alphen.text, /^Jantje zag eens pruimen hangen,\no! als eijeren zoo groot,[\s\S]*Jantje raapte schielijk op;\nJantje kreeg zijn hoed vol pruimen,\nen liep heen op een galop\.$/);
+  assert.match(alphen.context, /continues for two lines on p\. 394.*Eene vertelling/);
+  assert.match(gezelle.text, /^O krinklende winklende waterding,\nMet ’t zwarte kabotseken aen,[\s\S]*Het stelde en het regtte zyn oorkes flink,[\s\S]*Den heiligen Name van God!$/);
+  assert.match(gezelle.context, /DBNL's diplomatic transcription.*not inspected page images.*Gyrinus natans.*later readings differ/);
+  const queries = [
+    ['Zie je, ik hou van je', 'Herman Gorter'],
+    ['De pruimenboom', 'The plumtree', 'Hieronymus van Alphen'],
+    ['Het schrijverke', 'Gyrinus natans', 'Guido Gezelle'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.lang, 'nl');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.yearLabel, /printing · not necessarily composition date/);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Dutch', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="nl" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Exact text and openings do not exhaust every translated or variant duplicate.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-dutch-classics.py', '--check'], { encoding: 'utf8' }), /Verified 3 historical readings/);
+});
+
 test('Owen classics preserve complete 1920 readings and Latin markings', () => {
   const ids = ['anthem-for-doomed-youth', 'dulce-et-decorum-est', 'futility']
     .map(id => `recognized-owen-classics-${id}`);

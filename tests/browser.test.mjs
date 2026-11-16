@@ -27,6 +27,59 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Dutch classics support mobile search, saved state and static readers', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('recognized-dutch-classics-'));
+  assert.equal(selected.length, 3);
+  const queries = ['Zie je, ik hou van je', 'De pruimenboom', 'Het schrijverke'];
+  const seed = { saved: ['world-rizal-farewell', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Dutch');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+      assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'Dutch');
+    }
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Dutch');
+    await page.getByLabel('Search the poetry library').fill(queries[index]);
+    const count = filterPoems(poems, { language: 'Dutch', query: queries[index] }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'nl');
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Dutch');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Dutch a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'nl');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('Owen classics support mobile search, saved state and Latin static readers', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('recognized-owen-classics-'));
   assert.equal(selected.length, 3);
