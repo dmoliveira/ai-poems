@@ -18,6 +18,61 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('British classics preserve four complete historical readings and distinct works', () => {
+  const ids = ['davies-leisure', 'kipling-way-through-woods', 'kipling-glory-of-garden', 'chesterton-donkey']
+    .map(id => `recognized-british-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-british-classics-')).length, 4);
+  assert.deepEqual(selected.map(lineCount), [14, 25, 33, 16]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [2, 2, 2, 2, 2, 2, 2], [12, 13], [4, 4, 4, 4, 4, 4, 4, 5], [4, 4, 4, 4],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '5a27cac27755f30673c4b328f592ad8bc5dfaef93633c3a5ed6707b23e7672bf',
+    '5123072d71de91557fbb72469cc0a237072a61d5c979350de464784c82beafab',
+    'c5bbe86f15bd109f7f8b039ce1235ab98c367d9d3ec985532b2c4da68b753fd9',
+    'ced8e002a0ae6ebada2a7564896a48822a0a3c8b08a7cbeeb3089cf3b7d6540e',
+  ]);
+  const [leisure, woods, garden, donkey] = selected;
+  assert.match(leisure.text, /^What is this life if, full of care,[\s\S]*A poor life this if, full of care,\nWe have no time to stand and stare\.$/);
+  assert.match(woods.text, /^They shut the road through the woods[\s\S]*Where the otter whistles his mate\.\n\(They fear not men in the woods\nBecause they see so few\)[\s\S]*But there is no road through the woods\.$/);
+  assert.match(woods.context, /Toronto printing has a period after mate/);
+  assert.match(garden.text, /^Our England is a garden[\s\S]*tool and potting-sheds[\s\S]*For the Glory of the Garden that it may not pass away!\nAnd the Glory of the Garden it shall never pass away!$/);
+  assert.match(garden.context, /eight stanzas and a final repeated line, printed in italics/);
+  assert.match(donkey.text, /^When fishes flew and forests walked[\s\S]*There was a shout about my ears,\nAnd palms before my feet\.$/);
+  assert.match(donkey.context, /1914 fourth edition.*not a claim that it is textually identical to the 1900 volume/);
+  const queries = [
+    ['William Henry Davies', 'stand and stare'], ['Rudyard Kipling', 'the old lost road through the woods'],
+    ['Glory of the Garden', 'Our England is a garden'], ['Gilbert Keith Chesterton', 'palms before my feet'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'English');
+    assert.equal(poem.lang, 'en');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'English', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="en" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  assert.equal(poems.find(poem => poem.id === 'recognized-kipling-if').authorId, woods.authorId);
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-british-classics.py', '--check'], { encoding: 'utf8' }), /Verified 4 historical readings/);
+});
+
 test('Galician classics preserve three complete 1863 readings and source boundaries', () => {
   const ids = ['adios-rios', 'airinos', 'campanas-de-bastabales'].map(id => `recognized-galician-classics-${id}`);
   const selected = ids.map(id => poems.find(poem => poem.id === id));
@@ -1443,7 +1498,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician'].includes(poem.language) && !poem.id.startsWith('recognized-british-classics-') && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
