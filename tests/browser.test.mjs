@@ -557,6 +557,59 @@ test('British classics support mobile search, saved state and static readers', a
   await fallback.close();
 });
 
+test('additional Galician classics support mobile search, saved state and static readers', async () => {
+  const selected = ['xusticia', 'pra-habana'].map(key => poems.find(poem => poem.id === `recognized-galician-2-${key}`));
+  assert.ok(selected.every(Boolean));
+  const queries = ['A xustiza pola man', 'Este vaise e aquel vaise'];
+  const seed = { saved: ['recognized-galician-classics-adios-rios', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Galician');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+      assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'Galician');
+    }
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Galician');
+    await page.getByLabel('Search the poetry library').fill(queries[index]);
+    const count = filterPoems(poems, { language: 'Galician', query: queries[index] }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'gl');
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Galician');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Galician a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'gl');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('Galician classics support preference, canonical search, saved state and static readers', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('recognized-galician-classics-'));
   assert.equal(selected.length, 3);
