@@ -536,6 +536,69 @@ test('British classics preserve four complete historical readings and distinct w
   assert.match(execFileSync('python3', ['scripts/import-recognized-british-classics.py', '--check'], { encoding: 'utf8' }), /Verified 4 historical readings/);
 });
 
+test('additional Ukrainian classics preserve complete historical readings and work boundaries', () => {
+  const ids = ['dosvitni', 'yak-dytynoyu', 'slovo', 'kamenyari', 'hymn']
+    .map(key => `recognized-ukrainian-2-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-ukrainian-2-')).length, 5);
+  assert.deepEqual(selected.map(lineCount), [35, 16, 24, 55, 40]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(block => block.split('\n').length)), [
+    [5, 5, 5, 5, 5, 5, 5], [4, 4, 4, 4], [4, 4, 4, 4, 4, 4], [55], [10, 10, 10, 10],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '08217ae769ad917cb7fccfb612e5f788d00ec331f88d631521a6388822fa022e',
+    '3514934cd5f3e89f007235249f5051558c51dc1e1b9ea8e39ca981ddf2c9fb64',
+    'e14b0c7ee94f20574fdab476b718469116cc097f7a2abb48bbf74f0c0d6bc5c2',
+    '9729f8552cde6b912deab5403fa552d0805262ae8e369e5f3bab4d532521598a',
+    'c6e166fc15f8f59bdbf3164868512d51baf6068661f2804bbb99f6231217db96',
+  ]);
+  const [dawn, childhood, word, stonebreakers, hymn] = selected;
+  assert.match(dawn.text, /^Ніч те́мна людей всіх пото́млених скрила[\s\S]*стяга́ та просвітла[\s\S]*Мов кличуть: до праці! до світла!$/);
+  assert.match(dawn.context, /omitted two stanzas in the 1904 edition/);
+  assert.match(childhood.text, /^Як дитиною бувало[\s\S]*Плачу я, щоб не сьміятись\.$/);
+  assert.match(word.text, /^Слово, чому ти не твердая криця[\s\S]*мого серця прольлєш[\s\S]*кращим мечем[\s\S]*хворим рукам!$/);
+  assert.doesNotMatch(word.text, /мого сєрця|справжнім мечем/);
+  assert.match(word.context, /correcting the credited page transcription/);
+  assert.match(stonebreakers.text, /^Я бачив дивний сон[\s\S]*з силою роспуски[\s\S]*щастя всіх прийде по наших аж кістках\.$/);
+  assert.match(stonebreakers.context, /possibly a printing error.*розпуки/);
+  assert.match(hymn.text, /^Вічний революцйонер[\s\S]*Дух, наука, думка воля[\s\S]*Розвидняющий ся день\?\.\.\.$/);
+  assert.match(hymn.context, /1908 anthology printing stops after three stanzas/);
+  const queries = [
+    ['Досвітні вогні', 'Dosvitni ogni'], ['Як дитиною, бувало', 'Щоб не плакать, я сміялась'],
+    ['Слово, чому ти не твердая криця', 'Слово моя ти єдиная зброє'],
+    ['Я бачив дивний сон', 'Kamenyari'], ['Вічний революціонер', 'Гімн'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Ukrainian');
+    assert.equal(poem.lang, 'uk');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Ukrainian', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="uk" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Exact titles, texts and openings cannot rule out every variant or translation.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-ukrainian-classics-2.py', '--check'], { encoding: 'utf8' }), /Verified 5 historical readings/);
+});
+
 test('additional Galician classics preserve complete 1880 readings and work boundaries', () => {
   const ids = ['xusticia', 'pra-habana'].map(key => `recognized-galician-2-${key}`);
   const selected = ids.map(id => poems.find(poem => poem.id === id));
@@ -2688,12 +2751,13 @@ test('Polish classics retain distinct work boundaries, historical sources and cr
 });
 
 test('Ukrainian classics retain complete scan readings, page credits and edition differences', () => {
-  const selected = poems.filter(poem => poem.language === 'Ukrainian');
-  assert.deepEqual(selected.map(poem => poem.id), [
+  const ids = [
     'shevchenko-1908-zapovit', 'shevchenko-1908-vechir',
     'ukrainka-1892-contra-spem-spero', 'ukrainka-1892-nadiya',
     'petrenko-1908-nedolia', 'hlibov-1908-zhurba', 'starytskyi-1908-vyklyk',
-  ]);
+  ];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
   assert.equal(createHash('sha256').update(selected.map(poem => poem.text).join('\0')).digest('hex'), '3bb6cdb9e6474ca3a737e319ed82d9e21bd4c105d9d11c465c5eb1e450f880d9');
   assert.deepEqual(selected.map(lineCount), [24, 15, 36, 10, 24, 40, 32]);
   assert.equal(new Set(selected.map(poem => poem.authorId)).size, 5);
