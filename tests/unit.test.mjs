@@ -18,6 +18,67 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('world classics 5 preserve complete historical readings and distinct works', () => {
+  const ids = ['su-ti-xilin-bi', 'cao-guancang-shu', 'yu-yong-ying', 'andersson-jag-vantar',
+    'andersson-halgdagskvall'].map(id => `recognized-world-classics-5-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-world-classics-5-')).length, 5);
+  assert.deepEqual(selected.map(lineCount), [4, 4, 4, 16, 36]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [4], [4], [4], [4, 4, 4, 4], Array(9).fill(4),
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '491f43c0c21df7e8dc40632bab6c60871a2322ca6cac1c99e5998d428deaf184',
+    'c26b99619b950b69be5ffcf92de901c95f0302d3e3af070747d7f18c86165552',
+    '4a113bd05d548083c16047eac8d7ceb728686f65f00769ab2a81f49ca2254b55',
+    '6cbbfb97ae72a77efa596a55c80bbe26c7d9787267eccc6a92104abd5336539d',
+    'f3a1dda72d14b2ade11ea7d37f66f954a2f4971206a8322c6c679f738b1a4784',
+  ]);
+  const [su, cao, yu, waiting, evening] = selected;
+  assert.match(su.text, /^橫看成嶺側成峰，\n遠近高低各不同。\n不識廬山真面目，\n只緣身在此山中。$/);
+  assert.match(su.context, /看山了 and 無一 as alternatives, not extra verse.*prose 記遊廬山, not a second work/);
+  assert.match(cao.text, /^官倉老鼠大如斗，\n見人開倉亦不走。\n健兒無糧百姓饑，\n誰遣朝朝入君口。$/);
+  assert.match(cao.context, /大如斗.*牛 as an alternative, not additional verse/);
+  assert.match(yu.text, /^的歷流光小，\n飄颻弱翅輕。\n恐畏無人識，\n獨自暗中明。$/);
+  assert.match(yu.context, /heading is at the end of PDF p\. 14.*p\. 15 before 蟬/);
+  assert.match(waiting.text, /Jag tänkt mig en vandrande snöhöljd blomma,\n[\s\S]*Jag väntar vid min mila[\s\S]*den käraste, den käraste med ögon blå\.$/);
+  assert.match(waiting.context, /four complete quatrains.*Till kvinnan.*comma after blomma/);
+  assert.match(evening.text, /här är hälg, djupt i skogarnas ro![\s\S]*spela en vals[\s\S]*medan elden falnar och dör\.$/);
+  assert.match(evening.context, /nine complete quatrains.*När Gasken dog.*hälg.*helg.*spela en vals/);
+
+  const queries = [
+    ['題西林壁', '题西林壁', '横看成岭侧成峰', '遠近高低無一同'],
+    ['官倉鼠', '官仓鼠', '官仓老鼠大如斗', '官倉老鼠大如牛'],
+    ['詠螢', '咏萤', '的历流光小', '飘摇弱翅轻'],
+    ['Jag väntar', 'Jag väntar vid min mila', 'Dan Andersson'],
+    ['Hälgdagskväll i timmerkojan', 'Helgdagskväll i timmerkojan', 'här är helg'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: poem.language, query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Opening checks include translations but cannot exclude every paraphrase.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-world-classics-5.py', '--check'], { encoding: 'utf8' }), /Verified 5 historical readings/);
+});
+
 test('world classics 4 preserve complete historical readings and distinct works', () => {
   const ids = ['shelley-ode-west-wind', 'hopkins-windhover', 'hopkins-pied-beauty', 'trakl-grodek',
     'tyutchev-silentium', 'tyutchev-vesennyaya-groza'].map(id => `recognized-world-classics-4-${id}`);
@@ -1126,7 +1187,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
