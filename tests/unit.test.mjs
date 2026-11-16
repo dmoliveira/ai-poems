@@ -18,6 +18,78 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('world classics preserve complete witness readings, variants and source limits', () => {
+  const ids = ['wang-bochuan-guazhou', 'su-huaizhong-wanbo-dutou', 'garcilaso-soneto-v', 'garcilaso-soneto-xiii',
+    'rimbaud-sensation', 'dubellay-regrets-xxxi', 'lamartine-le-lac'].map(id => `recognized-world-classics-2-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-world-classics-2-')).length, 7);
+  assert.deepEqual(selected.map(lineCount), [4, 4, 14, 14, 8, 14, 64]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [4], [4], [4, 4, 3, 3], [4, 4, 3, 3], [4, 4], [4, 4, 3, 3], Array(16).fill(4),
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '3d419182e68f2852fcd5928bd2e43d1a4bf1be4b7ab60b28001eec26d4d897ea',
+    '668b92e08137926e657914b3778b1057d44b88358ec61a9ee4e28e256c08934b',
+    '4b96b9e41bb3fdf3ef624b5b09ded1b1dd495468d10686a2baff31e7dad269bf',
+    '1668aa8bd7561a95208df0ddc6d487df10ee66f773a6464d555daeea454906a7',
+    '02fecbfe33b2c8054424786f5c1854084e0e507d98ba75dbf241b05b6334b514',
+    '079aff81fabb3e5c0421b31c5f1bde928621b2657df5f93f245472d3656e0ef0',
+    '290cb0eada58ebf72eee46010dad89d992553e14727fb1c9d4815873f206d273',
+  ]);
+  const [wang, su, quinto, dafne, sensation, ulysse, lac] = selected;
+  assert.match(wang.text, /鍾山祇隔數重山。\n春風自綠江南岸，/);
+  assert.match(wang.context, /春風自綠江南岸.*春風又綠江南岸.*quotation/);
+  assert.match(su.context, /following page begins 暑中閑詠.*exact 四部叢刊 impression.*隂 and 㸔/);
+  assert.match(quinto.text, /escrebir.*\nvos sola lo escrebistes[\s\S]*cortado á su medida/);
+  assert.match(dafne.text, /los cabellos que al oro escurecían[\s\S]*lloralla cresca cada día/);
+  assert.match(dafne.context, /que al oro and cresca.*qu’el oro and crezca/);
+  assert.match(quinto.rights, /public domain in the United States.*1979.*check local law/);
+  assert.match(sensation.text, /je ne penserai rien ;[\s\S]*avec une femme !$/);
+  assert.match(sensation.context, /Mars 1870.*not independently verified/);
+  assert.match(ulysse.text, /basty mes ayeux\.\nQue des palais Romains.*\nPlus que le marbre dur me plaist l’ardoise fine\./);
+  assert.match(ulysse.context, /title page visibly says 1910.*metadata says 1903/);
+  assert.equal(lac.title, 'Le Lac de B***');
+  assert.match(lac.text, /O temps ! suspends ton vol ; et vous, heures propices !/);
+  assert.match(lac.text, /Que les jours du malheur \?[\s\S]*Tout dise : Ils ont aimé !$/);
+  assert.match(lac.context, /16-quatrain.*first edition was unsigned.*attributed|16-quatrain.*first edition was unsigned.*attributes/);
+  const queries = [
+    ['泊船瓜洲', '春风自绿江南岸', '春風又綠江南岸', '钟山只隔数重山'],
+    ['淮中晚泊犊头', '苏舜钦', '春阴垂野草青青', '滿川風雨㸔潮生'],
+    ['Escrito está en mi alma', 'escribir de vos deseo', 'vos sola lo escribistes'],
+    ['A Dafne ya los brazos', 'los cabellos qu’el oro escurecían', 'llorarla crezca cada día'],
+    ['Sensation', 'Arthur Rimbaud', 'soirs bleus d’été'],
+    ['Heureux qui, comme Ulysse', 'Quand reverrai-je', 'Plus mon Loire gaulois'],
+    ['Le Lac', 'Ô temps suspends ton vol', 'devoit revoir', 'Alphonse de Lamartine'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: poem.language, query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Matching openings and titles cannot exclude every translated paraphrase.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const readings = [added.text, ...(added.searchAliases || []).filter(alias => alias.includes('\n'))];
+    for (const reading of readings) {
+      const opening = fold(reading.split('\n').filter(Boolean).slice(0, 2).join(''));
+      for (const other of poems.filter(poem => poem.id !== added.id)) {
+        if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+        for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+          assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+        }
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-world-classics-2.py', '--check'], { encoding: 'utf8' }), /Verified 7 historical readings/);
+});
+
 test('multilingual classics preserve complete historical readings and source cautions', () => {
   const ids = ['du-jiangnan-chun', 'zhu-chunri', 'ye-youyuan-buzhi', 'lin-ti-linan-di', 'su-zeng-liu-jingwen', 'frost-mending-wall']
     .map(id => `recognized-multilingual-classics-${id}`);
@@ -908,7 +980,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
