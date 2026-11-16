@@ -18,6 +18,66 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Song classics preserve distinct historical readings, variants and source limits', () => {
+  const ids = ['wang-meihua', 'wang-yuanri', 'wang-deng-feilaifeng', 'yang-xiaochi']
+    .map(id => `recognized-song-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-song-classics-')).length, 4);
+  assert.deepEqual(selected.map(lineCount), [4, 4, 4, 4]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '26610cdd4fc6e9c4fd46ea2b81368f2966f3c46d865bbc868db51fe2270a1f8a',
+    '334b20f6e7f9497504c34cb3c5c865f8eee6ab2cf7dca6f55d8f4f26b0d5b8b9',
+    '167f87c38e2310b94e8e56bdb31f52394f0d97612a9444c6bfa5efdedc156a03',
+    '35e10b62606a1919115855296a43f2e0e53c4cd631f93f13c9ee7af20efa3c27',
+  ]);
+  const [plum, newYear, peak, pond] = selected;
+  assert.match(plum.context, /ends before the separately headed 紅梅/);
+  assert.match(newYear.text, /東風送暖入屠蘇。\n千門萬戶曈曈日，\n爭插新桃換舊符。$/);
+  assert.match(newYear.context, /next page.*before 九日.*東風 and 爭插.*春風 and 總把/);
+  assert.match(peak.text, /^飛來山上千尋塔，[\s\S]*自緣身在最高層。$/);
+  assert.match(peak.context, /飛來山上.*飛來峰上.*geographical identification is disputed/);
+  assert.match(pond.text, /小荷纔露尖尖角/);
+  assert.match(pond.context, /小荷纔露.*小荷才露.*隂 glyph is normalized to 陰/);
+  const queries = [
+    ['梅花', '王安石', 'Wang An-shih', '墙角数枝梅', '凌寒独自开'],
+    ['元日', '爆竹声中一岁除', '东风送暖入屠苏', '春風送暖入屠蘇', '总把新桃换旧符'],
+    ['登飛來峯', '登飛來峰', '登飞来峰', '飞来山上千寻塔', '飞来峰上千寻塔'],
+    ['小池', '楊萬里', '杨万里', 'Yang Wan-li', '泉眼无声惜细流', '小荷才露尖尖角'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.year, null);
+    assert.equal(poem.lang, 'zh-Hant');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.match(poem.context, /Line breaks and punctuation are supplied/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Chinese', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="zh-Hant" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Historical and simplified openings cannot rule out every variant or translated paraphrase.
+  const fold = text => text.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const simplified = added.searchAliases.find(alias => alias.includes('\n'));
+    for (const reading of [added.text, simplified]) {
+      const full = fold(reading);
+      const opening = fold(reading.split('\n').slice(0, 2).join(''));
+      for (const other of poems.filter(poem => poem.id !== added.id)) {
+        if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+        for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+          const candidate = fold(text);
+          assert.ok(!candidate.includes(full) && !candidate.includes(opening), `${added.id} overlaps ${other.id}`);
+        }
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-song-classics.py', '--check'], { encoding: 'utf8' }), /Verified 4 historical readings/);
+});
+
 test('Dutch classics preserve distinct historical readings and source limits', () => {
   const ids = ['zie-je-ik-hou-van-je', 'de-pruimeboom', 'het-schryverke']
     .map(id => `recognized-dutch-classics-${id}`);
@@ -785,7 +845,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
