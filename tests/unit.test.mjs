@@ -15,9 +15,85 @@ import { renderFeed } from '../scripts/feed.mjs';
 import { groupPoets } from '../scripts/poets.mjs';
 import { relatedPoems } from '../scripts/recommendations.mjs';
 import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
-import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
+import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Galician classics preserve three complete 1863 readings and source boundaries', () => {
+  const ids = ['adios-rios', 'airinos', 'campanas-de-bastabales'].map(id => `recognized-galician-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-galician-classics-')).length, 3);
+  assert.deepEqual(selected.map(lineCount), [52, 106, 100]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '7503d6a4f3c5691141af6f6c26d9daeef1a6e4f0d99c48ca9e6e14eb84de3aa0',
+    'c0853ce133fe0b4da7302f0cc2f9fedb06883e84b3767e72b55960dfaba2c2fb',
+    '460c3a56fad43dd1af52c4649c59f26e76ba240632163c8c8104010163162a15',
+  ]);
+  const [adios, airinos, campanas] = selected;
+  assert.match(adios.text, /^Adios rios, adios fontes,[\s\S]*· · · · · · · · · · ·[\s\S]*¡Miña casiña! meu lar!$/);
+  assert.match(adios.context, /later editions add and alter stanzas.*attribution are not independently established.*not a separate work/);
+  assert.match(airinos.text, /^Airiños, airiños aires,[\s\S]*Éivos de berrar: ¡airiños\nAiriños, leváime á ela!$/);
+  assert.match(airinos.context, /introductory copla.*attribution are not independently established/);
+  assert.deepEqual(campanas.text.split('\n').filter(line => /^(I|II|III|IV|V)\.$/.test(line)), ['I.', 'II.', 'III.', 'IV.', 'V.']);
+  assert.match(campanas.context, /five numbered sections are one complete work.*not five poems/);
+  assert.match(campanas.text, /· · · · · · · · · · ·[\s\S]*Campanas de Bastabales,\nCando vos oyo tocar,\nMórrome de soidades\.$/);
+  assert.ok(readingLanguages.includes('Galician'));
+  const queries = [
+    ['Adiós ríos, adiós fontes', 'Miña terra', 'Rosalia de Castro'],
+    ['Airiños, airiños, aires', 'airin\u0303os da min\u0303a terra'],
+    ['Campanas de Bastavales', 'Cando vos oio tocar'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Galician');
+    assert.equal(poem.lang, 'gl');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Galician', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="gl" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-galician-classics.py', '--check'], { encoding: 'utf8' }), /Verified 3 historical readings/);
+});
+
+test('Galician search preserves ñ and canonical equivalence without changing other-language translations', () => {
+  const example = { ...poems[0], author: 'Test', authorOriginal: '', title: 'Test', displayTitle: '',
+    country: '', era: '', form: 'Verse', collection: '', language: 'Galician', lang: 'gl', themes: [], translations: [], authorAliases: [], searchAliases: [] };
+  const a = { ...example, id: 'galician-a', text: 'niño canón', searchAliases: ['añada'], translations: [
+    { language: 'French', title: 'Étoile', text: 'rivière' }, { language: 'Galician', title: 'Peña', text: 'señor' },
+  ] };
+  const b = { ...example, id: 'galician-b', text: 'nino canon' };
+  const ids = query => filterPoems([a, b], { query }).map(poem => poem.id);
+  assert.deepEqual(ids('nin\u0303o'), ['galician-a']);
+  assert.deepEqual(ids('NIÑO'), ['galician-a']);
+  assert.deepEqual(ids('nino'), ['galician-b']);
+  assert.deepEqual(ids('canón'), ['galician-a', 'galician-b']);
+  assert.deepEqual(ids('an\u0303ada'), ['galician-a']);
+  assert.deepEqual(ids('anada'), []);
+  assert.deepEqual(ids('sen\u0303or'), ['galician-a']);
+  assert.deepEqual(ids('senor'), []);
+  assert.deepEqual(ids('etoile'), ['galician-a']);
+  assert.deepEqual(ids('riviere'), ['galician-a']);
+  assert.equal(normalizeGalician('nin\u0303o'), normalizeGalician('niño'));
+  assert.notEqual(normalizeGalician('niño'), normalizeGalician('nino'));
+  assert.equal(normalizeGalician('canón'), normalizeGalician('canon'));
+  const spanish = { ...example, id: 'spanish', language: 'Spanish', text: 'niño' };
+  assert.deepEqual(filterPoems([spanish], { query: 'nino' }).map(poem => poem.id), ['spanish']);
+});
+
 test('world classics 8 preserve complete historical readings and distinct works', () => {
   const ids = ['luo-feng', 'castro-dicen', 'hopkins-gods-grandeur', 'yeats-wandering-aengus']
     .map(id => `recognized-world-classics-8-${id}`);
@@ -1367,7 +1443,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
@@ -2718,13 +2794,13 @@ test('seven Obata versions preserve complete readings, sources and jurisdiction 
   assert.match(obataLiBaiTranslations['tang-101'][0].rights, /does not identify a separate addressee/);
   assert.match(obataLiBaiTranslations['tang-100'][0].rights, /風流.*soul/);
 });
-test('catalogue has distinct, sourced records in all twenty-one original languages', () => {
+test('catalogue has distinct, sourced records in all twenty-two original languages', () => {
   assert.ok(poems.length >= 1000);
   assert.equal(new Set(poems.map(p => p.id)).size, poems.length);
   assert.ok(new Set(poems.filter(p => !p.anonymous).map(p => p.authorId)).size >= 150);
   const normalizedText = poems.map(p => p.text.normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''));
   assert.equal(new Set(normalizedText).size, poems.length, 'no identical works');
-  for (const language of ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'Romanian', 'German', 'Dutch', 'Finnish', 'Swedish', 'Slovenian', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
+  for (const language of ['English', 'Spanish', 'Portuguese', 'Galician', 'French', 'Italian', 'Romanian', 'German', 'Dutch', 'Finnish', 'Swedish', 'Slovenian', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic']) assert.ok(poems.some(p => p.language === language), language);
   for (const p of poems) {
     assert.ok(p.text && p.source && p.rights && p.context && p.author && p.lang, p.id);
     assert.equal(new URL(p.source).protocol, 'https:');

@@ -3,7 +3,9 @@ export const normalize = value => String(value ?? '').normalize('NFKD').replace(
 // Finnish and Swedish distinguish letters that accent folding would conflate.
 export const normalizeNordic = value => String(value ?? '').normalize('NFKC').toLocaleLowerCase();
 export const normalizeFinnish = normalizeNordic;
-export const readingLanguages = ['English', 'Spanish', 'Portuguese', 'French', 'Italian', 'Romanian', 'German', 'Dutch', 'Finnish', 'Swedish', 'Slovenian', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic'];
+// Galician ñ is a distinct letter; other accents remain search-insensitive.
+export const normalizeGalician = value => String(value ?? '').normalize('NFKD').toLocaleLowerCase().replace(/n\u0303/gu, 'ñ').replace(/\p{M}/gu, '');
+export const readingLanguages = ['English', 'Spanish', 'Portuguese', 'Galician', 'French', 'Italian', 'Romanian', 'German', 'Dutch', 'Finnish', 'Swedish', 'Slovenian', 'Greek', 'Russian', 'Ukrainian', 'Polish', 'Bengali', 'Hindi', 'Persian', 'Chinese', 'Japanese', 'Arabic'];
 // Discovery labels can be welcoming without rewriting historical source titles.
 export const collectionLabel = value => value === 'The Book of American Negro Poetry' ? 'American poetry · 1922 anthology' : value;
 
@@ -20,12 +22,13 @@ const searchIndex = new WeakMap();
 function searchableText(poem) {
   if (!searchIndex.has(poem)) {
     const original = [poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form, poem.collection, poem.language, poem.text, ...poem.themes, ...(poem.searchAliases || []), ...(poem.authorAliases || [])];
-    if (['Finnish', 'Swedish'].includes(poem.language)) {
+    if (['Finnish', 'Swedish', 'Galician'].includes(poem.language)) {
+      const normalizeOriginal = poem.language === 'Galician' ? normalizeGalician : normalizeNordic;
       searchIndex.set(poem, {
-        original: normalizeNordic(original.join(' ')),
+        original: normalizeOriginal(original.join(' ')),
         translations: poem.translations.map(t => ({
           sameLanguage: t.language === poem.language,
-          text: (t.language === poem.language ? normalizeNordic : normalize)([t.language, t.title, t.text].join(' ')),
+          text: (t.language === poem.language ? normalizeOriginal : normalize)([t.language, t.title, t.text].join(' ')),
         })),
       });
     } else {
@@ -56,6 +59,7 @@ export function lineCount(poem) {
 export function filterPoems(poems, filters = {}) {
   const query = normalize(filters.query).trim();
   const nordicQuery = normalizeNordic(filters.query).trim();
+  const galicianQuery = normalizeGalician(filters.query).trim();
   return poems.filter(poem => {
     for (const key of ['author', 'language', 'form', 'collection']) if (filters[key] && poem[key] !== filters[key]) return false;
     if (filters.country && poem.country !== filters.country && !associatedPlaces(poem).includes(filters.country)) return false;
@@ -74,6 +78,8 @@ export function filterPoems(poems, filters = {}) {
       const index = searchableText(poem);
       if (['Finnish', 'Swedish'].includes(poem.language)) {
         if (!index.original.includes(nordicQuery) && !index.translations.some(t => t.text.includes(t.sameLanguage ? nordicQuery : query))) return false;
+      } else if (poem.language === 'Galician') {
+        if (!index.original.includes(galicianQuery) && !index.translations.some(t => t.text.includes(t.sameLanguage ? galicianQuery : query))) return false;
       } else if (!index.includes(query)) return false;
     }
     return true;
