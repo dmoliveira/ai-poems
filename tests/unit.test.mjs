@@ -18,6 +18,56 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Slovenian classics preserve two complete historical readings and distinct works', () => {
+  const ids = ['preseren-kam', 'preseren-slovo-od-mladosti']
+    .map(id => `recognized-slovenian-classics-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-slovenian-classics-')).length, 2);
+  assert.deepEqual(selected.map(lineCount), [12, 40]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [2, 2, 2, 2, 2, 2], [8, 8, 8, 8, 8],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'acdfa60b20fa8cdf687e15f1f15db33c585ab5cd404f63ee00be18570bc3c75c',
+    'a73abd02c29e74522d6b42282845ffd5d338a4e8172afcb14bbdd8b8d3132fc0',
+  ]);
+  const [kam, farewell] = selected;
+  assert.match(kam.text, /^Ko brez miru okrog divjam,[\s\S]*Prašajte raj’ oblak neba,\nPrašajte raji val morja,[\s\S]*Drvi jih sèmtertjè vihar\.[\s\S]*Kjer bi pozabil to gorjé\. —$/);
+  assert.match(farewell.text, /^Dni môjih lepši polovica kmalo,[\s\S]*Sem zvedel, da vest čisto, dôbro d’janje[\s\S]*Kar um slepi z golj’fijami, ležami\.[\s\S]*Srcé zdih’valo bo mi, Bog te obvarji!$/);
+  assert.equal(kam.authorId, 'france-preseren');
+  assert.equal(farewell.authorId, kam.authorId);
+  assert.ok(readingLanguages.includes('Slovenian'));
+  const queries = [
+    ['Kam?', 'praŠajo me', 'semtertje'],
+    ['Slovo od mladosti', 'Farewell to Youth', 'vender po tvoji temni'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Slovenian');
+    assert.equal(poem.lang, 'sl');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Slovenian', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="sl" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-slovenian-classics.py', '--check'], { encoding: 'utf8' }), /Verified 2 historical readings/);
+});
+
 test('Hungarian classics preserve three complete historical readings and distinct works', () => {
   const ids = ['petofi-szeptember-vegen', 'petofi-nemzeti-dal', 'vorosmarty-szozat']
     .map(id => `recognized-hungarian-classics-${id}`);
