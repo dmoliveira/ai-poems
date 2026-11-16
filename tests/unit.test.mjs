@@ -18,6 +18,81 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('world classics 3 preserve complete readings, source distinctions and discovery', () => {
+  const ids = ['zhang-chunjiang-huayueye', 'bai-mujiangyin', 'sikong-jiangcun-jishi', 'wang-xiaosong',
+    'dario-a-roosevelt', 'dario-cancion-otono', 'gongora-soneto-x', 'leino-rauhattoman-rukous']
+    .map(id => `recognized-world-classics-3-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-world-classics-3-')).length, 8);
+  assert.deepEqual(selected.map(lineCount), [36, 4, 4, 4, 51, 69, 14, 48]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [36], [4], [4], [4], [8, 6, 5, 10, 21, 1], [...Array(17).fill(4), 1], [4, 4, 3, 3], Array(6).fill(8),
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '28dbf54df6142bdbd25f51fbec61a048e2cb31f9bc82eb11a63a93e21be3415e',
+    '6a907e1dfccfd57d73f286f05cadcf2d1260333602d63f472f6d5d9988350ad9',
+    '5872a1530259644c9dc2077a9aac3b9cdfe5289815674963032ee79132617940',
+    'adcafa1249ab9fad4e1b23b8782435394ad93dd9c81eca520349139dcdddf481',
+    '1f0c7376225b699a7bfd6eb508a6157dc120df209e68ef2b49b1b33466fd65ee',
+    '38c5ff652b79cff7522c8494714bc2618da6c332f713c6166333d5a81c1c1948',
+    'ffb8fa88b8794ea435e9386e33cd81ebe8ccfe06c6cbc4eff1d1bc1a08544f63',
+    'ae00e33ffdbcf43147c9e9f07e83edd44bd645b3e508c79b1d8ab24bb4c5fb76',
+  ]);
+  const [zhang, bai, sikong, wang, roosevelt, cancion, gongora, leino] = selected;
+  assert.match(zhang.text, /江月年年祇相似。[\s\S]*斜月沈沈藏海霧，[\s\S]*落月遙情滿江樹。$/);
+  assert.match(zhang.context, /遥情滿江樹.*遙情.*搖情.*variants.*not additional verse/);
+  assert.match(bai.text, /可憐九月初三夜，\n露似真珠月似弓。$/);
+  assert.match(bai.context, /competing accounts of when and where/);
+  assert.match(sikong.context, /heading is at the end of PDF p\. 83.*verse ends the volume on p\. 84.*next volume begins on p\. 85/);
+  assert.match(wang.context, /傍\/旁 as variant/);
+  assert.match(roosevelt.text, /Eres el futuro invasor[\s\S]*Netzahualcoyotl,[\s\S]*Vive de luz, de fuego, de perfume, de amor,[\s\S]*falta una cosa: Dios!$/);
+  assert.match(roosevelt.context, /historical generalizations.*poet's rhetoric, not the library's claims/);
+  assert.match(cancion.text, /La otra fué más sensitiva,\nY más consoladora y más\nHalagadora y expresiva,/);
+  assert.match(cancion.text, /En sus brazos tomó mi ensueño[\s\S]*Imaginar siempre un Eden,[\s\S]*Mas es mía el Alba de oro!$/);
+  assert.match(cancion.context, /seventeen quatrains and a final line.*1918 transcription orders.*differently/);
+  assert.match(gongora.text, /el Sol relumbra en vano[\s\S]*luciente marfil[\s\S]*marfil luciente[\s\S]*En tierra, en humo, en polvo, en sombra, en nada\.$/);
+  assert.match(gongora.context, /long-s, u\/v, ç\/z.*punctuation and sonnet stanza breaks are supplied independently/);
+  assert.match(leino.text, /^Minä tääll’ olen vieras[\s\S]*joka joutunut tääll’ ei harhaan\?[\s\S]*viedä suurelle virittäjälleen\.$/);
+  assert.match(leino.context, /fifth stanza crosses a page.*Mua pelottaa/);
+  const queries = [
+    ['张若虚', '春江潮水连海平', '落月摇情满江树', '江月年年只相似'],
+    ['白居易', '一道残阳铺水中', '露似珍珠月似弓'],
+    ['江村即事', '钓罢归来不系船', '纵然一夜风吹去'],
+    ['小松初数尺', '闲即旁边立', '看多长却迟'],
+    ['A Roosevelt', 'Walt Whitman', 'Nueva-York'],
+    ['Canción de otoño en primavera', 'Juventud, divino tesoro', 'Era su cabellera oscura'],
+    ['Mientras por competir con tu cabello', 'del luciente cristal', 'en tierra en polvo en humo'],
+    ['Rauhattoman rukous', 'Minä täällä olen vieras', 'joulu-yö'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: poem.language, query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Opening and title checks cannot rule out every paraphrase or translation.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const readings = [added.text, ...(added.searchAliases || []).filter(alias => alias.includes('\n'))];
+    for (const reading of readings) {
+      const opening = fold(reading.split('\n').filter(Boolean).slice(0, 2).join(''));
+      for (const other of poems.filter(poem => poem.id !== added.id)) {
+        if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+        for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+          assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+        }
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-world-classics-3.py', '--check'], { encoding: 'utf8' }), /Verified 8 historical readings/);
+});
+
 test('world classics preserve complete witness readings, variants and source limits', () => {
   const ids = ['wang-bochuan-guazhou', 'su-huaizhong-wanbo-dutou', 'garcilaso-soneto-v', 'garcilaso-soneto-xiii',
     'rimbaud-sensation', 'dubellay-regrets-xxxi', 'lamartine-le-lac'].map(id => `recognized-world-classics-2-${id}`);
@@ -980,7 +1055,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
