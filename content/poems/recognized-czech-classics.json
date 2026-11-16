@@ -1,0 +1,103 @@
+[
+  {
+    "country": "Czechia",
+    "language": "Czech",
+    "lang": "cs",
+    "direction": "ltr",
+    "form": "Verse",
+    "themes": [],
+    "mood": "paper",
+    "translations": [],
+    "id": "recognized-czech-classics-vrchlicky-za-trochu-lasky",
+    "title": "Za trochu lásky...",
+    "author": "Jaroslav Vrchlický",
+    "authorId": "jaroslav-vrchlicky",
+    "authorYears": "1853–1912",
+    "authorAliases": [
+      "Jaroslav Vrchlicky"
+    ],
+    "year": 1894,
+    "yearLabel": "1894 printing",
+    "era": "19th century",
+    "collection": "Okna v bouři · 1894",
+    "sourceTitle": "Okna v bouři · 1894 · p. 75 · Polona facsimile",
+    "source": "https://polona.pl/iiif/3/4b2df30a-b282-48d3-9758-848e354f6049/full/max/0/default.jpg",
+    "contextSourceTitle": "Rozbor-díla · Lyrický subjekt",
+    "contextSource": "https://rozbor-dila.cz/lyricky-subjekt",
+    "searchAliases": [
+      "Za trochu lasky",
+      "Za trochu lasky sel bych sveta kraj"
+    ],
+    "context": "The separately headed seven-line poem ends before 'Stará píseň o lásce' on the next page. The 1894 scan reads 'šel v ledu'; some modern reproductions instead say 'šel v lednu'. A Czech literary-study article calls this poem well known; that is regional reception, not a global ranking. Historical spelling is retained; typeface, indentation and punctuation typography are normalized. Czechia is an associated modern place, not a claim about composition location.",
+    "rights": "This historical printing is public domain in the United States. Vrchlický died in 1912. Copyright, edition-related and moral rights vary by jurisdiction; check local law. Scans are linked, not republished; no translation, score or recording is included.",
+    "text": "Za trochu lásky šel bych světa kraj,\nšel s hlavou odkrytou a šel bych bosý,\nšel v ledu — ale v duši věčný máj,\nšel vichřicí — však slyšel zpívat kosy,\nšel pouští — a měl v srdci perly rosy.\nZa trochu lásky šel bych světa kraj,\njak ten, kdo zpívá u dveří a prosí."
+  },
+  {
+    "country": "Czechia",
+    "language": "Czech",
+    "lang": "cs",
+    "direction": "ltr",
+    "form": "Verse",
+    "themes": [],
+    "mood": "paper",
+    "translations": [],
+    "id": "recognized-czech-classics-sladek-lesni-studanka",
+    "title": "Lesní studánka",
+    "author": "Josef Václav Sládek",
+    "authorId": "josef-vaclav-sladek",
+    "authorYears": "1845–1912",
+    "authorAliases": [
+      "Josef Vaclav Sladek",
+      "J. V. Sládek",
+      "J. V. Sladek"
+    ],
+    "year": 1907,
+    "yearLabel": "1907 printing · collection dated 1894",
+    "era": "19th century",
+    "collection": "Zvony a zvonky · Spisy básnické II · 1907",
+    "sourceTitle": "Spisy básnické II · 1907 · p. 160 · Internet Archive facsimile",
+    "source": "https://archive.org/details/spisybsnicksoub01slgoog/page/n170/mode/1up",
+    "contextSourceTitle": "ČT edu · Znám křišťálovou studánku",
+    "contextSource": "https://edu.ceskatelevize.cz/video/8377-deti-kresli-pisnicky-znam-kristalovou-studanku",
+    "searchAliases": [
+      "Lesni studanka",
+      "Znam kristalovou studanku"
+    ],
+    "context": "The 1907 collected edition prints this complete twelve-line poem before the separately headed 'Lilie'; its children's-poem collection is dated 1894. The scan reads 'a nebesa i studánka', while some modern reproductions say 'tu nebesa i studánka'. ČT edu calls it a known poem when discussing a later musical setting, which is not a separate work. Historical spelling is retained; typeface, indentation and punctuation typography are normalized. Czechia is an associated modern place, not a claim about composition location.",
+    "rights": "This historical printing is public domain in the United States. Sládek died in 1912. Copyright, edition-related and moral rights vary by jurisdiction; check local law. Scans are linked, not republished; no translation, score or recording is included.",
+    "text": "Znám křišťálovou studánku,\nkde nejhlubší je les,\ntam roste tmavé kapradí\na vůkol rudý vřes.\n\nTam ptáci, laně chodí pít\npod javorový kmen,\nti ptáci za dne bílého,\nty laně v noci jen.\n\nKdyž usnou lesy hluboké\na kolem ticho jest,\na nebesa i studánka\njsou plny zlatých hvězd."
+  },
+  {
+    "country": "Czechia",
+    "language": "Czech",
+    "lang": "cs",
+    "direction": "ltr",
+    "form": "Verse",
+    "themes": [],
+    "mood": "paper",
+    "translations": [],
+    "id": "recognized-czech-classics-nemcova-zenam-ceskym",
+    "title": "Ženám českým",
+    "author": "Božena Němcová",
+    "authorId": "bozena-nemcova",
+    "authorYears": "1820?–1862",
+    "authorAliases": [
+      "Bozena Nemcova"
+    ],
+    "year": 1891,
+    "yearLabel": "1891 printing · first published 1843",
+    "era": "19th century",
+    "collection": "Patery knihy plodů básnických · 1891",
+    "sourceTitle": "Patery knihy plodů básnických · 1891 · pp. 137–138 · Internet Archive facsimile",
+    "source": "https://archive.org/details/pateryknihyplodb00bluoft/page/n162/mode/1up",
+    "contextSourceTitle": "ČT edu · Ženám českým",
+    "contextSource": "https://edu.ceskatelevize.cz/video/7828-bozena-zenam-ceskym",
+    "searchAliases": [
+      "Zenam ceskym",
+      "Zeny ceske matky ceske"
+    ],
+    "context": "The signed 1843 Květy printing and Bílý's 1891 anthology both contain all 32 lines. This reading follows the 1891 scan's 'útlá', 'Jmenujme' and 'zrostou'; the original uses older spelling and 'Gmenugte'. The 1891 pages show four-line blocks in two columns; the 1843 and 1957 printings group them into eight-line stanzas. A 1957 scholarly note discusses possible textual intervention and a censorship-proof variant; the signed 1843 publication and this 1891 copy both name Břetislavy. Němcová's birth year is disputed. Historical spelling is retained; typeface, indentation and punctuation typography are normalized. Czechia is an associated modern place, not a claim about composition location.",
+    "rights": "This historical printing is public domain in the United States. Němcová died in 1862 and anthology editor František Bílý in 1920. Copyright, edition-related and moral rights vary by jurisdiction; check local law. Scans are linked, not republished; no translation, score or recording is included.",
+    "text": "Ženy české, matky české!\nslib si dejme a v něm stůjme:\npro blaho své drahé vlasti\nvšecky síly obětujme!\n\nNejen muž buď hrdý na to,\nže dá všecko pro svou vlast;\nvzhůru, ženy! my též chceme\nna oltář svou oběť klást.\n\nMuž, ach, ten má meč svůj ostrý,\nrámě, sílu — muž má všecko;\nale útlá, slabá žena\njen své srdce a — své děcko.\n\nDítě! — toto jméno sladké,\nženě nebem daný dar,\nmatky! nejdražší, co máme,\ndejme vlasti v její zdar.\n\nPrvním slovem lichotivým,\nprvním sladkým celováním\nčeský zvuk jim v duši vlejme\ns vřelým vlasti milováním.\n\nJmenujme jim slavné otce,\nvylitou pro právo krev,\nřekněte jim, jak se znovu\nhrdě zvedá český lev.\n\nAť z nich zrostou reci statní,\njako lípy, jako doubce;\nať z nich máme Břetislavy,\npráva hájce, zloby zhoubce.\n\nŽeny české, matky české!\nJediná nám budiž slast:\nvychovati naše děti\npro tu slavnou, drahou vlast."
+  }
+]

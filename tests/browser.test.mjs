@@ -27,6 +27,137 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Czech classics support mobile search, preference, saved state and static readers', async () => {
+  const ids = ['vrchlicky-za-trochu-lasky', 'sladek-lesni-studanka', 'nemcova-zenam-ceskym']
+    .map(key => `recognized-czech-classics-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  const queries = [
+    ['Za trochu lásky'.normalize('NFD'), 'Za trochu lasky', 'šel v ledu'],
+    ['Lesní studánka', 'Lesni studanka', 'Znam kristalovou studanku'],
+    ['Ženám českým'.normalize('NFD'), 'Zenam ceskym', 'Bozena Nemcova'],
+  ];
+  const seed = { saved: ['world-rizal-farewell', 'recognized-norwegian-fjelli', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  const other = await context.newPage();
+  await other.goto(base);
+  await other.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Czech');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await other.waitForFunction(() => document.querySelector('[data-preferred-language]')?.value === 'Czech');
+  await other.close();
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+      assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'Czech');
+    }
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Czech');
+    assert.match(await page.locator('#search-spelling-note').textContent(), /Czech searches preserve accents and carons/);
+    for (const query of queries[index]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { language: 'Czech', query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'cs');
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...ids]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Czech');
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Czech');
+  await page.getByLabel('Search the poetry library').fill('\u030c');
+  await page.getByText('0 poems found', { exact: true }).waitFor();
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Czech a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'cs');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: poem.contextSourceTitle }).getAttribute('href'), poem.contextSource);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  assert.match(await staticPage.locator('body').textContent(), /signed 1843.*1891.*Jmenujme.*censorship-proof variant/s);
+  await fallback.close();
+});
+
+test('Czech search and poet directory distinguish letters without changing legacy names', async () => {
+  const example = { ...poems[0], language: 'Czech', lang: 'cs', direction: 'ltr', authorOriginal: '', authorAliases: [], searchAliases: [], translations: [] };
+  const sample = [
+    { ...example, id: 'directory-czech-order', authorId: 'directory-czech-order', author: 'Řád Nový', title: 'First fixture', text: 'řád' },
+    { ...example, id: 'directory-czech-glad', authorId: 'directory-czech-glad', author: 'Rád Nový', title: 'Second fixture', text: 'rád' },
+    poems.find(poem => poem.id === 'recognized-czech-classics-nemcova-zenam-ceskym'),
+    { ...example, id: 'directory-mixed-cs', authorId: 'directory-mixed-cs-es', author: 'Café', title: 'Third fixture', text: 'other' },
+    { ...example, id: 'directory-mixed-es', authorId: 'directory-mixed-cs-es', author: 'Café', language: 'Spanish', lang: 'es', title: 'Fourth fixture', text: 'other' },
+    poems.find(poem => poem.author === 'José Martí'),
+  ];
+  assert.ok(sample.every(Boolean));
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route(base, route => route.fulfill({ contentType: 'text/html', body: renderHome(sample, '/ai-poems/') }));
+  await page.route('**/data/catalog.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(sample) }));
+  await page.goto(base);
+  await page.getByText('6 poems found', { exact: true }).waitFor();
+  const search = page.getByLabel('Search the poetry library');
+  for (const [query, id] of [['řád', 'directory-czech-order'], ['r\u030ca\u0301d', 'directory-czech-order'], ['rád', 'directory-czech-glad']]) {
+    await search.fill(query);
+    await page.getByText('1 poem found', { exact: true }).waitFor();
+    assert.equal(await page.locator(`#results a[href$="/poems/${id}/"]`).count(), 1, query);
+  }
+  await search.fill('');
+  await page.locator('.poet-directory summary').click();
+  const input = page.getByRole('searchbox', { name: 'Find a poet or voice' });
+  const visible = page.locator('.poet-list a:not([hidden])');
+  assert.match(await page.locator('#poet-spelling-note').textContent(), /Czech-only entries preserve accents and carons/);
+  for (const [query, name] of [['r\u030ca\u0301d novy\u0301', 'Řád Nový'], ['rád nový', 'Rád Nový'], ['Bozena Nemcova', 'Božena Němcová'], ['cafe', 'Café'], ['jose marti', 'José Martí']]) {
+    await input.fill(query);
+    assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), [name], query);
+  }
+  await input.fill('\u030c');
+  assert.deepEqual((await visible.evaluateAll(links => links.map(link => link.dataset.author))).sort(), ['Café', 'José Martí'].sort());
+  assert.match(await page.locator('#poet-count').textContent(), /^2 matches\.$/);
+  await context.close();
+});
+
+test('Czech translation fixtures carry language tags in static and interactive readers', async () => {
+  const original = poems.find(poem => poem.id === 'recognized-british-classics-davies-leisure');
+  const fixture = { ...original, translations: [
+    { language: 'Czech', title: 'Zkouška', text: 'Řád a láska', translator: 'Test fixture', rights: 'Test fixture', source: 'https://example.com/' },
+  ] };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const url = `${base}poems/${fixture.id}/`;
+  await page.route(url, route => route.fulfill({ contentType: 'text/html', body: renderPoem(fixture, poems, '/ai-poems/') }));
+  await page.goto(url);
+  assert.equal(await page.locator('#translations .verse').getAttribute('lang'), 'cs');
+  await page.locator('#translation-select').selectOption('0');
+  assert.equal(await page.locator('#translation-panel .verse').textContent(), 'Řád a láska');
+  assert.equal(await page.locator('#translation-panel .verse').getAttribute('lang'), 'cs');
+  await context.close();
+});
+
 test('early Nynorsk classics support mobile search, saved state and static readers', async () => {
   const ids = ['gamle-norig', 'nordmannen', 'gamle-grendi', 'den-saerde', 'vaaren']
     .map(key => `recognized-nynorsk-${key}`);
