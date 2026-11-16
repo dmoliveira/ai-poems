@@ -18,6 +18,62 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('German women poets retain complete source-specific readings and distinct works', () => {
+  const ids = ['brun-chamounix', 'guenderrode-die-eine-klage'].map(key => `recognized-german-women-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-german-women-')).length, 2);
+  assert.deepEqual(selected.map(lineCount), [20, 24]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(block => block.split('\n').length)), [
+    [4, 4, 4, 4, 4], [6, 6, 6, 6],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '251ff6d696e74847e31dce19124b89b7e63bd2245276127671e64ff99c53cea9',
+    '2fb148494831c2cb823f58cbaa125f4f701cf4ac78304d71d4e447cf362ff6b9',
+  ]);
+  const [brun, klage] = selected;
+  assert.match(brun.text, /^Aus tiefem Schatten des schweigenden Tannenhains[\s\S]*Wer goß Euch hoch aus des ewigen Winters Reich,[\s\S]*Lavinendonner rollen’s die Kluft hinab:[\s\S]*Flüstert’s an rieselnden Silberbächen\.$/);
+  assert.doesNotMatch(brun.text, /Metastasio|Gentiana|La Terra/);
+  assert.match(brun.context, /Metastasio motto and three prose notes.*'Euch'.*colon.*26 lines.*20.*recast/s);
+  assert.match(klage.text, /^Wer die tiefste aller Wunden[\s\S]*Wer geliebt was er verlohren,[\s\S]*Lassen muß was er erkohren,[\s\S]*Giebt kein Gott zurück\.$/);
+  assert.match(klage.context, /Ägypten.*1906.*suppressed.*larger contents.*incomplete.*four complete stanzas.*cycle/s);
+  assert.deepEqual(associatedPlaces(brun), ['Denmark', 'Germany']);
+  assert.deepEqual(associatedPlaces(klage), ['Germany']);
+  const queries = [
+    ['Chamounix beym Sonnenaufgange', 'Chamonix', 'Frederikke Brun', 'Scheitel der Ewigkeit'],
+    ['Die eine Klage', 'Karoline von Guenderrode', 'Wer die tiefste aller Wunden', 'Gränzen'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'German');
+    assert.equal(poem.lang, 'de');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'German', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="de" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Exact readings and openings cannot exclude every translation or paraphrase.
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/ß/gu, 'ss').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-german-women.py', '--check'], { encoding: 'utf8' }), /Verified 2 historical readings/);
+});
+
 test('Czech classics retain three complete, distinct historical readings', () => {
   const ids = ['vrchlicky-za-trochu-lasky', 'sladek-lesni-studanka', 'nemcova-zenam-ceskym']
     .map(key => `recognized-czech-classics-${key}`);
