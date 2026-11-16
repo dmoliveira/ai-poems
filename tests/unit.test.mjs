@@ -18,6 +18,65 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('additional Greek classics preserve source-specific complete works and variants', () => {
+  const ids = ['trojans', 'first-step'].map(id => `recognized-greek-classics-2-cavafy-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-greek-classics-2-')).length, 2);
+  const [trojans, step] = selected;
+  assert.deepEqual(selected.map(lineCount), [22, 26]); // The first count includes its two printed section labels.
+  assert.deepEqual(trojans.text.split('\n\n').map(block => block.split('\n').length), [1, 4, 3, 1, 3, 3, 3, 4]);
+  assert.deepEqual(step.text.split('\n\n').map(block => block.split('\n').length), [26]);
+  assert.equal(trojans.text.split('\n').filter(line => line && !['Α΄.', 'Β΄.'].includes(line)).length, 20);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '1f8ead69910bfe9deb33f5569964ff857428c3aa718475d96ac9242d78aaa95b',
+    '10751afb2c44d7eb1190ed2c3b861aeca7e79c492ba9310e3bce216e47de74d4',
+  ]);
+  assert.match(trojans.text, /^Α΄\.\n\nΕἶν’ ἡ προσπάθειές μας σὰν τῶν Τρώων\.[\s\S]*\n\nΒ΄\.\n\nΕἶν’ ἡ προσπάθειές μας σὰν τῶν Τρώων\.[\s\S]*κλαῖνε,$/);
+  assert.match(trojans.context, /two numbered sections.*counted as one work/);
+  assert.match(trojans.context, /1908 printing.*wording differs/);
+  assert.match(trojans.context, /reason for the difference is uncertain/);
+  assert.match(trojans.context, /additional opening line/);
+  assert.match(trojans.context, /last line with a comma/);
+  assert.ok(step.text.startsWith('Εἰς τὸν Θεόκριτο παραπονιούνταν\n'));
+  assert.ok(step.text.includes('Ἀλλοίμονον, εἶν’ ὑψηλὴ τὸ βλέπω,'));
+  assert.ok(step.text.includes('ποτὲ δὲν θ’ ἀναιβῶ ὁ δυστυχισμένος.'));
+  assert.equal(step.text.match(/νᾶσαι/g).length, 2);
+  assert.ok(step.text.endsWith('τόσο ποῦ ἔκαμες, μεγάλη δόξα».'));
+  assert.match(step.context, /schoolbook.*modern edition/);
+  const queries = [['Τρωες', 'Ἀχιλλεὺς'], ['πρωτο σκαλι', 'ἀναιβῶ'.normalize('NFD')]];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.authorId, 'c-p-cavafy');
+    assert.equal(poem.language, 'Greek');
+    assert.equal(poem.lang, 'el');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*Ntetos.*CC BY-SA 4\.0.*check local law/);
+    assert.match(poem.context, /first page prints January 1927.*metadata says December/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Greek', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="el" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const opening = fold(added.text.split('\n').filter(line => line && !['Α΄.', 'Β΄.'].includes(line)).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  for (const phrase of ['Trojans', 'The First Step']) for (const poem of poems.filter(item => !ids.includes(item.id))) {
+    assert.ok([poem.title, poem.displayTitle, poem.text, ...(poem.searchAliases || []), ...poem.translations.flatMap(item => [item.title, item.text])]
+      .every(text => !fold(text).includes(fold(phrase))), phrase);
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-greek-classics-2.py', '--check'], { encoding: 'utf8' }), /Verified 2 historical readings/);
+});
+
 test('additional Hungarian poems preserve complete historical readings and distinct works', () => {
   const ids = ['petofi-egy-gondolat-bant-engemet', 'petofi-foltamadott-a-tenger', 'petofi-az-alfold', 'petofi-a-tisza', 'kolcsey-hymnus']
     .map(id => `recognized-hungarian-poems-${id}`);
