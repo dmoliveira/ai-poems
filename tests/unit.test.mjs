@@ -18,6 +18,59 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('world classics 6 preserve complete 1921 Swedish readings and distinct works', () => {
+  const ids = ['andersson-omkring-tiggarn', 'andersson-spelmans-jordafard', 'andersson-till-min-syster']
+    .map(id => `recognized-world-classics-6-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-world-classics-6-')).length, 3);
+  assert.deepEqual(selected.map(lineCount), [36, 49, 16]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    Array(9).fill(4), [...Array(5).fill(8), 9], Array(4).fill(4),
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'aca50c3383d0133c3e2f7f6146deab449a5bd06db2791d925590a3f4389a0b17',
+    'fb58ef526de8c818d35d72dc40fcfc7ea92382f228596458b39029780fb6c94b',
+    '33fcd8cd9d74d8e0468a05c8e821f941ec8b3d2caaa4d553f3761ac12c0fc2a9',
+  ]);
+  const [beggar, funeral, sister] = selected;
+  assert.match(beggar.text, /^Omkring tiggarn från Luossa satt allt folket i en ring,[\s\S]*Det är något bortom bergen[\s\S]*barn av saligheten bo\.»$/);
+  assert.match(beggar.context, /1921 contents names it at p\. 81.*page itself has no title/);
+  assert.match(funeral.text, /^Förr än rosig morgon lyser över Himmelmora kamm,[\s\S]*han led ofta brist på husrum och bröd\.[\s\S]*en spelman och en drömmare är död\.$/);
+  assert.match(funeral.context, /Himmelmora kamm.*kam and adds av/);
+  assert.match(sister.text, /det starka oss till läkedom[\s\S]*En sång till däj, min syster[\s\S]*kom ut till oss och sov!$/);
+  assert.match(sister.context, /four complete quatrains.*En gamling/);
+
+  const queries = [
+    ['Omkring tiggarn från Luossa', 'Det är något bortom bergen'],
+    ['En spelmans jordafärd', 'Himmelmora kam'],
+    ['Till min syster', 'En sång till dej min syster'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Swedish', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="sv" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Openings include translations, but cannot exclude every paraphrase.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-world-classics-6.py', '--check'], { encoding: 'utf8' }), /Verified 3 historical readings/);
+});
+
 test('world classics 5 preserve complete historical readings and distinct works', () => {
   const ids = ['su-ti-xilin-bi', 'cao-guancang-shu', 'yu-yong-ying', 'andersson-jag-vantar',
     'andersson-halgdagskvall'].map(id => `recognized-world-classics-5-${id}`);
