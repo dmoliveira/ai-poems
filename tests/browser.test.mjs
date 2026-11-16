@@ -47,6 +47,7 @@ test('early Nynorsk classics support mobile search, saved state and static reade
       await page.getByText(totalText, { exact: true }).waitFor();
     }
     await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Norwegian');
+    await page.getByRole('status').getByText('Language preference saved.').waitFor();
     await page.locator('#filter-summary').click();
     await page.getByLabel('Original language').selectOption('Norwegian');
     await page.getByLabel('Search the poetry library').fill(queries[index]);
@@ -101,6 +102,7 @@ test('Norwegian classics support mobile search, preferences, saved state and sta
       await page.getByText(totalText, { exact: true }).waitFor();
     }
     await page.getByLabel('Preferred reading language', { exact: true }).selectOption(poem.language);
+    await page.getByRole('status').getByText('Language preference saved.').waitFor();
     await page.locator('#filter-summary').click();
     await page.getByLabel('Original language').selectOption(poem.language);
     await page.getByLabel('Search the poetry library').fill(queries[index]);
@@ -109,6 +111,10 @@ test('Norwegian classics support mobile search, preferences, saved state and sta
     await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
     assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
     assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    await page.waitForFunction(() => {
+      const select = document.querySelector('[data-preferred-language]');
+      return select && !select.disabled;
+    });
     assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), poem.language);
     await page.getByRole('button', { name: /Save poem/ }).click();
     await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
