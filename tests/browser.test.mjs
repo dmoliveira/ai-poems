@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { loadCatalog } from '../scripts/catalog-data.mjs';
 import { groupPoets } from '../scripts/poets.mjs';
-import { renderHome } from '../scripts/templates.mjs';
+import { renderHome, renderPoem } from '../scripts/templates.mjs';
 import { associatedPlaces, filterPoems, placeCounts, readingLanguages, recordedYearRanges, yearRangeCounts } from '../src/catalog.mjs';
 
 const port = 43817;
@@ -26,6 +26,133 @@ before(async () => {
   browser = await chromium.launch({ headless: true, ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}) });
 });
 after(async () => { await browser?.close(); server?.kill(); });
+
+test('Hungarian classics support canonical mobile search, preference, saved state and static readers', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('recognized-hungarian-classics-'));
+  assert.equal(selected.length, 3);
+  const queries = [
+    ['Szeptember vegen', 'o\u030bszbe'],
+    ['Nemzeti dal', 'Eszküszünk'],
+    ['Szozat', 'rendületlenűl'.normalize('NFD')],
+  ];
+  const seed = { saved: ['world-rizal-farewell', 'recognized-galician-classics-adios-rios', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  const other = await context.newPage();
+  await other.goto(base);
+  await other.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Hungarian');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await other.waitForFunction(() => document.querySelector('[data-preferred-language]')?.value === 'Hungarian');
+  await other.close();
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+      assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'Hungarian');
+    }
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Hungarian');
+    assert.match(await page.locator('#search-spelling-note').textContent(), /Hungarian searches distinguish accented vowels/);
+    for (const query of queries[index]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { language: 'Hungarian', query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'hu');
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Hungarian');
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Hungarian');
+  await page.getByLabel('Search the poetry library').fill('\u0301');
+  await page.getByText('0 poems found', { exact: true }).waitFor();
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Hungarian a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'hu');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
+test('Hungarian-only poet names distinguish accented vowels without changing mixed-language names', async () => {
+  const example = { ...poems[0], language: 'Hungarian', lang: 'hu', direction: 'ltr', authorOriginal: '', authorAliases: [] };
+  const sample = [
+    { ...example, id: 'directory-hungarian-a', authorId: 'directory-hungarian-a', author: 'Kőrösi' },
+    { ...example, id: 'directory-hungarian-b', authorId: 'directory-hungarian-b', author: 'Korosi' },
+    poems.find(poem => poem.id === 'recognized-hungarian-classics-petofi-nemzeti-dal'),
+    { ...example, id: 'directory-mixed-hu', authorId: 'directory-mixed', author: 'Café' },
+    { ...example, id: 'directory-mixed-es', authorId: 'directory-mixed', author: 'Café', language: 'Spanish', lang: 'es' },
+    poems.find(poem => poem.author === 'José Martí'),
+  ];
+  assert.ok(sample.every(Boolean));
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route(base, route => route.fulfill({ contentType: 'text/html', body: renderHome(sample, '/ai-poems/') }));
+  await page.route('**/data/catalog.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(sample) }));
+  await page.goto(base);
+  await page.getByText('6 poems found', { exact: true }).waitFor();
+  await page.locator('.poet-directory summary').click();
+  const input = page.getByRole('searchbox', { name: 'Find a poet or voice' });
+  const visible = page.locator('.poet-list a:not([hidden])');
+  assert.match(await page.locator('#poet-spelling-note').textContent(), /Hungarian-only entries distinguish accented vowels/);
+  await input.fill('Ko\u030bro\u0308si');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Kőrösi']);
+  await input.fill('korosi');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Korosi']);
+  await input.fill('Petofi Sandor');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Sándor Petőfi']);
+  await input.fill('cafe');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Café']);
+  assert.equal(await visible.getAttribute('data-search-language'), null);
+  await input.fill('\u0301');
+  assert.deepEqual((await visible.evaluateAll(links => links.map(link => link.dataset.author))).sort(), ['Café', 'José Martí'].sort());
+  assert.match(await page.locator('#poet-count').textContent(), /^2 matches\.$/);
+  await input.fill('jose marti');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['José Martí']);
+  await context.close();
+});
+
+test('Hungarian translation fixtures carry language tags in static and interactive readers', async () => {
+  const original = poems.find(poem => poem.id === 'recognized-british-classics-davies-leisure');
+  const fixture = { ...original, translations: [
+    { language: 'Hungarian', title: 'Próba', text: 'Kő és tűz', translator: 'Test fixture', rights: 'Test fixture', source: 'https://example.com/' },
+  ] };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const url = `${base}poems/${fixture.id}/`;
+  await page.route(url, route => route.fulfill({ contentType: 'text/html', body: renderPoem(fixture, poems, '/ai-poems/') }));
+  await page.goto(url);
+  assert.equal(await page.locator('#translations .verse').getAttribute('lang'), 'hu');
+  await page.locator('#translation-select').selectOption('0');
+  assert.equal(await page.locator('#translation-panel .verse').textContent(), 'Kő és tűz');
+  assert.equal(await page.locator('#translation-panel .verse').getAttribute('lang'), 'hu');
+  await context.close();
+});
 
 test('British classics support mobile search, saved state and static readers', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('recognized-british-classics-'));
