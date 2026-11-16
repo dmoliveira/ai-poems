@@ -546,6 +546,75 @@ test('Slovenian classics preserve two complete historical readings and distinct 
   assert.match(execFileSync('python3', ['scripts/import-recognized-slovenian-classics.py', '--check'], { encoding: 'utf8' }), /Verified 2 historical readings/);
 });
 
+test('Slovenian lyrics retain seven complete, distinct 1914 readings', () => {
+  const ids = ['pod-oknom', 'prosnja', 'ukazi', 'k-slovesu', 'sila-spomina', 'izgubljena-vera', 'mornar']
+    .map(id => `recognized-slovenian-lyrics-preseren-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-slovenian-lyrics-')).length, 7);
+  assert.deepEqual(selected.map(lineCount), [42, 36, 24, 24, 28, 22, 42]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    Array(7).fill(6), Array(9).fill(4), Array(6).fill(4), Array(6).fill(4),
+    Array(7).fill(4), Array(11).fill(2), Array(7).fill(6),
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '49d678363af72b9de0c0dcb33be5ea6f22c5974a4a15770b5278cc0791bf21cb',
+    '45e2c1f57ab621b3e90e0664e0263a4649aa8cdb292e3bb78729eedc167c53ee',
+    'e28ccfad4dd59d8ef4c642dbab5ab1a418c6c1e6c6e06cb6c2afd9bc6d274087',
+    '65c3cd876c821d2dc1c0f098fd5014b01662dd79178215b3b2b578e16d3dd4d2',
+    '9bfd0132553b2dfdfa0a301e4524d1bc7bd9bd74bf6b3f73880c0697dc997ba4',
+    'f85623ad38415d0c33829dc4f066a26682a0d90a35b228ddf9833fa3df77c05c',
+    'd85ea88d718cbe291ab4eac7964457fa0981ec69cef6dbaacc396d494a80a3d3',
+  ]);
+  const [window, plea, orders, farewell, memory, faith, sailor] = selected;
+  assert.match(window.text, /^Luna sije,\nKladvo bije[\s\S]*Druz’ga, poč’lo bo srcé\.$/);
+  assert.match(plea.text, /^Po drugih se oziraj,[\s\S]*Al repetnic razpeti[\s\S]*Mi gledat’ dàj njih svit! —$/);
+  assert.match(orders.text, /^Da ne smem, si ukazala,[\s\S]*Al srce mi drugo vstvari,[\s\S]*Pred ni moč te pozabit’\. —$/);
+  assert.match(farewell.text, /^Kaj od mêne pròč oko,[\s\S]*Žàl-besede v ustih ni\.[\s\S]*Dòkler zmaga sreče jezo[\s\S]*Zadnja ljub’ca, — bela smrt\.$/);
+  assert.match(memory.text, /^Drug ti je v skrbno nastavljene mreže[\s\S]*Marsikdaj tvôje srce me pogreša,[\s\S]*Vèčkrat, ko vtrujena[\s\S]*Pomnila boš ti do zadnjega dne\. —$/);
+  assert.match(memory.context, /tvôje srce me pogreša.*tvoje oko me pogreša.*not combined/);
+  assert.match(faith.text, /^Nebeško sijejo oči,[\s\S]*Srcé je môje biló oltár,\nPred bogstvo ti, zdaj — lepa stvár\.$/);
+  assert.match(faith.context, /Zgubljena vera.*same work.*letter-spaced/);
+  assert.match(sailor.text, /^Nezvesta, bodi zdrava,[\s\S]*Prinêsla me nazaj;\nDekleta môj’ga žêno[\s\S]*Le jadrajmo za njim!$/);
+  const queries = [
+    ['Pod oknam', 'Luna sije'], ['Prosnja', 'repetnic'], ['Ukazi', 'pokoren bit'],
+    ['K slovesu', 'Bog te obar'], ['Sila spomina', 'tvoje srce me pogresa'],
+    ['Zgubljena vera', 'Izgubljena vera'], ['Mornar', 'nezvesta bodi zdrava'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.authorId, 'france-preseren');
+    assert.equal(poem.language, 'Slovenian');
+    assert.equal(poem.lang, 'sl');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Slovenian', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="sl" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  // Alternate names are limited signals; generic translated titles may identify unrelated poems.
+  for (const phrase of ['Pod oknam', 'Bog te obar', 'Zgubljena vera']) {
+    for (const poem of poems.filter(item => !ids.includes(item.id))) {
+      assert.ok([poem.title, poem.displayTitle, ...(poem.searchAliases || []), ...poem.translations.map(item => item.title)]
+        .every(text => !fold(text).includes(fold(phrase))), `${phrase}: ${poem.id}`);
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-slovenian-lyrics.py', '--check'], { encoding: 'utf8' }), /Verified 7 historical readings/);
+});
+
 test('Hungarian classics preserve three complete historical readings and distinct works', () => {
   const ids = ['petofi-szeptember-vegen', 'petofi-nemzeti-dal', 'vorosmarty-szozat']
     .map(id => `recognized-hungarian-classics-${id}`);
