@@ -18,6 +18,73 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('central Greek classics retain complete historical readings and source uncertainties', () => {
+  const ids = ['city', 'barbarians'].map(id => `recognized-greek-classics-3-cavafy-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-greek-classics-3-')).length, 2);
+  const [city, barbarians] = selected;
+  assert.deepEqual(selected.map(lineCount), [16, 36]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(block => block.split('\n').length)), [
+    [8, 8], [1, 1, 2, 3, 3, 5, 6, 2, 2, 2, 4, 3, 2],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '6bb3f6f07068777628e274c67580c4d0a1889e37dbe81045061b28fdc99d99ba',
+    '648394398ed84383a2e0b9c4f6aeec35857d117a56a7b535610b066662fc6e2a',
+  ]);
+  assert.match(city.text, /^Εἶπες· «Θὰ πάγω σ’ ἄλλη γῆ,[\s\S]*\n\nΚαινούριους τόπους[\s\S]*τὴν ζωή σου ρήμαξες ἐδῶ[\s\S]*τὴν χάλασες\.$/);
+  assert.ok(city.text.includes('δὲν θἄβρεις ἄλλες θάλασσες.'));
+  assert.equal(city.year, null);
+  assert.match(city.yearLabel, /1909–1910.*uncertain/);
+  assert.match(city.context, /catalogue.*1910.*bibliography.*1909–1910/);
+  assert.match(city.context, /faint mark.*not treated as a certain comma/);
+  assert.deepEqual(filterPoems([city], { from: '1900', to: '1999' }), []);
+  assert.ok(barbarians.text.startsWith('— Τί περιμένουμε στὴν ἀγορὰ συνασθροισμένοι;\n\nΕἶναι'));
+  assert.ok(barbarians.text.includes('τόσο πρωῒ σηκώθη,'));
+  assert.ok(barbarians.text.includes('γιατὶ βραχιόλια φόρεσαν μὲ τόσους ἀμεθύστους,\nκαὶ δαχτυλίδια μὲ λαμπρὰ γυαλιστερὰ σμαράγδια·'));
+  assert.ok(barbarians.text.includes('μ’ ἀσήμια καὶ μαλάματα ἔκτακτα σκαλιγμένα;'));
+  assert.ok(barbarians.text.includes('κ’ οἱ βάρβαροι βαρυοῦνται τὲς δημηγορίες.'));
+  assert.ok(barbarians.text.includes('κ’ ἡ σύγχισις;'));
+  assert.ok(barbarians.text.includes('οἱ δρόμοι κ’ ἡ πλατέες,'));
+  assert.ok(barbarians.text.endsWith('Καὶ τώρα τὶ θὰ γένουμε χωρὶς βαρβάρους.\nΟἱ ἄνθρωποι αὐτοὶ ἦσαν μιὰ κάποια λύσις.'));
+  assert.equal(barbarians.year, 1908);
+  assert.match(barbarians.context, /issue 51–52.*issue 51, December 1908/);
+  assert.match(barbarians.context, /possibly printing errors/);
+  const queries = [
+    ['Η πολις', 'The Town', 'Καινουριους', 'ἀκολουθεῖ'.normalize('NFD')],
+    ['Περιμενοντας τους βαρβαρους', 'Waiting for the Barbarians', 'συναθροισμένοι', 'σκαλιγμένα'.normalize('NFD')],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.authorId, 'c-p-cavafy');
+    assert.equal(poem.language, 'Greek');
+    assert.equal(poem.lang, 'el');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*CC BY-SA 4\.0.*University of Patras.*check local law/);
+    assert.match(poem.rights, index === 0 ? /Origenis/ : /Dada/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Greek', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="el" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  const openings = ['Εἶπες Θὰ πάγω σ’ ἄλλη γῆ', 'Τί περιμένουμε στὴν ἀγορὰ συνασθροισμένοι', 'Τι περιμένουμε στην αγορά συναθροισμένοι'];
+  for (const other of poems.filter(poem => !ids.includes(poem.id))) {
+    if (other.authorId === 'c-p-cavafy') {
+      const titles = [other.title, other.displayTitle, ...(other.searchAliases || []), ...other.translations.map(item => item.title)];
+      for (const title of ['Η πόλις', 'The City', 'The Town', 'Περιμένοντας τους βαρβάρους', 'Waiting for the Barbarians']) {
+        assert.ok(titles.every(candidate => fold(candidate) !== fold(title)), `${title} matches ${other.id}`);
+      }
+    }
+    for (const opening of openings) for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+      assert.ok(!fold(text).includes(fold(opening)), `${opening} overlaps ${other.id}`);
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-greek-classics-3.py', '--check'], { encoding: 'utf8' }), /Verified 2 historical readings/);
+});
+
 test('additional Greek classics preserve source-specific complete works and variants', () => {
   const ids = ['trojans', 'first-step'].map(id => `recognized-greek-classics-2-cavafy-${id}`);
   const selected = ids.map(id => poems.find(poem => poem.id === id));
