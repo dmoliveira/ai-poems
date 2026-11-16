@@ -27,6 +27,70 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('world classics 7 support mobile variant search, saved state and static readers', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('recognized-world-classics-7-'));
+  assert.equal(selected.length, 7);
+  const queries = [
+    ['夏日绝句', '生当作人杰'],
+    ['示儿', '家祭毋忘告乃翁'],
+    ['画眉鸟', '百啭千声任意移'],
+    ['Herbst', 'Einer, welcher dieses Fallen'],
+    ['The Wild Swans at Coole', 'nine and fifty swans'],
+    ['An Irish Airman Foresees His Death', 'Nor public men, nor cheering crowds'],
+    ['The Stolen Child', 'Come away O human child'],
+  ];
+  const seed = { saved: ['world-rizal-farewell', 'recognized-world-classics-6-andersson-till-min-syster', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Chinese');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+      assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'Chinese');
+    }
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption(poem.language);
+    for (const query of queries[index]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { language: poem.language, query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Chinese');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('world classics 6 support mobile variant search, saved state and static readers', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('recognized-world-classics-6-'));
   assert.equal(selected.length, 3);
@@ -3588,7 +3652,7 @@ test('Tao Yuanming poems support Chinese search, saved data and JavaScript-free 
 });
 
 test('Li Qingzhao lyrics support Chinese search, saved data and JavaScript-free reading', async () => {
-  const selected = poems.filter(poem => poem.authorId === 'li-qingzhao' && !poem.id.startsWith('li-qingzhao-1881-more-'));
+  const selected = poems.filter(poem => poem.id.startsWith('li-qingzhao-1881-') && !poem.id.startsWith('li-qingzhao-1881-more-'));
   assert.equal(selected.length, 12);
   const seed = { saved: ['poe-1900-raven', 'unknown-future-poem'], recent: [], extra: { keep: true } };
   const filters = { language: 'Chinese', country: 'China' };

@@ -18,6 +18,77 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('world classics 7 preserve complete historical readings and distinct works', () => {
+  const ids = ['li-wujiang', 'lu-shi-er', 'ouyang-huamei-niao', 'rilke-herbst',
+    'yeats-wild-swans', 'yeats-irish-airman', 'yeats-stolen-child'].map(id => `recognized-world-classics-7-${id}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-world-classics-7-')).length, 7);
+  assert.deepEqual(selected.map(lineCount), [4, 4, 4, 9, 30, 16, 53]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [4], [4], [4], [3, 2, 2, 2], [6, 6, 6, 6, 6], [16], [12, 15, 14, 12],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'ea5f19febc73e99ee9e4df9f2aa6925ee23989b17a0f30863355545cc3cf15f7',
+    '16990dd062ecf7246706c37810e15b3c3414a119fb4b36deaf28eaf8e7e50d65',
+    '67137f818e49e7e068926368e4f937d53d4d0488612214e7bdc3c19aad8e55ba',
+    'eaa18fd39167141fbc7973a4b3c236a7b7cac5207be99ba6a7de1fbce2f159d9',
+    '64c6877d00b3fb5a26a9aa6ba85cec54f2ce8e2d0b62a15b8c5b39a784b181a4',
+    '417c0ea6367b933da8601ac580f709558fa89a46ee0471be54a67905746b15b8',
+    '099f3e76400443965a67c570639547df4ba11d95fc0bd5ad1e39252869cb598d',
+  ]);
+  const [li, lu, ouyang, herbst, swans, airman, stolen] = selected;
+  assert.match(li.text, /^生當作人傑，\n死亦為鬼雄。\n至今思項羽，\n不肯過江東。$/);
+  assert.match(li.context, /rather than printing a separate heading.*分得知字/);
+  assert.match(lu.text, /^死去元知萬事空，\n但悲不見九州同。\n王師北定中原日，\n家祭無忘告乃翁。$/);
+  assert.match(lu.context, /元知 and 無忘.*原知 and 毋忘.*same title/);
+  assert.match(ouyang.text, /^百囀千聲隨意移，\n山花紅紫樹高低。\n始知鎖向金籠聽，\n不及林間自在啼。$/);
+  assert.match(ouyang.context, /郡齋聞百舌.*任 as an alternate to 隨/);
+  assert.match(herbst.text, /^Die Blätter fallen[\s\S]*Und doch ist Einer welcher dieses Fallen\nunendlich sanft in seinen Händen hält\.$/);
+  assert.match(herbst.context, /distinct from Herbsttag.*without a comma/);
+  assert.equal(poems.filter(poem => poem.id === 'recognized-crossroads-rilke-herbsttag').length, 1);
+  assert.match(swans.text, /^The trees are in their autumn beauty,[\s\S]*The nineteenth Autumn[\s\S]*Delight men’s eyes when I awake some day\nTo find they have flown away\?$/);
+  assert.match(airman.text, /^I know that I shall meet my fate[\s\S]*Nor public man, nor angry crowds,[\s\S]*In balance with this life, this death\.$/);
+  assert.match(airman.context, /1919 printing reads Nor public man, nor angry crowds.*men and\/or cheering/);
+  assert.match(stolen.text, /^Where dips the rocky highland[\s\S]*faery vats\.\nFull of berries,[\s\S]*And is anxious in its sleep\.[\s\S]*From a world more full of weeping than he can understand\.$/);
+  assert.match(stolen.context, /title page is dated 1920.*publication in 1906.*does not establish/);
+  assert.match(stolen.context, /italic refrains are presented in plain text/);
+  assert.equal(stolen.era, '19th century');
+
+  const queries = [
+    ['夏日绝句', '生当作人杰'],
+    ['示儿', '死去原知萬事空', '家祭毋忘告乃翁'],
+    ['画眉鸟', '百啭千声任意移', '郡齋聞百舌', 'The Hwamei'],
+    ['Die Blätter fallen', 'Einer, welcher dieses Fallen'],
+    ['The Wild Swans at Coole', 'nine and fifty swans'],
+    ['An Irish Airman Foresees His Death', 'Nor public men, nor cheering crowds'],
+    ['The Stolen Child', 'Come away O human child'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: poem.language, query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Openings include translations, but cannot exclude every paraphrase or attribution.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-world-classics-7.py', '--check'], { encoding: 'utf8' }), /Verified 7 historical readings/);
+});
+
 test('world classics 6 preserve complete 1921 Swedish readings and distinct works', () => {
   const ids = ['andersson-omkring-tiggarn', 'andersson-spelmans-jordafard', 'andersson-till-min-syster']
     .map(id => `recognized-world-classics-6-${id}`);
@@ -1240,7 +1311,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish'].includes(poem.language) && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
@@ -3566,7 +3637,7 @@ test('Li Qingzhao lyrics retain the 1881 readings, boundaries and attribution ca
     ['long-gate', 8, 9, '7916b56e81711a58c9d47d7c3c180a3697fe2b64473486893ef5a6fbe485ea38'],
     ['chrysanthemum', 8, 10, '9f8c5d81184f21ba25bcf5f208b6e7dd93915914ce000c5a681d3216039ae802'],
   ];
-  const selected = poems.filter(poem => poem.authorId === 'li-qingzhao' && !poem.id.startsWith('li-qingzhao-1881-more-'));
+  const selected = poems.filter(poem => poem.id.startsWith('li-qingzhao-1881-') && !poem.id.startsWith('li-qingzhao-1881-more-'));
   assert.equal(selected.length, cases.length);
   const bySlug = slug => selected.find(poem => poem.id === `li-qingzhao-1881-${slug}`);
   for (const [slug, count, page, hash] of cases) {
@@ -3604,7 +3675,7 @@ test('Li Qingzhao lyrics retain the 1881 readings, boundaries and attribution ca
     assert.equal(poem.displayTitleLang, 'zh-Hant');
     assert.ok(filterPoems(poems, { query: poem.displayTitle }).includes(poem));
   }
-  const priorGroupIds = groupPoets(poems).find(group => group.id === 'li-qingzhao').poems.map(poem => poem.id).filter(id => !id.startsWith('li-qingzhao-1881-more-'));
+  const priorGroupIds = groupPoets(poems).find(group => group.id === 'li-qingzhao').poems.map(poem => poem.id).filter(id => id.startsWith('li-qingzhao-1881-') && !id.startsWith('li-qingzhao-1881-more-'));
   assert.deepEqual(priorGroupIds, cases.map(([slug]) => `li-qingzhao-1881-${slug}`));
 });
 test('further Li Qingzhao lyrics preserve complete 1881 readings and textual uncertainty', () => {
@@ -3656,7 +3727,8 @@ test('further Li Qingzhao lyrics preserve complete 1881 readings and textual unc
   assert.ok(filterPoems(poems, { query: get('desolate-court').displayTitle }).includes(get('desolate-court')));
   assert.match(get('seeking').context, /晚來風急.*晚來風力/);
   const group = groupPoets(poems).find(item => item.id === 'li-qingzhao');
-  assert.equal(group.poems.length, 18);
+  assert.equal(group.poems.length, 19);
+  assert.ok(group.poems.some(poem => poem.id === 'recognized-world-classics-7-li-wujiang'));
   for (const poem of selected) assert.ok(group.poems.includes(poem), poem.id);
 });
 test('Poe selections preserve complete 1900 readings, sections and source caveats', async () => {
