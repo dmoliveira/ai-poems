@@ -27,6 +27,99 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Galician classics support preference, canonical search, saved state and static readers', async () => {
+  const selected = poems.filter(poem => poem.id.startsWith('recognized-galician-classics-'));
+  assert.equal(selected.length, 3);
+  const queries = [['Adiós ríos, adiós fontes', 'Miña terra'], ['Airiños, airiños, aires', 'airin\u0303os da min\u0303a terra'], ['Campanas de Bastavales', 'Cando vos oio tocar']];
+  const seed = { saved: ['world-rizal-farewell', 'recognized-world-classics-8-castro-dicen', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  const other = await context.newPage();
+  await other.goto(base);
+  await other.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Galician');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await other.waitForFunction(() => document.querySelector('[data-preferred-language]')?.value === 'Galician');
+  await other.close();
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+      assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'Galician');
+    }
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Galician');
+    for (const query of queries[index]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { language: 'Galician', query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'gl');
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...selected.map(poem => poem.id)]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Galician');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-Galician a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'gl');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
+test('Galician-only poet names distinguish ñ without changing mixed-language names', async () => {
+  const example = { ...poems[0], language: 'Galician', lang: 'gl', direction: 'ltr', authorOriginal: '', authorAliases: [] };
+  const sample = [
+    { ...example, id: 'directory-galician-a', authorId: 'directory-galician-a', author: 'Niño' },
+    { ...example, id: 'directory-galician-b', authorId: 'directory-galician-b', author: 'Nino' },
+    poems.find(poem => poem.id === 'recognized-galician-classics-adios-rios'),
+    poems.find(poem => poem.id === 'recognized-world-classics-8-castro-dicen'),
+    poems.find(poem => poem.author === 'José Martí'),
+  ];
+  assert.ok(sample.every(Boolean));
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.route(base, route => route.fulfill({ contentType: 'text/html', body: renderHome(sample, '/ai-poems/') }));
+  await page.route('**/data/catalog.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(sample) }));
+  await page.goto(base);
+  await page.getByText('5 poems found', { exact: true }).waitFor();
+  await page.locator('.poet-directory summary').click();
+  const input = page.getByRole('searchbox', { name: 'Find a poet or voice' });
+  const visible = page.locator('.poet-list a:not([hidden])');
+  assert.match(await page.locator('#poet-spelling-note').textContent(), /Galician-only poet entries distinguish ñ from n/);
+  await input.fill('nin\u0303o');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Niño']);
+  await input.fill('nino');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Nino']);
+  await input.fill('rosalia de castro');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['Rosalía de Castro']);
+  assert.equal(await visible.getAttribute('data-search-language'), null);
+  await input.fill('jose marti');
+  assert.deepEqual(await visible.evaluateAll(links => links.map(link => link.dataset.author)), ['José Martí']);
+  await context.close();
+});
+
 test('world classics 8 support mobile multilingual search, saved state and static readers', async () => {
   const selected = poems.filter(poem => poem.id.startsWith('recognized-world-classics-8-'));
   assert.equal(selected.length, 4);
