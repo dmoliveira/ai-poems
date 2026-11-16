@@ -18,6 +18,65 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('additional Swedish classics retain complete scan-checked readings and distinct works', () => {
+  const ids = ['spelmannen', 'minnet', 'jag-har-dromt']
+    .map(key => `recognized-swedish-classics-2-andersson-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-swedish-classics-2-')).length, 3);
+  assert.deepEqual(selected.map(lineCount), [24, 18, 32]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(block => block.split('\n').length)), [
+    [4, 4, 4, 4, 4, 4], [8, 8, 2], [4, 4, 4, 4, 4, 4, 4, 4],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '1117168a37fec6fd39558483caa4fdfa27b3b214a00e77198cffe41051334ba3',
+    'ad101a70e0e2480b713b3b0418c6fe17e3ad46b3f4626f61a2ae2a1119ab5bec',
+    'fb06d6833e9af74a638ca15921ba1f2379f3c407ef0afe7951ea4cc22d738948',
+  ]);
+  const [spelmannen, minnet, dream] = selected;
+  assert.ok(spelmannen.text.startsWith('Jag är spelman, jag skall spela på gravöl och på dans,\n'));
+  assert.ok(spelmannen.text.endsWith('och jag vill dö och jag vill spela till uppståndelse en gång.'));
+  assert.match(spelmannen.context, /distinct from En spelmans jordafärd/);
+  assert.ok(minnet.text.includes('såg jag ditt mörka hår.\nOch het av lust jag smekte'));
+  assert.ok(minnet.text.endsWith('och nu är allt ett minne,\nen saga från i går.'));
+  assert.match(minnet.context, /page turn is not treated as a stanza break.*posthumous poem also titled Minnet/);
+  assert.ok(dream.text.includes('Jag har drömt att en liten, liten kvinna,'));
+  assert.ok(dream.text.endsWith('som en stråkton i dödsmörkret ned?'));
+  assert.match(dream.context, /school text omits that comma/);
+  const queries = [
+    ['Spelmannen', 'gravöl'],
+    ['Minnet', 'Raiskis'],
+    ['Jag har drömt'.normalize('NFD'), 'tjärnlanden'.normalize('NFD')],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.authorId, 'dan-andersson');
+    assert.equal(poem.language, 'Swedish');
+    assert.equal(poem.lang, 'sv');
+    assert.equal(poem.year, 1921);
+    assert.match(poem.yearLabel, /printing.*not necessarily composition/);
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law.*No translation or recording/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Swedish', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="sv" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  assert.deepEqual(filterPoems([dream], { language: 'Swedish', query: 'Jag har dromt' }), []);
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const opening = fold(added.text.split('\n').slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(opening), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-swedish-classics-2.py', '--check'], { encoding: 'utf8' }), /Verified 3 historical readings/);
+});
+
 test('central Greek classics retain complete historical readings and source uncertainties', () => {
   const ids = ['city', 'barbarians'].map(id => `recognized-greek-classics-3-cavafy-${id}`);
   const selected = ids.map(id => poems.find(poem => poem.id === id));
