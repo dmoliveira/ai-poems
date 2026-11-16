@@ -536,6 +536,60 @@ test('British classics preserve four complete historical readings and distinct w
   assert.match(execFileSync('python3', ['scripts/import-recognized-british-classics.py', '--check'], { encoding: 'utf8' }), /Verified 4 historical readings/);
 });
 
+test('additional Galician classics preserve complete 1880 readings and work boundaries', () => {
+  const ids = ['xusticia', 'pra-habana'].map(key => `recognized-galician-2-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-galician-2-')).length, 2);
+  // Counts include the printed separator and section labels, not just verse.
+  assert.deepEqual(selected.map(lineCount), [29, 85]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(block => block.split('\n').length)), [
+    [4, 5, 4, 1, 4, 5, 4, 2], [1, 4, 4, 4, 4, 1, 4, 4, 4, 4, 1, 4, 4, 4, 4, 6, 1, 10, 4, 1, 12],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'efef0bf07391c8dd045eed7f6a0537851cd37a9cbe0e25b465fc3abeb3a8f9e6',
+    '46d74a3e891a0268f9f1efee84138e4a18e2adf9f84a87dfa1fc45d2a4fbce9f',
+  ]);
+  const [justice, havana] = selected;
+  assert.match(justice.text, /^Aquês que tên fama d’honrados n’a vila[\s\S]*Fiẍeronm’un leito de toẍos e silvas,[\s\S]*\n\n—\n\n—Salvademe[\s\S]*Y-a lua escondiese,[\s\S]*Eu, n’eles; y as leises, n’a man qu’os ferira\.$/);
+  assert.match(justice.context, /Spanish self-translation.*same work.*not included/);
+  assert.deepEqual([...havana.text.matchAll(/^(I|II|III|IV|V)$/gm)].map(match => match[1]), ['I', 'II', 'III', 'IV', 'V']);
+  assert.match(havana.text, /^I\n\nVenderonll’os bois,[\s\S]*\n\nV\n\nEste vaise y aquel vaise[\s\S]*Que ninguen consolará\.$/);
+  assert.match(havana.context, /five numbered parts form one work.*last part, not a separate poem/);
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.authorId, 'rosalia-de-castro');
+    assert.equal(poem.lang, 'gl');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    assert.match(poem.yearLabel, /1880 printing · not necessarily composition date/);
+    assert.match(poem.source, index === 0 ? /#page=93$/ : /#page=247$/);
+    for (const query of [poem.title, ...poem.searchAliases]) {
+      assert.ok(filterPoems([poem], { language: 'Galician', query }).includes(poem), query);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="gl" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Exact titles, texts and openings cannot rule out every variant or translation.
+  const fold = text => text.normalize('NFKD').toLowerCase().replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').filter(line => line && !/^(I|II|III|IV|V|—)$/.test(line)).slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-galician-classics-2.py', '--check'], { encoding: 'utf8' }), /Verified 2 historical readings/);
+});
+
 test('Galician classics preserve three complete 1863 readings and source boundaries', () => {
   const ids = ['adios-rios', 'airinos', 'campanas-de-bastabales'].map(id => `recognized-galician-classics-${id}`);
   const selected = ids.map(id => poems.find(poem => poem.id === id));
