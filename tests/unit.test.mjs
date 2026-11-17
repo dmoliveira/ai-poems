@@ -18,6 +18,66 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Dutch lyrics retain complete source-specific readings and distinct works', () => {
+  const ids = ['hooft-grysaert', 'gezelle-ruischen', 'gezelle-dien-avond']
+    .map(key => `recognized-dutch-lyrics-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-dutch-lyrics-')).length, 3);
+  assert.deepEqual(selected.map(lineCount), [14, 48, 32]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(block => block.split('\n').length)), [
+    [14], [8, 8, 8, 8, 8, 8], [32],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '72d547a9a3d787d745b6c9ca4830f517653204060ea3556c733fd271ec540c70',
+    '0c9d4c1dc7769806ac4daf0ed821e4baa4c5156f544cad81ddcdbe27fa5ddef9',
+    'd6c29362b59fa7ab86508e1a21727501246a784c0a8bb77115a5bbf2c6360566',
+  ]);
+  const [hooft, riet, avond] = selected;
+  assert.match(hooft.text, /^Ghesvvinde Grysaert,[\s\S]*en tob de langhe daghen[\s\S]*Dat ick de Tijt die ick vercorten vvil, verlangh\.$/);
+  assert.match(hooft.context, /1611.*Sonnet.*opening.*vv spellings.*1610.*line 10/s);
+  assert.match(riet.text, /^O! ’t ruischen van het ranke riet![\s\S]*’t windtje kwam,[\s\S]*eenen rieten staal,[\s\S]*klagend riet!$/);
+  assert.doesNotMatch(riet.text, /Homer|δονακ/);
+  assert.match(riet.context, /Homeric motto.*not part.*1903.*undated.*1858.*windtje.*rieten staal/s);
+  assert.match(avond.text, /^’k Heb menig menig uur bij u\n  gesleten en genoten,[\s\S]*\n  dien avond — en — die rooze!$/);
+  assert.ok(avond.text.split('\n').every((line, index) => index % 2 === 0 ? !line.startsWith(' ') : line.startsWith('  ')));
+  assert.match(avond.context, /Aan den voorgaande.*first printed in 1863.*1862.*1879.*menig menig.*indentation/s);
+  const queries = [
+    ['Gezwinde grijsaard', 'Geswinde grijsart', 'Pieter Corneliszoon Hooft'],
+    ["O 't ruisen van het ranke riet", 'De Bedroefde', 'Guido Gezelle'],
+    ['Dien avond en die roze', 'menig menig uur bij u', 'Guido Gezelle'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Dutch');
+    assert.equal(poem.lang, 'nl');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: 'Dutch', query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="nl" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // This screen cannot exclude every historical variant, translation or paraphrase.
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/vv/gu, 'w').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-dutch-lyrics.py', '--check'], { encoding: 'utf8' }), /Verified 3 historical readings/);
+});
+
 test('German women poets retain complete source-specific readings and distinct works', () => {
   const ids = ['brun-chamounix', 'guenderrode-die-eine-klage'].map(key => `recognized-german-women-${key}`);
   const selected = ids.map(id => poems.find(poem => poem.id === id));
