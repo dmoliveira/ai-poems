@@ -18,6 +18,48 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Ady’s Őrizem a szemed preserves its complete corroborated reading', () => {
+  const id = 'recognized-ady-1918-orizem';
+  const selected = poems.filter(poem => poem.id === id);
+  assert.equal(selected.length, 1);
+  const [poem] = selected;
+  assert.equal(lineCount(poem), 16);
+  assert.deepEqual(poem.text.split('\n\n').map(stanza => stanza.split('\n').length), [4, 4, 4, 4]);
+  assert.equal(poem.text.split('\n\n')[0], poem.text.split('\n\n')[2]);
+  assert.equal(createHash('sha256').update(poem.text).digest('hex'), '22e453eb3b45f87d0243e0359c143ff568240a24711fb7cca3b9a0ac99d92eb4');
+  assert.match(poem.text, /^Már vénülő kezemmel[\s\S]*S őrizem a szemedet\.$/);
+  assert.equal(poem.authorId, 'endre-ady');
+  assert.equal(poem.language, 'Hungarian');
+  assert.equal(poem.lang, 'hu');
+  assert.equal(poem.creationPlace, undefined);
+  assert.deepEqual(poem.themes, []);
+  assert.deepEqual(poem.translations, []);
+  assert.match(poem.sourceTitle, /p\. 193 \/ PDF p\. 199/);
+  assert.match(poem.context, /1916 Nyugat.*agrees.*not a facsimile.*Hatvany.*brother Lajos Ady/s);
+  assert.match(poem.rights, /public domain in the United States.*Hatvany.*check local law/s);
+  for (const query of ['Őrizem a szemed', 'Orizem a szemed', 'Már vénülő kezemmel', 'Ady Endre']) {
+    assert.ok(filterPoems([poem], { language: 'Hungarian', query }).includes(poem), query);
+  }
+  const html = renderPoem(poem, poems, '/ai-poems/');
+  assert.ok(html.includes(`class="verse" lang="hu" dir="ltr">${escapeHtml(poem.text)}`));
+  assert.ok(html.includes(escapeHtml(poem.source)));
+  assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  // Exact-title and reading screens cannot exclude every historical translation or paraphrase.
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  const full = fold(poem.text);
+  const opening = fold(poem.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+  for (const other of poems.filter(item => item.id !== id)) {
+    assert.notEqual(fold(other.title), fold(poem.title), other.id);
+    for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+      const candidate = fold(text);
+      if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), other.id);
+      assert.ok(!candidate.includes(opening), other.id);
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-ady-orizem.py', '--check'], { encoding: 'utf8' }), /Verified one historical reading/);
+});
+
 test('historical elegies retain distinct complete source-specific readings', () => {
   const ids = ['egidius', 'vondel-kinder-lijck', 'quevedo-amor-constante']
     .map(key => `recognized-elegies-${key}`);
