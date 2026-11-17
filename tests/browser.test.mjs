@@ -27,6 +27,71 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Russian first printings support mobile discovery, saved data and static readers', async () => {
+  const ids = ['fet-greeting', 'fet-whisper', 'tyutchev-russia', 'pushkin-siberia']
+    .map(key => `russian-first-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  const aliases = ['Рассказать, что солнце встало', 'Шёпот, робкое дыханье', 'Аршином общим не измерить', 'Во глубине сибирских руд'];
+  const seed = { saved: ['old-pond-basho', 'recognized-housman-1914-athlete', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Russian');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+      assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'Russian');
+    }
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Russian');
+    for (const query of [poem.title, aliases[index]]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { language: 'Russian', query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'ru');
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...ids]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Russian');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) {
+    assert.equal(await staticPage.locator(`#index-original-Russian a[href$="/poems/${poem.id}/"]`).count(), 1);
+  }
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'ru');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: poem.contextSourceTitle }).getAttribute('href'), poem.contextSource);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await staticPage.goto(`${base}poems/${ids[1]}/`);
+  assert.match(await staticPage.locator('body').textContent(), /1856.*Шёпот, робкое дыханье.*one work/s);
+  await staticPage.goto(`${base}poems/${ids[3]}/`);
+  assert.match(await staticPage.locator('body').textContent(), /No autograph survives.*Разбудит.*Пробудит/s);
+  await fallback.close();
+});
+
 test('Housman readings support mobile search, saved state and static readers', async () => {
   const ids = ['loveliest', 'one-and-twenty', 'athlete', 'bredon-hill', 'wenlock', 'blue-hills', 'rue']
     .map(key => `recognized-housman-1914-${key}`);
