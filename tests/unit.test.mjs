@@ -18,6 +18,66 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('historical elegies retain distinct complete source-specific readings', () => {
+  const ids = ['egidius', 'vondel-kinder-lijck', 'quevedo-amor-constante']
+    .map(key => `recognized-elegies-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-elegies-')).length, 3);
+  assert.deepEqual(selected.map(lineCount), [19, 16, 14]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(block => block.split('\n').length)), [
+    [5, 3, 3, 5, 3], [16], [14],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '2ec77b34c230317df4b45709eeda2f378b396266bbf6ebcc35606deda4055901',
+    '3d0a3c9bd559be7a71500da4e4c8dfcfe1ce87af9a89e4997710d56b4f6677ae',
+    'db9045149cd54ed8e6407fee2f79f4177feffd9f5c45c338c7ffcd65e0154cfa',
+  ]);
+  const [egidius, vondel, quevedo] = selected;
+  assert.equal(egidius.anonymous, true);
+  assert.match(egidius.text, /^Egidius, waer bestu bleven\?[\s\S]*Du coors de doot, du liets mi tleven\.[\s\S]*Du coors die doot, du liets mi tleven\.$/);
+  assert.match(egidius.context, /1849.*19 lines.*de doot.*die doot.*abbreviates.*21 lines.*Authorship.*disputed/s);
+  assert.match(vondel.text, /^Konstantijntje, ’t saligh kijntje,[\s\S]*boven sweef ick,[\s\S]*Na palleysen, uyt het slick[\s\S]*Eeuwigh gaet voor oogenblick\.$/);
+  assert.ok(vondel.text.split('\n').every((line, index) => index % 2 === 0 ? !line.startsWith(' ') : line.startsWith('  ')));
+  assert.match(vondel.context, /1857.*16 lines.*Konstantijntje.*1644.*Constantijntje.*1632.*1633.*indentation/s);
+  assert.match(quevedo.text, /^Cerrar podrà mis ojos la postrera[\s\S]*Mas no se de essotra parte en la rivera[\s\S]*Su cuerpo dejaràn, no su cuidado\nSeran ceniça, mas tendrà sentido;\nPolvo seràn, mas polvo enamorado\.$/);
+  assert.match(quevedo.context, /1650.*14-line.*extra 'se'.*1648.*plural.*ceniça.*modern editions/s);
+  assert.equal(quevedo.authorId, 'francisco-de-quevedo');
+  const queries = [
+    ['Egidiuslied', 'Egidius waer bestu bleven', 'Gruuthuse II 98'],
+    ['Kinder-lyck', 'Constantijntje', 'Joost van den Vondel'],
+    ['Amor constante mas alla de la muerte', 'Cerrar podrá mis ojos la postrera', 'Francisco de Quevedo'],
+  ];
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.lang, index === 2 ? 'es' : 'nl');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law/);
+    for (const query of queries[index]) assert.ok(filterPoems([poem], { language: poem.language, query }).includes(poem), query);
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="${poem.lang}" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+  // Exact readings and openings cannot exclude every historical translation or paraphrase.
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/[\u017f]/gu, 's').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-recognized-elegies.py', '--check'], { encoding: 'utf8' }), /Verified 3 historical readings/);
+});
+
 test('Dutch lyrics retain complete source-specific readings and distinct works', () => {
   const ids = ['hooft-grysaert', 'gezelle-ruischen', 'gezelle-dien-avond']
     .map(key => `recognized-dutch-lyrics-${key}`);
