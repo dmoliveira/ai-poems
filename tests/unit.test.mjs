@@ -18,6 +18,75 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Russian anthology witnesses preserve seven complete source-specific works', () => {
+  const keys = ['pushkin-winter-road', 'pushkin-demons', 'tyutchev-spring-waters', 'tyutchev-autumn',
+    'tyutchev-murderously', 'tyutchev-last-love', 'lermontov-cliff'];
+  const selected = keys.map(key => poems.find(poem => poem.id === `russian-witness-${key}`));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('russian-witness-')).length, 7);
+  assert.deepEqual(selected.map(lineCount), [28, 56, 12, 12, 40, 12, 8]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [4, 4, 4, 4, 4, 4, 4], [8, 8, 8, 8, 8, 8, 8], [4, 4, 4], [4, 4, 4],
+    [4, 4, 4, 4, 4, 4, 4, 4, 4, 4], [4, 4, 4], [4, 4],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'b285102509e1d42895b79092b67f7730deb4688d079b976b36978c23a2c5bd84',
+    'a136667f6c8a14a09341611841239439041a89b8ed30b12ddc5934a8440872ed',
+    '6ab65725a6022129a100993ee151bdfa011f8d2e260f02fad02ea737bd081490',
+    '257b73e6199504f4b7f0c6dc959da1c920fc35ab672800161c3308176194ebd6',
+    '33f0e216a8d643f472db265998696b6c0904f49f795ad12fe879071324fc2bae',
+    '0ae05e113ca714622aa2c93de43d2996dc090fd3942e7aeeb0e0d77e074c276f',
+    'b38867dbf80a7876b186db2d8a73298c9860ecf69271c1af0b94dc7945b76bd9',
+  ]);
+  const [road, demons, spring, autumn, murderously, lastLove, cliff] = selected;
+  assert.match(road.text, /Колокольчик однозвучной[\s\S]*Мерной круг свой совершит/);
+  assert.match(road.context, /однозвучной.*Мерной.*однозвучный.*Мерный/s);
+  assert.deepEqual(demons.text.split('\n\n').filter(stanza => stanza.startsWith('Мчатся тучи'))
+    .map(stanza => stanza.split('\n')[2]), [
+    'Освещает мрак летучий;', 'Озаряет снег летучий;', 'Освещает снег летучий;',
+  ]);
+  assert.match(demons.context, /мрак летучий.*Озаряет снег.*Освещает снег.*printing error/s);
+  assert.match(spring.text, /А воды с гор уже шумят;[\s\S]*Весна пришла, весна идет!/);
+  assert.match(spring.context, /1868.*А воды уж весной шумят.*one work/s);
+  assert.match(autumn.text, /Прозрачный воздух, день хрустальный/);
+  assert.match(autumn.context, /Six Poems.*1868.*Весь день стоит как бы хрустальный.*one work/s);
+  assert.match(murderously.text, /Ты помнишь ли, при вашей встрече,[\s\S]*О, как убийственно мы любим!/);
+  assert.match(lastLove.context, /not originally planned as a cycle.*Faust.*translation is not reproduced/s);
+  assert.match(cliff.text, /Он стоит: задумался глубоко,/);
+  const aliases = [
+    'Сквозь волнистые туманы', 'Освещает снег летучий', 'Ещё в полях белеет снег',
+    'Весь день стоит как бы хрустальный', 'Что сердцу нашему милей',
+    'О, как на склоне наших лет', 'Ночевала тучка золотая',
+  ];
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Russian');
+    assert.equal(poem.lang, 'ru');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law.*no translation, score or recording/s);
+    for (const query of [poem.title, aliases[index]]) {
+      assert.ok(filterPoems([poem], { language: 'Russian', query }).includes(poem), query);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="ru" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+    const full = fold(poem.text);
+    const opening = fold(poem.text.split('\n').slice(0, 2).join(''));
+    for (const other of poems.filter(item => item.id !== poem.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), other.id);
+        assert.ok(!candidate.includes(opening), other.id);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-russian-anthology-witnesses.py', '--check'], { encoding: 'utf8' }), /Verified 7 historical readings/);
+});
+
 test('Russian first printings preserve four distinct complete source-specific lyrics', () => {
   const ids = ['fet-greeting', 'fet-whisper', 'tyutchev-russia', 'pushkin-siberia']
     .map(key => `russian-first-${key}`);
