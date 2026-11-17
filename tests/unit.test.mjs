@@ -18,6 +18,68 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Russian first printings preserve four distinct complete source-specific lyrics', () => {
+  const ids = ['fet-greeting', 'fet-whisper', 'tyutchev-russia', 'pushkin-siberia']
+    .map(key => `russian-first-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('russian-first-')).length, 4);
+  assert.deepEqual(selected.map(lineCount), [16, 12, 4, 16]);
+  assert.ok(selected.every(poem => !poem.text.includes('\n\n')));
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'c20d80904a7f296ccb06b9b6baee433a42aabd11d276ea60c8ec35dcfb04911c',
+    '1645685acbba4224d3124cef060dca2dd4e12b63b04484a19e14b0e7e2400111',
+    '6a6fd406c4c200eb40155f9ba08d465f5e3c28c1852d0f473ef32807c24fbc52',
+    'fca0117154b0959e636b038addc823362b32ea4b04a69570a47d8ff6c1930b59',
+  ]);
+  const [greeting, whisper, russia, siberia] = selected;
+  assert.match(greeting.text, /Весь проснулся веткой каждой,[\s\S]*Что душа всё также счастью/);
+  assert.match(greeting.context, /1843.*16 printed lines.*no stanza breaks.*также.*проснулся/s);
+  assert.match(whisper.text, /^Шёпот сердца, уст дыханье,[\s\S]*Бледный блеск и пурпур розы,\nРечь не говоря,/);
+  assert.match(whisper.context, /1850.*1856.*Шёпот, робкое дыханье.*one work.*authorship.*not established/s);
+  assert.match(russia.text, /^Умом Россию не понять,\nАршином общим не измерить;\nУ ней особенная стать —\nВ Россию можно только верить\.$/);
+  assert.match(russia.context, /printed date is not a verse line.*semicolon.*other witnesses differ/s);
+  assert.doesNotMatch(russia.text, /1866|ноября/);
+  assert.match(siberia.text, /Надежда в мрачном подземельи,\nРазбудит бодрость и веселье\.\nПридёт желанная пора\nЛюбовь/);
+  assert.match(siberia.context, /footnote.*not part of the poem.*No autograph survives.*1903.*Пробудит/s);
+  assert.doesNotMatch(siberia.text, /1827|Пробудит|Стихи эти были присланы/);
+  assert.deepEqual(selected.map(poem => poem.authorId), ['afanasy-fet', 'afanasy-fet', 'fyodor-tyutchev', 'alexander-pushkin']);
+  const queries = [
+    ['Я пришел к тебе с приветом', 'Рассказать, что солнце встало', 'Афанасий Шеншин'],
+    ['Шёпот, робкое дыханье', 'Шепот робкое дыханье', 'Трели соловья'],
+    ['Умом Россию не понять', 'Аршином общим не измерить', 'Федор Тютчев'],
+    ['Во глубине сибирских руд', 'Послание в Сибирь', 'Александр Пушкин'],
+  ];
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Russian');
+    assert.equal(poem.lang, 'ru');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law.*no translation, score or recording/s);
+    for (const query of [poem.title, ...queries[index]]) {
+      assert.ok(filterPoems([poem], { language: 'Russian', query }).includes(poem), query);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="ru" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+    // Normalized originals and attached translations cannot catch every paraphrase or translation.
+    const full = fold(poem.text);
+    const opening = fold(poem.text.split('\n').slice(0, 2).join(''));
+    for (const other of poems.filter(item => item.id !== poem.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), other.id);
+        assert.ok(!candidate.includes(opening), other.id);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-russian-first-printings.py', '--check'], { encoding: 'utf8' }), /Verified 4 historical readings/);
+});
+
 test('Housman poems preserve seven complete Riccardi readings and their boundaries', () => {
   const keys = ['loveliest', 'one-and-twenty', 'athlete', 'bredon-hill', 'wenlock', 'blue-hills', 'rue'];
   const ids = keys.map(key => `recognized-housman-1914-${key}`);
