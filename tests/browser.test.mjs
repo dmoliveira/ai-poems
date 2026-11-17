@@ -27,6 +27,57 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Ady’s Őrizem a szemed supports Hungarian mobile search and a static reader', async () => {
+  const poem = poems.find(item => item.id === 'recognized-ady-1918-orizem');
+  assert.ok(poem);
+  const seed = { saved: ['old-pond-basho', 'recognized-elegies-egidius', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Hungarian');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  await page.locator('#filter-summary').click();
+  await page.getByLabel('Original language').selectOption('Hungarian');
+  for (const query of ['Őrizem a szemed', 'Orizem a szemed', 'Már vénülő kezemmel']) {
+    await page.getByLabel('Search the poetry library').fill(query);
+    const count = filterPoems(poems, { language: 'Hungarian', query }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+  }
+  await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+  assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+  assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'hu');
+  await page.getByRole('button', { name: /Save poem/ }).click();
+  await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, poem.id]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Hungarian');
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'Hungarian');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  assert.equal(await staticPage.locator(`#index-original-Hungarian a[href$="/poems/${poem.id}/"]`).count(), 1);
+  assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+  assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+  assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'hu');
+  assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+  assert.equal(await staticPage.getByRole('link', { name: poem.contextSourceTitle }).getAttribute('href'), poem.contextSource);
+  assert.match(await staticPage.locator('body').textContent(), /1916 Nyugat.*not a facsimile.*Hatvany/s);
+  assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await fallback.close();
+});
+
 test('historical elegies support mobile search, saved state and static readers', async () => {
   const ids = ['egidius', 'vondel-kinder-lijck', 'quevedo-amor-constante']
     .map(key => `recognized-elegies-${key}`);
