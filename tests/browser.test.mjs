@@ -27,6 +27,73 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('historical elegies support mobile search, saved state and static readers', async () => {
+  const ids = ['egidius', 'vondel-kinder-lijck', 'quevedo-amor-constante']
+    .map(key => `recognized-elegies-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  const queries = [
+    ['Egidiuslied', 'Egidius waer bestu bleven', 'Gruuthuse II 98'],
+    ['Kinder-lyck', 'Constantijntje', 'Joost van den Vondel'],
+    ['Amor constante mas alla de la muerte', 'Cerrar podrá mis ojos la postrera', 'Francisco de Quevedo'],
+  ];
+  const seed = { saved: ['old-pond-basho', 'recognized-dutch-lyrics-hooft-grysaert', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Dutch');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+      assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'Dutch');
+    }
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption(poem.language);
+    for (const query of queries[index]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { language: poem.language, query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      assert.equal(await page.locator(`#results a[href$="/poems/${poem.id}/"]`).count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...ids]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Dutch');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1);
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), poem.lang);
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: poem.contextSourceTitle }).getAttribute('href'), poem.contextSource);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await staticPage.goto(`${base}poems/${ids[0]}/`);
+  assert.match(await staticPage.locator('body').textContent(), /abbreviates the final refrain.*21 lines.*Authorship is disputed/s);
+  await staticPage.goto(`${base}poems/${ids[2]}/`);
+  assert.match(await staticPage.locator('body').textContent(), /extra 'se'.*1648.*plural.*ceniça/s);
+  await fallback.close();
+});
+
 test('Dutch lyrics support mobile search, saved state and static readers', async () => {
   const ids = ['hooft-grysaert', 'gezelle-ruischen', 'gezelle-dien-avond']
     .map(key => `recognized-dutch-lyrics-${key}`);
