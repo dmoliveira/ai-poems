@@ -18,6 +18,66 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Housman poems preserve seven complete Riccardi readings and their boundaries', () => {
+  const keys = ['loveliest', 'one-and-twenty', 'athlete', 'bredon-hill', 'wenlock', 'blue-hills', 'rue'];
+  const ids = keys.map(key => `recognized-housman-1914-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('recognized-housman-1914-')).length, 7);
+  assert.deepEqual(selected.map(lineCount), [12, 16, 28, 35, 20, 8, 8]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [4, 4, 4], [8, 8], [4, 4, 4, 4, 4, 4, 4], [5, 5, 5, 5, 5, 5, 5], [4, 4, 4, 4, 4], [4, 4], [4, 4],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'e0232c5a1e61fc38e9a7f39af37530b1818219d232d9792b0617990b92324252',
+    '0ee852c67b320a077257667b6044a6675f96dc6337b7b7af96bf743fcd956898',
+    '0612e483a607e35c867c60a7f200e4f6d370f75d2de8dcd7e56cab0075923c00',
+    '869a4743a14bdd7e8c66b9d27472713ad9aed7f2317b596c36e5690af2c38a38',
+    '23016d625717329fc90a7b01d6a8933cc41553dd65eec69aa06876172c0fe7b6',
+    '645241c98ebb94b59da49cd179a46a63b982a9a93eb45db37717d9f0edfac952',
+    '6223041d11f8f5db7d4c7d9bce86ff0db5420739d80bbf14378feb494033d445',
+  ]);
+  assert.match(selected[2].text, /before its echoes fade,[\s\S]*strengthless dead\nAnd find/);
+  assert.match(selected[2].context, /its echoes.*no comma.*the echoes/s);
+  assert.match(selected[3].context, /pronounced 'Breedon'.*footnote is not a verse line/s);
+  assert.doesNotMatch(selected[3].text, /Pronounced Breedon/);
+  assert.match(selected[1].context, /two eight-line stanzas.*three stanzas/s);
+  assert.match(selected[4].text, /^On Wenlock Edge the wood’s in trouble;[\s\S]*Are ashes under Uricon\.$/);
+  assert.match(selected[5].text, /land of lost content,\nI see it shining plain/);
+  const pages = [18, 27, 30, 31, 39, 45, 58];
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.authorId, 'a-e-housman');
+    assert.equal(poem.language, 'English');
+    assert.equal(poem.lang, 'en');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.yearLabel, /1914 printing.*1896/);
+    assert.match(poem.rights, /public domain in the United States.*check local law.*no translation, score or recording/s);
+    assert.ok(poem.source.endsWith(`#page=${pages[index]}`));
+    for (const query of [poem.title, ...poem.searchAliases, 'Alfred Edward Housman']) {
+      assert.ok(filterPoems([poem], { language: 'English', query }).includes(poem), query);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="en" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+    // Same-titled works may be distinct; text screens cannot exclude every translation or paraphrase.
+    const full = fold(poem.text);
+    const opening = fold(poem.text.split('\n').filter(Boolean).slice(0, 2).join(''));
+    for (const other of poems.filter(item => item.id !== poem.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), other.id);
+        assert.ok(!candidate.includes(opening), other.id);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-housman-riccardi-1914.py', '--check'], { encoding: 'utf8' }), /Verified 7 historical readings/);
+});
+
 test('Ady’s Őrizem a szemed preserves its complete corroborated reading', () => {
   const id = 'recognized-ady-1918-orizem';
   const selected = poems.filter(poem => poem.id === id);
