@@ -18,6 +18,62 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Edward Thomas 1917 readings retain complete poems and edition-specific details', () => {
+  const ids = ['the-owl', 'in-memoriam', 'adlestrop', 'lights-out', 'aspens']
+    .map(key => `edward-thomas-1917-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('edward-thomas-1917-')).length, 5);
+  assert.deepEqual(selected.map(lineCount), [16, 4, 16, 30, 24]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)), [
+    [4, 4, 4, 4], [4], [4, 4, 4, 4], [6, 6, 6, 6, 6], [4, 4, 4, 4, 4, 4],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '24118fa1a4a2e5ebca0fa0661008c5f79a1c18aca9b5fd390bb25cedc8ff5972',
+    '812e6183d73bb74c674a10c70c030c9a889320b5723e701b9eca17f00c5168f7',
+    'e7074b87d8bed731a5c72773e887581fc64d84effd2aa40a45ec5e399b689c3b',
+    'e3806f8da8475c7e0aaa3d8924702df53bf80af879cf3b169122575ee824ca61',
+    '57c2b84e81fabdb937c32ea47a3ed5e02b21bf09229637cc06d2b1817669dc82',
+  ]);
+  const [owl, memorial, adlestrop, lights, aspens] = selected;
+  assert.match(owl.text, /^Downhill I came, hungry, and yet not starved;[\s\S]*Soldiers and poor, unable to rejoice\.$/);
+  assert.match(memorial.context, /1917 printing.*manuscript dated 6\.IV\.15.*heading and when are uncertain/s);
+  assert.match(adlestrop.text, /^Yes\. I remember Adlestrop—[\s\S]*Of Oxfordshire and Gloucestershire\.$/);
+  assert.match(adlestrop.context, /1917 book opens 'Yes\. I remember'.*1920.*'Yes, I remember'/s);
+  assert.match(lights.text, /Deceived the travellers\nSuddenly now blurs,[\s\S]*I must enter and leave alone\nI know not how\./);
+  assert.match(lights.context, /no comma after 'travellers'.*other editions differ/s);
+  assert.match(aspens.text, /Empty as sky, with every other sound[\s\S]*the thick-furred gloom,/);
+  assert.match(aspens.context, /pseudonym Edward Eastaway.*saw proofs.*does not prove/s);
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const poem of selected) {
+    assert.equal(poem.authorId, 'edward-thomas');
+    assert.equal(poem.language, 'English');
+    assert.equal(poem.lang, 'en');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law.*no translation, score or recording/s);
+    for (const query of [poem.title, ...poem.searchAliases, 'Edward Eastaway']) {
+      assert.ok(filterPoems([poem], { language: 'English', query }).includes(poem), query);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="en" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+    const full = fold(poem.text);
+    const opening = fold(poem.text.split('\n').slice(0, 2).join(''));
+    for (const other of poems.filter(item => item.id !== poem.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), other.id);
+        assert.ok(!candidate.includes(opening), other.id);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-edward-thomas-1917.py', '--check'], { encoding: 'utf8' }), /Verified 5 historical readings/);
+});
+
 test('Obstfelder 1893 poems preserve complete readings, layout and source boundaries', () => {
   const ids = ['jeg-ser', 'navnlos', 'vaar', 'regn'].map(key => `obstfelder-1893-${key}`);
   const selected = ids.map(id => poems.find(poem => poem.id === id));
@@ -3139,7 +3195,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician', 'Hungarian', 'Czech'].includes(poem.language) && !poem.id.startsWith('obstfelder-1893-') && !poem.id.startsWith('recognized-danish-poems-') && !poem.id.startsWith('recognized-danish-classics-') && !poem.id.startsWith('recognized-nynorsk-') && !poem.id.startsWith('recognized-norwegian-') && !poem.id.startsWith('recognized-british-classics-') && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician', 'Hungarian', 'Czech'].includes(poem.language) && !poem.id.startsWith('edward-thomas-1917-') && !poem.id.startsWith('obstfelder-1893-') && !poem.id.startsWith('recognized-danish-poems-') && !poem.id.startsWith('recognized-danish-classics-') && !poem.id.startsWith('recognized-nynorsk-') && !poem.id.startsWith('recognized-norwegian-') && !poem.id.startsWith('recognized-british-classics-') && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
