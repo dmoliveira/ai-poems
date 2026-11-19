@@ -18,6 +18,65 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Koltsov early printings preserve six complete distinct source-specific poems', () => {
+  const ids = ['old-man', 'nightingale', 'rye', 'ploughman', 'reflection', 'peasant']
+    .map(key => `koltsov-early-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('koltsov-early-')).length, 6);
+  assert.deepEqual(selected.map(lineCount), [16, 28, 24, 44, 24, 52]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)),
+    [4, 7, 6, 11, 6, 13].map(count => Array(count).fill(4)));
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '515b95be755969ea0cb9f941bc2d47a3336c8277af8641ed9b49ec9e2adffc59',
+    '886679b55f4843290ad5bc4755e545acae9e0d1965bf54a4f090e18d0c762e7a',
+    'a4e077a499a683135b167f85da94fa1f200e7531ffc75c0bd1c890e409c1d9f5',
+    '7d8f49473309a52ccbd34dea41323546b20a99c08659e217798fa378a5bbd47a',
+    '7895f47f3aa9d3b5bd10674aff65edad58f0b67372dfbdea8e49cd69edddfc66',
+    '5c65c8eca58b5a26a01ad79e2d51dd4266f79bfbc327611c3f36facbca25adb2',
+  ]);
+  const [oldMan, nightingale, rye, ploughman, reflection, peasant] = selected;
+  assert.match(oldMan.text, /Коня быстрова,[\s\S]*Солнце с Запада!$/);
+  assert.match(nightingale.text, /Без нея, ночью, мне[\s\S]*К душе девице!$/);
+  assert.match(rye.text, /Дума чорная!$/);
+  assert.match(rye.context, /чорная.*черная/s);
+  assert.match(ploughman.text, /Я сам, друг, с тобою,[\s\S]*Мать земля сырая;[\s\S]*Выростет и колос,/);
+  assert.match(ploughman.context, /Я сам, друг, с тобою.*1846.*Я сам-друг с тобою/s);
+  assert.match(reflection.text, /Друга вернова;[\s\S]*Всю размыкала\.[\s\S]*Как мне век дожить\nОдинокому\.$/);
+  assert.match(reflection.context, /Русская песня.*later identifying title.*Всю размыкала/s);
+  assert.match(peasant.text, /Хоть шаром покатись\.[\s\S]*Ты с бедою сидишь,[\s\S]*Бражку ковшиком пьют\.$/);
+  assert.match(peasant.context, /printed 1839 date is not verse.*покатись.*бедою/s);
+  const aliases = ['Оседлаю коня', 'Под моим окном', 'Спелым колосом',
+    'Мать земля сырая', 'Сяду я за стол', 'Ведь весна на дворе'];
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Russian');
+    assert.equal(poem.lang, 'ru');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law.*no translation, score or recording/s);
+    for (const query of [poem.title, aliases[index]]) {
+      assert.ok(filterPoems([poem], { language: 'Russian', query }).includes(poem), query);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="ru" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+    const full = fold(poem.text);
+    const opening = fold(poem.text.split('\n').slice(0, 2).join(''));
+    for (const other of poems.filter(item => item.id !== poem.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), other.id);
+        assert.ok(!candidate.includes(opening), other.id);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-koltsov-early-prints.py', '--check'], { encoding: 'utf8' }), /Verified 6 historical readings/);
+});
+
 test('Russian anthology witnesses preserve seven complete source-specific works', () => {
   const keys = ['pushkin-winter-road', 'pushkin-demons', 'tyutchev-spring-waters', 'tyutchev-autumn',
     'tyutchev-murderously', 'tyutchev-last-love', 'lermontov-cliff'];
