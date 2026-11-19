@@ -18,6 +18,53 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Koltsov harvest and forest retain complete first-print readings', () => {
+  const ids = ['koltsov-harvest-1836', 'koltsov-forest-1838'];
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.deepEqual(selected.map(lineCount), [108, 80]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(stanza => stanza.split('\n').length)),
+    [27, 20].map(count => Array(count).fill(4)));
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '3360270de410bb3be3886349c5d395ad7dcbb4be3e8b20e64c51bd3494a1f264',
+    '54377064090993fabd1f9b209c5e718f1a774ed7cfbf8eebde271334eaf6b4f4',
+  ]);
+  const [harvest, forest] = selected;
+  assert.match(harvest.text, /^Красным полымем\nЗаря вспыхнула;[\s\S]*Понесли ее[\s\S]*Напилась земля\nВоды досыта;[\s\S]*Божьей Матери!$/);
+  assert.match(harvest.context, /Понесли ее.*Напилась земля.*1846.*Понесут ее.*Рожъ.*Рожь/s);
+  assert.match(forest.text, /^Что, дремучий лес,[\s\S]*Так подрезала[\s\S]*Понахлынули\nСилы вражие\.{4}[\s\S]*А соломешкой\.{4}$/);
+  assert.doesNotMatch(forest.text, /Снова тучи надо мною/);
+  assert.match(forest.context, /Pushkin epigraph, omitted.*подрезала.*1846.*дорезала.*reverses/s);
+  const aliases = ['Красным полымем', 'Что дремучий лес'];
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Russian');
+    assert.equal(poem.lang, 'ru');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law.*no translation, score or recording/s);
+    for (const query of [poem.title, aliases[index]]) {
+      assert.ok(filterPoems([poem], { language: 'Russian', query }).includes(poem), query);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="ru" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+    const full = fold(poem.text);
+    const opening = fold(poem.text.split('\n').slice(0, 2).join(''));
+    for (const other of poems.filter(item => item.id !== poem.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), other.id);
+        assert.ok(!candidate.includes(opening), other.id);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-koltsov-harvest-forest.py', '--check'], { encoding: 'utf8' }), /Verified 2 historical readings/);
+});
+
 test('Koltsov early printings preserve six complete distinct source-specific poems', () => {
   const ids = ['old-man', 'nightingale', 'rye', 'ploughman', 'reflection', 'peasant']
     .map(key => `koltsov-early-${key}`);

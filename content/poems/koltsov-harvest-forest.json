@@ -1,0 +1,78 @@
+[
+  {
+    "country": "Russia",
+    "language": "Russian",
+    "lang": "ru",
+    "direction": "ltr",
+    "era": "19th century",
+    "form": "Lyric",
+    "themes": [],
+    "mood": "paper",
+    "translations": [],
+    "author": "Aleksey Koltsov",
+    "authorId": "aleksey-koltsov",
+    "authorYears": "1809–1842",
+    "authorOriginal": "Алексей Васильевич Кольцов",
+    "authorAliases": [
+      "Алексей Кольцов",
+      "А. В. Кольцов",
+      "Alexei Koltsov",
+      "Aleksei Koltsov"
+    ],
+    "id": "koltsov-harvest-1836",
+    "title": "Урожай",
+    "year": 1836,
+    "yearLabel": "1836 printing · not necessarily composition date",
+    "collection": "Современник · 1836",
+    "sourceTitle": "Современник · 1836, vol. 2, pp. 189–193 / PDF pp. 187–191",
+    "source": "https://commons.wikimedia.org/wiki/File:Sovremennik_1836_02.pdf?page=187",
+    "contextSourceTitle": "Vdovin, Leibov and Kazakova · historical school anthologies",
+    "contextSource": "https://doi.org/10.31860/openlit-2021.9-B003",
+    "searchAliases": [
+      "Красным полымем",
+      "Заря вспыхнула",
+      "Harvest Koltsov"
+    ],
+    "context": "The signed 1836 printing separately heads this complete 27-quatrain poem. Its 'Понесли ее' and 'Напилась земля / Воды досыта' differ from the 1846 'Понесут ее' and 'Напилась воды / Земля досыта'. On p. 192 the first printing appears to read 'Рожъ'; here it is rendered 'Рожь', as on p. 193. The linked index records 36 historical school-anthology entries, including repeated editions and possibly excerpts, not a global ranking. Pre-reform letters, adjective endings, punctuation typography, spacing and stress marks are normalized; some historical spellings are retained. Russia is an associated place, not a claim about where the poem was written. Transcription error remains possible.",
+    "rights": "The 1836 printing is public domain in the United States. Koltsov died in 1842; the journal's publisher Alexander Pushkin died in 1837. Specific editorial changes to this reading are not established. Copyright, edition-related and moral rights vary by jurisdiction; check local law. The scan is linked, not republished; no translation, score or recording is included.",
+    "text": "Красным полымем\nЗаря вспыхнула;\nПо лицу земли\nТуман стелется.\n\nРазгорелся день\nОгнем солнечным,\nПодобрал туман\nВыше темя гор.\n\nНагустил его\nВ тучу черную;\nТуча черная\nПонахмурилась,\n\nПонахмурилась,\nЧто задумалась,\nСловно вспомнила\nСвою родину...\n\nПонесли ее\nВетры буйные\nВо все стороны\nСвета белого.\n\nОполчается\nГромом, бурею,\nОгнем молнии,\nДугой-радугой,\n\nОполчилася\nИ расширилась,\nИ ударила,\nИ пролилася\n\nСлезой крупною\nПроливным дождем\nНа земную грудь\nНа широкую.\n\nИ с горы небес\nГлядит солнышко:\nНапилась земля\nВоды досыта;\n\nНа поля, сады\nНа зеленые\nЛюди сельские\nНе насмотрятся.\n\nЛюди сельские\nБожьей милости\nЖдали с трепетом\nИ молитвою.\n\nЗаодно с весной\nПробуждаются\nИх заветные\nДумы мирные.\n\nДума первая:\nХлеб из закрома\nНасыпать в мешки,\nУбирать в воза;\n\nА вторая их\nБыла думушка:\nИз села гужом\nВ пору выехать;\n\nТретью думушку\nКак задумали,\nБогу-Господу\nПомолилися,\n\nЧем-свет по полю\nВсе разъехались —\nИ пошли гулять\nДруг за дружкою,\n\nГорстью полною\nХлеб раскидывать...\nИ давай пахать\nЗемлю плугами,\n\nДа кривой сохой\nПерепахивать,\nБороны зубьем\nПорасчесывать.\n\nПосмотрю пойду,\nПолюбуюся,\nЧто послал Господь\nЗа труды людям:\n\nВыше пояса\nРожь зернистая\nДремит колосом\nПочти до земи,\n\nСловно Божий гость,\nНа все стороны\nДню веселому\nУлыбается.\n\nВетерок по ней\nПлывет, лоснится,\nЗолотой волной\nРазбегается.\n\nЛюди семьями\nПринялися жать,\nКосить под корень\nРожь высокую;\n\nВ копны частые\nСнопы сложены;\nОт возов всю ночь\nСкрыпит музыка.\n\nНа гумнах везде,\nКак князья, скирды\nШироко сидят,\nПодняв головы.\n\nВидит солнышко —\nЖатва кончена;\nХолодней оно\nПошло к осени.\n\nНо жарка свеча\nПоселянина\nПред иконою\nБожьей Матери!"
+  },
+  {
+    "country": "Russia",
+    "language": "Russian",
+    "lang": "ru",
+    "direction": "ltr",
+    "era": "19th century",
+    "form": "Lyric",
+    "themes": [],
+    "mood": "paper",
+    "translations": [],
+    "author": "Aleksey Koltsov",
+    "authorId": "aleksey-koltsov",
+    "authorYears": "1809–1842",
+    "authorOriginal": "Алексей Васильевич Кольцов",
+    "authorAliases": [
+      "Алексей Кольцов",
+      "А. В. Кольцов",
+      "Alexei Koltsov",
+      "Aleksei Koltsov"
+    ],
+    "id": "koltsov-forest-1838",
+    "title": "Лес",
+    "year": 1838,
+    "yearLabel": "1838 printing · not necessarily composition date",
+    "collection": "Сын отечества · 1838",
+    "sourceTitle": "Сын отечества · 1838, vol. 2, section I, pp. 17–20 / PDF spreads 8–10",
+    "source": "https://commons.wikimedia.org/wiki/File:Сын_отечества_(и_Северный_архив)._Том_2._(1838,_март_и_апрель).pdf?page=8",
+    "contextSourceTitle": "Odesa Literary Museum · in memory of the poet",
+    "contextSource": "https://museum-literature.odessa.ua/ru/project/pamyati-poeta/",
+    "searchAliases": [
+      "Что дремучий лес",
+      "Призадумался",
+      "Forest Koltsov Pushkin"
+    ],
+    "context": "This signed 1838 printing has 20 quatrains and a separately printed Pushkin epigraph, omitted here. The Odesa Literary Museum discusses this specific 'Что, дремучий лес' as a notable memorial to Pushkin; its modern text is not the transcription source. The first printing has 'Так подрезала', 'Понахлынули / Силы вражие' and 'А соломешкой'; the 1846 edition reads 'Так дорезала', reverses those two lines and has 'А соломенкой'. Koltsov also wrote a different poem titled 'Лес'. Pre-reform letters, adjective endings, punctuation typography, spacing and stress marks are normalized; some historical spellings are retained. Russia is an associated place, not a claim about where the poem was written. Transcription error remains possible.",
+    "rights": "The 1838 printing is public domain in the United States. Koltsov died in 1842; journal editors Nikolay Grech and Faddey Bulgarin died in 1867 and 1859, and publisher Alexander Smirdin in 1857. Specific editorial changes to this reading are not established. Copyright, edition-related and moral rights vary by jurisdiction; check local law. The scan is linked, not republished; no translation, score or recording is included.",
+    "text": "Что, дремучий лес,\nПризадумался,\nГрустью темною\nЗатуманился?\n\nЧто Бова-силач,\nЗаколдованный,\nС непокрытою\nГоловой в бою!\n\nТы стоишь, поник,\nИ не ратуешь\nС мимолетною\nТучей-бурею?\n\nГустолиственный,\nТвой зеленый шлем\nБуйный вихрь сорвал\nИ развеял в прах.\n\nПлащ упал к ногам\nИ рассыпался....\nТы стоишь, поник\nИ не ратуешь.\n\nГде-ж девалася\nРечь высокая,\nСила гордая,\nДоблесть царская?\n\nУ тебя-ль было —\nВ ночь безмолвную,\nЗаливная песнь\nСоловьиная....\n\nУ тебя-ль было —\nВ дни роскошество,\nДруг и недруг твой\nПрохлаждаются....\n\nУ тебя-ль было —\nПоздно вечером,\nГрозно с бурею\nРазговор пойдет.\n\nРаспахнет она\nТучу черную,\nОбоймет тебя\nВетром-холодом,\n\nИ ты молвишь ей\nШумным голосом:\n«Вороти назад,\nДержи около!....»\n\nЗакружит она,\nРазыграется....\nДрогнет грудь твоя,\nЗашатается....\n\nВстрепенувшися,\nРазбушуешься —\nТолько свист кругом,\nГолоса и гул.\n\nБуря всплачется\nЛешим-ведьмою,\nИ несет свои\nТучи за море...\n\nГде-ж теперь твоя\nМочь зеленая?\nПочернел ты весь,\nЗатуманился....\n\nОдичал, замолк —\nТолько в непогодь\nВоешь жалобу\nНа безвременье.\n\nТак-то, темный лес,\nБогатырь Бова!\nВсю ты жизнь свою\nМаял битвами.\n\nНе осилили\nТебя сильные —\nТак подрезала\nОсень черная.\n\nЗнать, во время сна,\nК безоружному,\nПонахлынули\nСилы вражие....\n\nС богатырских плеч\nСняли голову —\nНе большой горой,\nА соломешкой...."
+  }
+]
