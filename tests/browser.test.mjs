@@ -27,6 +27,76 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+test('Obstfelder 1893 supports Norwegian mobile search and complete static readers', async () => {
+  const ids = ['jeg-ser', 'navnlos', 'vaar', 'regn'].map(key => `obstfelder-1893-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  const aliases = ['Jeg ser på den hvite himmel', 'Mørkets tåke senker seg', 'Vår', 'Zik zak'];
+  const seed = { saved: ['old-pond-basho', 'koltsov-early-rye', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Norwegian');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+      assert.equal(await page.getByLabel('Preferred reading language', { exact: true }).inputValue(), 'Norwegian');
+    }
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Norwegian');
+    for (const query of [poem.title, aliases[index]]) {
+      await page.getByLabel('Search the poetry library').fill(query);
+      const count = filterPoems(poems, { language: 'Norwegian', query }).length;
+      await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+      const result = page.locator(`#results a[href$="/poems/${poem.id}/"]`);
+      while (!await result.count() && await page.locator('#show-more').isVisible()) await page.locator('#show-more').click();
+      assert.equal(await result.count(), 1, query);
+    }
+    await page.locator(`#results a[href$="/poems/${poem.id}/"]`).click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'nb');
+    assert.equal(await page.locator('#original-panel .verse').evaluate(element => getComputedStyle(element).whiteSpace), 'pre-wrap');
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...ids]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Norwegian');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) {
+    assert.equal(await staticPage.locator(`#index-original-Norwegian a[href$="/poems/${poem.id}/"]`).count(), 1);
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'nb');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: poem.contextSourceTitle }).getAttribute('href'), poem.contextSource);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+    await staticPage.goto(base);
+    await staticPage.locator('#complete-index summary').click();
+  }
+  await staticPage.goto(`${base}poems/${ids[1]}/`);
+  assert.match(await staticPage.locator('body').textContent(), /uncertain whether a stanza break.*without an inserted blank line/s);
+  await staticPage.goto(`${base}poems/${ids[2]}/`);
+  assert.match(await staticPage.locator('body').textContent(), /Relative verse indentation.*interrupted words/s);
+  await staticPage.goto(`${base}poems/${ids[3]}/`);
+  assert.match(await staticPage.locator('body').textContent(), /repeated opening passage on p\. 75/);
+  assert.match(await staticPage.locator('body').textContent(), /1892 Samtiden.*tik, tak.*regn, regn.*1893.*tik tak.*regn regn/s);
+  await fallback.close();
+});
+
 test('Koltsov harvest and forest support mobile discovery and static readers', async () => {
   const ids = ['koltsov-harvest-1836', 'koltsov-forest-1838'];
   const selected = ids.map(id => poems.find(poem => poem.id === id));

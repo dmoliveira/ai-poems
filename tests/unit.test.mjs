@@ -18,6 +18,62 @@ import { renderHome, renderPoem, renderPoet } from '../scripts/templates.mjs';
 import { associatedPlaces, collectionLabel, contextualCounts, countedFilters, discoveryOrder, escapeHtml, filterPoems, lineCount, normalize, normalizeFinnish, normalizeGalician, placeCounts, poemCard, readingLanguages, recordedYearRanges, surprisePoem, titleAttributes, yearRangeCounts } from '../src/catalog.mjs';
 
 const poems = await loadCatalog();
+test('Obstfelder 1893 poems preserve complete readings, layout and source boundaries', () => {
+  const ids = ['jeg-ser', 'navnlos', 'vaar', 'regn'].map(key => `obstfelder-1893-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('obstfelder-1893-')).length, 4);
+  // The counts include the two printed parenthetical subtitles.
+  assert.deepEqual(selected.map(lineCount), [19, 31, 28, 21]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(block => block.split('\n').length)), [
+    [3, 2, 1, 3, 2, 1, 3, 1, 3], [7, 4, 4, 4, 4, 8], [1, 7, 7, 7, 6], [1, 20],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    '51ff75187eeb76e4cd4132bc04f9016cdca5ca2c48a46a1f3dc089b5730dd8ac',
+    '2e3968c51627e221cbd51a7669311f6e56ce26c67ca34208df3bc916774acf83',
+    'f3450c4af51949098794613d83546f9df9ec2418312e019c24d2ecfc514c7402',
+    'db74e115557004dda68d1ae077046c02d52520dd32c8d1245ee333ed0bd002b9',
+  ]);
+  const [jegSer, navnlos, vaar, regn] = selected;
+  assert.match(jegSer.text, /^Jeg ser paa den hvide himmel,[\s\S]*Solen blev borte\.[\s\S]*Her er saa underligt\. \. \. \.$/);
+  assert.match(navnlos.text, /et menneske\.\nJeg sætter mig ned stille,[\s\S]*hendes trøstende hvisken\.$/);
+  assert.match(navnlos.context, /uncertain whether a stanza break.*without an inserted blank line/s);
+  assert.match(vaar.text, /^\(Fra mine teknikerdage, 1890\.\)\n\n {4}Faen i støbejernssøilerne![\s\S]*sa \. \. lig slap \. \. hed![\s\S]* {4}\. \. blond kjærest\. \. \.$/);
+  assert.match(vaar.text, /har hun sorg\?\nHun skal klæ sig i blaat/);
+  assert.match(regn.text, /^\(Impromptu\.\)\n\nEn er en, og to er to —/);
+  assert.equal((regn.text.match(/En er en, og to er to —/g) || []).length, 2);
+  assert.match(regn.text, /deilig og raat!\nEn er en, og to er to —[\s\S]*det regner idag\.$/);
+  assert.match(regn.text, /tik tak,[\s\S]*regn regn, regn, regn,/);
+  assert.match(regn.context, /1892 Samtiden.*tik, tak.*regn, regn.*1893.*tik tak.*regn regn.*not combined/s);
+  assert.deepEqual(filterPoems(selected, { query: 'pa\u0308a\u0308' }), []);
+  const openings = ['Jeg ser paa den hvide himmel', 'Mørkets taage sænker sig', 'Faen i støbejernssøilerne', 'En er en, og to er to'];
+  const aliases = ['Jeg ser på den hvite himmel', 'Mørkets tåke senker seg', 'Vår', 'Zik zak'];
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Norwegian');
+    assert.equal(poem.lang, 'nb');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*check local law.*No translation, score or recording/s);
+    assert.match(poem.context, /historical Norwegian.*not a claim that its spelling is modern Bokmål/s);
+    for (const query of [poem.title, aliases[index], 'Sigbjorn Obstfelder']) {
+      assert.ok(filterPoems([poem], { language: 'Norwegian', query }).includes(poem), query);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="nb" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+    for (const other of poems.filter(item => item.id !== poem.id)) {
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        assert.ok(!fold(text).includes(fold(openings[index])), other.id);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-obstfelder-1893.py', '--check'], { encoding: 'utf8' }), /Verified 4 historical readings/);
+});
+
 test('Koltsov harvest and forest retain complete first-print readings', () => {
   const ids = ['koltsov-harvest-1836', 'koltsov-forest-1838'];
   const selected = ids.map(id => poems.find(poem => poem.id === id));
@@ -3083,7 +3139,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician', 'Hungarian', 'Czech'].includes(poem.language) && !poem.id.startsWith('recognized-danish-poems-') && !poem.id.startsWith('recognized-danish-classics-') && !poem.id.startsWith('recognized-nynorsk-') && !poem.id.startsWith('recognized-norwegian-') && !poem.id.startsWith('recognized-british-classics-') && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician', 'Hungarian', 'Czech'].includes(poem.language) && !poem.id.startsWith('obstfelder-1893-') && !poem.id.startsWith('recognized-danish-poems-') && !poem.id.startsWith('recognized-danish-classics-') && !poem.id.startsWith('recognized-nynorsk-') && !poem.id.startsWith('recognized-norwegian-') && !poem.id.startsWith('recognized-british-classics-') && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
