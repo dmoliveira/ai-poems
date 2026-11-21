@@ -995,6 +995,76 @@ test('Norwegian classics support mobile search, preferences, saved state and sta
   await fallback.close();
 });
 
+test('Norwegian historical readings support mobile discovery and complete static readers', async () => {
+  const ids = [
+    'bjornson-jeg-vaelger-april', 'thoresen-jeg-har-sogt', 'krag-fandango',
+    'bull-fra-mezzaninvinduet', 'bull-stenen', 'bull-metope', 'hamsun-skaergaardso',
+  ].map(key => `norwegian-historical-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  const queries = [
+    'Jeg velger meg april', 'Jeg har søkt', 'Ikke janitscharmusik',
+    'Samtidige i rummets bleke dage', 'Jeg var i den yderste evighed',
+    'Dig vil jeg ømt i rytmer nagle fast', 'Skærgaardsøen',
+  ];
+  const seed = { saved: ['recognized-norwegian-fjelli', 'world-rizal-farewell', 'unknown-future-poem'], recent: [], extra: { keep: true } };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(base);
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.evaluate(value => localStorage.setItem('verso-library-v1', JSON.stringify(value)), seed);
+  await page.reload();
+  await page.getByText(totalText, { exact: true }).waitFor();
+  await page.getByLabel('Preferred reading language', { exact: true }).selectOption('Norwegian');
+  await page.getByRole('status').getByText('Language preference saved.').waitFor();
+
+  for (const [index, poem] of selected.entries()) {
+    if (index) {
+      await page.goto(base);
+      await page.getByText(totalText, { exact: true }).waitFor();
+    }
+    await page.locator('#filter-summary').click();
+    await page.getByLabel('Original language').selectOption('Norwegian');
+    await page.getByLabel('Search the poetry library').fill(queries[index]);
+    const count = filterPoems(poems, { language: 'Norwegian', query: queries[index] }).length;
+    await page.getByText(`${count} ${count === 1 ? 'poem' : 'poems'} found`, { exact: true }).waitFor();
+    const result = page.locator(`#results a[href$="/poems/${poem.id}/"]`);
+    while (!await result.count() && await page.locator('#show-more').isVisible()) await page.locator('#show-more').click();
+    assert.equal(await result.count(), 1, queries[index]);
+    await result.click();
+    assert.equal(await page.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await page.locator('#original-panel .verse').getAttribute('lang'), 'nb');
+    assert.equal(await page.locator('#original-panel .verse').evaluate(element => getComputedStyle(element).whiteSpace), 'pre-wrap');
+    assert.equal(await page.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await page.getByRole('link', { name: poem.contextSourceTitle }).getAttribute('href'), poem.contextSource);
+    await page.getByRole('button', { name: /Save poem/ }).click();
+    await page.getByRole('status').getByText('Saved to your shelf.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  const stored = JSON.parse(await page.evaluate(() => localStorage.getItem('verso-library-v1')));
+  for (const id of [...seed.saved, ...ids]) assert.ok(stored.saved.includes(id), id);
+  assert.deepEqual(stored.extra, seed.extra);
+  assert.equal(stored.preferredLanguage, 'Norwegian');
+  await context.close();
+
+  const fallback = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 844 } });
+  const staticPage = await fallback.newPage();
+  await staticPage.goto(base);
+  await staticPage.locator('#complete-index summary').click();
+  for (const poem of selected) {
+    assert.equal(await staticPage.locator(`#index-original-${poem.language} a[href$="/poems/${poem.id}/"]`).count(), 1);
+  }
+  for (const poem of selected) {
+    assert.equal((await staticPage.goto(`${base}poems/${poem.id}/`)).status(), 200);
+    assert.equal(await staticPage.locator('#original-panel .verse').textContent(), poem.text);
+    assert.equal(await staticPage.locator('#original-panel .verse').getAttribute('lang'), 'nb');
+    assert.equal(await staticPage.getByRole('link', { name: poem.sourceTitle }).getAttribute('href'), poem.source);
+    assert.equal(await staticPage.getByRole('link', { name: poem.contextSourceTitle }).getAttribute('href'), poem.contextSource);
+    assert.ok(await staticPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), poem.id);
+  }
+  await fallback.close();
+});
+
 test('Danish and Norwegian poet-directory spelling preserves letter distinctions and legacy names', async () => {
   const example = { ...poems[0], direction: 'ltr', authorOriginal: '', authorAliases: [] };
   const sample = [

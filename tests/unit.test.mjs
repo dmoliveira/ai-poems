@@ -859,6 +859,86 @@ test('Norwegian classics retain complete first-printing readings and distinct wo
   assert.match(execFileSync('python3', ['scripts/import-recognized-norwegian-classics.py', '--check'], { encoding: 'utf8' }), /Verified 6 historical readings/);
 });
 
+test('Norwegian historical readings retain complete scan-checked works and source-specific rights', () => {
+  const ids = [
+    'bjornson-jeg-vaelger-april', 'thoresen-jeg-har-sogt', 'krag-fandango',
+    'bull-fra-mezzaninvinduet', 'bull-stenen', 'bull-metope', 'hamsun-skaergaardso',
+  ].map(key => `norwegian-historical-${key}`);
+  const selected = ids.map(id => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.id.startsWith('norwegian-historical-')).length, 7);
+  assert.deepEqual(selected.map(lineCount), [12, 48, 52, 32, 32, 73, 32]);
+  assert.deepEqual(selected.map(poem => poem.text.split('\n\n').map(block => block.split('\n').length)), [
+    [6, 6], Array(12).fill(4), [12, 10, 9, 4, 7, 4, 4, 2], [8, 8, 8, 8],
+    [4, 4, 4, 4, 5, 1, 4, 1, 5], [11, 8, 9, 9, 9, 9, 9, 9], [8, 8, 8, 8],
+  ]);
+  assert.deepEqual(selected.map(poem => createHash('sha256').update(poem.text).digest('hex')), [
+    'd52e10c5261ce3f54d1f351200392ea1afd3c98bced7b2c30e61e9b16cea685c',
+    '767bb801d89b3c06c8c151309f69f986cde85f02da51f4c0d414cc5b75a8afa6',
+    'b09a57fe64b0dadac757216da74c7aaaee31ab35d38fa849523fdb77f822774e',
+    'e7ea21b7d129c9340aca41f448a13af144a7ddeec9dd65fa8502e9301aa52e4d',
+    'd243931696b2c7b1abae2de141bcfd231d099853c57f0efc77f7c6f4b5f35ad0',
+    '181c77520ba02b8101b9af5c2e9e24184c223530e1a9293b4e4d112f1dffc490',
+    '993f956ba1cb4cb4d0eb4acb1cdfab1f41c0cc895ac27b65fe6d6062175b1cf6',
+  ]);
+  const [april, thoresen, fandango, mezzaninvinduet, stenen, metope, skaergaardso] = selected;
+  assert.match(april.context, /1870 collection.*not a claim of first publication.*Lindeman melody dates to 1877/s);
+  assert.match(thoresen.context, /enetse.*hin salige Kvinde.*autonomous/s);
+  assert.match(thoresen.text, /imellem Sjelens forvexlende Spor;[\s\S]*en enetse løst\.[\s\S]*hin salige Kvinde/);
+  assert.match(fandango.text, /^Ikke janitscharmusik![\s\S]*den store kinesiske tromme!$/);
+  assert.match(mezzaninvinduet.context, /reads “dunet” on p\. 65; Kalliope’s transcription has “dundet\.”/);
+  assert.match(mezzaninvinduet.text, /lysv?et|løvguirlandre[\s\S]*dunet paa en kvindes kinder/i);
+  assert.match(stenen.context, /comma after “rand,”.*three-star divider and dash-only lines/s);
+  assert.match(stenen.text, /frem paa en ukjendt stjernes rand,[\s\S]*\* \* \*[\s\S]*— — — — — — — —$/);
+  assert.match(metope.context, /stanza crosses the page 7–8 turn.*“Aa ven” without a comma/s);
+  assert.match(metope.text, /Aa, elskede, se, hvor dyb og sort en fjære!/);
+  assert.match(skaergaardso.context, /complete four-octave poem.*en Ø i Havet.*Wikisource transcription omits/);
+  assert.match(skaergaardso.text, /en Ø i Havet/);
+
+  const aliases = [
+    'Jeg velger meg april', 'Jeg har søkt', 'Ikke janitscharmusik',
+    'Samtidige i rummets bleke dage', 'Jeg var i den yderste evighed',
+    'Dig vil jeg ømt i rytmer nagle fast', 'Skærgaardsøen',
+  ];
+  assert.ok(readingLanguages.includes('Norwegian'));
+  for (const [index, poem] of selected.entries()) {
+    assert.equal(poem.language, 'Norwegian');
+    assert.equal(poem.lang, 'nb');
+    assert.equal(poem.country, 'Norway');
+    assert.equal(poem.creationPlace, undefined);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.equal(poem.contextSource, 'https://arkiv.nrk.no/blogg.nrk.no/bok/2016/07/07/de-100-beste-norske-diktene/index.html');
+    assert.ok(filterPoems([poem], { language: 'Norwegian', query: aliases[index] }).includes(poem), aliases[index]);
+    if (poem.authorId === 'magdalene-thoresen') {
+      assert.match(poem.rights, /Royal Danish Library.*commercial purposes.*author attribution/s);
+    } else {
+      assert.match(poem.rights, /public-domain source status is recorded by the National Library of Norway/);
+    }
+    const html = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(html.includes(`class="verse" lang="nb" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(html.includes(escapeHtml(poem.source)));
+    assert.ok(html.includes(escapeHtml(poem.contextSource)));
+  }
+
+  // This exact-overlap screen cannot rule out every translation or independently titled variant.
+  const fold = text => String(text || '').normalize('NFKD').toLowerCase()
+    .replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '');
+  for (const added of selected) {
+    const full = fold(added.text);
+    const opening = fold(added.text.split('\n').filter(Boolean).slice(0, 2).join(' '));
+    for (const other of poems.filter(poem => poem.id !== added.id)) {
+      if (other.authorId === added.authorId) assert.notEqual(fold(other.title), fold(added.title), other.id);
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (Math.min(full.length, candidate.length) > 80) assert.ok(!candidate.includes(full) && !full.includes(candidate), `${added.id} overlaps ${other.id}`);
+        assert.ok(!candidate.includes(opening), `${added.id} opening overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-norwegian-historical.py', '--check'], { encoding: 'utf8' }), /Verified 7 historical Norwegian readings/);
+});
+
 test('Danish and Norwegian searches preserve letters without changing other-language translations', () => {
   for (const language of ['Danish', 'Norwegian']) {
     const fixture = {
@@ -3195,7 +3275,7 @@ test('Swedish search distinguishes å, ä and ö, including aliases and same-lan
 });
 
 test('the new search path leaves prior catalogue search results unchanged', () => {
-  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician', 'Hungarian', 'Czech'].includes(poem.language) && !poem.id.startsWith('edward-thomas-1917-') && !poem.id.startsWith('obstfelder-1893-') && !poem.id.startsWith('recognized-danish-poems-') && !poem.id.startsWith('recognized-danish-classics-') && !poem.id.startsWith('recognized-nynorsk-') && !poem.id.startsWith('recognized-norwegian-') && !poem.id.startsWith('recognized-british-classics-') && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
+  const previous = poems.filter(poem => !['Finnish', 'Swedish', 'Galician', 'Hungarian', 'Czech'].includes(poem.language) && !poem.id.startsWith('edward-thomas-1917-') && !poem.id.startsWith('obstfelder-1893-') && !poem.id.startsWith('recognized-danish-poems-') && !poem.id.startsWith('recognized-danish-classics-') && !poem.id.startsWith('recognized-nynorsk-') && !poem.id.startsWith('recognized-norwegian-') && !poem.id.startsWith('norwegian-historical-') && !poem.id.startsWith('recognized-british-classics-') && !poem.id.startsWith('recognized-chinese-classics-') && !poem.id.startsWith('recognized-song-classics-') && !poem.id.startsWith('recognized-multilingual-classics-') && !poem.id.startsWith('recognized-world-classics-2-') && !poem.id.startsWith('recognized-world-classics-3-') && !poem.id.startsWith('recognized-world-classics-4-') && !poem.id.startsWith('recognized-world-classics-5-') && !poem.id.startsWith('recognized-world-classics-7-') && !poem.id.startsWith('recognized-world-classics-8-') && !poem.id.startsWith('recognized-european-classics-'));
   const legacy = new Map(previous.map(poem => [poem.id, normalize([
     poem.title, poem.displayTitle, poem.author, poem.authorOriginal, poem.country, poem.era, poem.form,
     poem.collection, poem.language, poem.text, ...poem.themes,
