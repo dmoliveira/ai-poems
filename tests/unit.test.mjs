@@ -3838,6 +3838,70 @@ test('Kabir-attributed dohas preserve complete historical readings and textual c
   assert.match(execFileSync('python3', ['scripts/import-kabir-hindavi.py', '--check'], { encoding: 'utf8' }), /Verified 7 readings/);
 });
 
+test('Rahim-attributed dohas retain the 1926 scan readings, uncertainty and rights notes', () => {
+  const expected = new Map([
+    ['rahim-1926-bigri-baat', 'बिगरी बात बनै नहीं, लाख करौ किन कोइ।\nरहिमन बिगरे दूध के, मथे न माखन होइ॥'],
+    ['rahim-1926-dekhi-baren', 'रहिमन देखि बड़ेन को, लघु न दीजिए डारि।\nजहाँ काम आवै सुई, कहा करै तरवारि॥'],
+    ['rahim-1926-pani-rakhiye', 'रहिमन पानी राखिए, बिन पानी सब सून।\nपानी गए न ऊबरै, मोती मानुष चून॥'],
+    ['rahim-1926-dhaga-prem', 'रहिमन धागा प्रेम को, मति तोरो चटकाइ।\nटूटे से फिरि ना मिलै, मिले गाँठि परि जाइ॥'],
+  ]);
+  const selected = [...expected].map(([id]) => poems.find(poem => poem.id === id));
+  assert.ok(selected.every(Boolean));
+  assert.equal(poems.filter(poem => poem.authorId === 'rahim').length, 4);
+  assert.deepEqual(selected.map(poem => [poem.id, poem.text]), [...expected]);
+  for (const poem of selected) {
+    assert.equal(poem.author, 'Rahim');
+    assert.equal(poem.authorOriginal, 'रहीम');
+    assert.equal(poem.anonymous, undefined);
+    assert.equal(poem.uncertainAttribution, true);
+    assert.equal(poem.language, 'Hindi');
+    assert.equal(poem.lang, 'hi');
+    assert.equal(poem.country, 'India');
+    assert.equal(poem.year, 1926);
+    assert.match(poem.yearLabel, /1926 edition.*composition date unknown/);
+    assert.match(poem.context, /Traditionally attributed to Rahim.*not independent proof of authorship.*historical Braj register.*not a composition date/s);
+    assert.deepEqual(poem.themes, []);
+    assert.deepEqual(poem.translations, []);
+    assert.match(poem.rights, /public domain in the United States.*scan rights as ‘Not Available’.*CC BY-SA 4\.0.*check local law/s);
+    assert.match(poem.source, /hi\.wikisource\.org\/w\/index\.php\?title=.*&oldid=\d+$/);
+    assert.match(poem.contextSource, /archive\.org\/download\/.*\.pdf#page=\d+$/);
+    assert.ok(filterPoems([poem], { language: 'Hindi', query: poem.title }).includes(poem));
+    assert.ok(filterPoems([poem], { language: 'Hindi', query: 'रहिमन' }).includes(poem));
+    const reader = renderPoem(poem, poems, '/ai-poems/');
+    assert.ok(reader.includes(`class="verse" lang="hi" dir="ltr">${escapeHtml(poem.text)}`));
+    assert.ok(reader.includes('Attribution: <strong><a href="/ai-poems/poets/rahim/">Rahim</a></strong>'));
+    assert.ok(reader.includes(`${escapeHtml(poem.title)} attributed to Rahim`));
+    assert.ok(reader.includes('<dt>Attribution</dt>'));
+    const schema = JSON.parse(reader.match(/<script type="application\/ld\+json">([^<]+)<\/script>/)[1]);
+    assert.equal(schema.author, undefined);
+    assert.ok(poemCard(poem, '/ai-poems/').includes('Traditionally attributed to Rahim'));
+    assert.ok(reader.includes(escapeHtml(poem.source)));
+    assert.ok(reader.includes(escapeHtml(poem.contextSource)));
+  }
+  assert.match(selected[0].context, /बिगरे दूध के.*फाटे दूध को/);
+  assert.match(selected[1].context, /बड़ेन.*बड़ें.*आवै.*तरवारि/);
+  assert.match(selected[2].context, /राखिए, बिन पानी.*राखिये, बिनु पानी/);
+  assert.match(selected[3].context, /मति तोरो चटकाइ.*मत तोड़ो छिटकाय/);
+
+  const rahim = groupPoets(poems).find(poet => poet.id === 'rahim');
+  assert.equal(rahim.anonymous, false);
+  assert.match(renderPoet(rahim, '/ai-poems/'), /TRADITIONAL ATTRIBUTIONS[\s\S]*not establish authorship of each poem/);
+  assert.equal(filterPoems(poems, { language: 'Hindi' }).length, 11);
+
+  const fold = text => text.normalize('NFC').toLowerCase().replace(/[^\p{L}\p{M}\p{N}]/gu, '');
+  for (const added of selected) {
+    const reading = fold(added.text);
+    for (const other of poems) {
+      if (other.authorId === 'rahim') continue;
+      for (const text of [other.text, ...other.translations.map(item => item.text)]) {
+        const candidate = fold(text);
+        if (candidate.length >= 35) assert.ok(!reading.includes(candidate) && !candidate.includes(reading), `${added.id} overlaps ${other.id}`);
+      }
+    }
+  }
+  assert.match(execFileSync('python3', ['scripts/import-rahim-hindi.py', '--check'], { encoding: 'utf8' }), /Verified 4 readings/);
+});
+
 test('Polish classics retain distinct work boundaries, historical sources and credited readings', () => {
   const historicIds = new Set([
     'mickiewicz-1826-stepy-akermanskie', 'mickiewicz-1899-oda-do-mlodosci',
